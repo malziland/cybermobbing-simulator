@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="google-site-verification" content="PFWMbRFOM6OV2Ig3_iESF0sUmpigfWXNMRXITuIho7s">
+<title>Wie Cybermobbing viral geht &ndash; 120-Sekunden-Simulation</title>
+<meta name="description" content="Erlebe in 120 Sekunden, wie schnell Cybermobbing viral geht. Interaktive Simulation f&uuml;r Workshops an Schulen &ndash; WhatsApp, Instagram, TikTok. Ein Bildungsprojekt von malziland.">
+<meta name="keywords" content="Cybermobbing, Simulation, Schule, Workshop, Medienkompetenz, Pr&auml;vention, WhatsApp, Instagram, TikTok, &Ouml;sterreich, Bildung">
+<meta name="author" content="malziland &ndash; digitale Wissensgestaltung e.U.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://cybermobbing.web.app">
+
+<!-- Open Graph (Facebook, LinkedIn, WhatsApp) -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cybermobbing.web.app">
+<meta property="og:title" content="Wie Cybermobbing viral geht &ndash; 120-Sekunden-Simulation">
+<meta property="og:description" content="Erlebe in 120 Sekunden, wie schnell Cybermobbing viral geht. Interaktive Simulation f&uuml;r Workshops an Schulen.">
+<meta property="og:image" content="https://cybermobbing.web.app/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="de_AT">
+<meta property="og:site_name" content="Cybermobbing-Simulation">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Wie Cybermobbing viral geht &ndash; 120-Sekunden-Simulation">
+<meta name="twitter:description" content="Erlebe in 120 Sekunden, wie schnell Cybermobbing viral geht. Interaktive Simulation f&uuml;r Workshops an Schulen.">
+<meta name="twitter:image" content="https://cybermobbing.web.app/assets/og-image.png">
+
+<!-- Theme -->
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Cybermobbing-Simulation",
+  "description": "Erlebe in 120 Sekunden, wie schnell Cybermobbing viral geht. Interaktive Simulation f\u00fcr Workshops an Schulen.",
+  "url": "https://cybermobbing.web.app",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Web",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"},
+  "author": {
+    "@type": "Organization",
+    "name": "malziland \u2013 digitale Wissensgestaltung e.U.",
+    "url": "https://malzi.me"
+  },
+  "inLanguage": "de",
+  "audience": {"@type": "EducationalAudience", "educationalRole": "student"},
+  "about": {"@type": "Thing", "name": "Cybermobbing", "alternateName": "Cyberbullying"}
+}
+</script>
+
+<link rel="stylesheet" href="css/styles.css?v=1774958212">
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div id="start">
+  <h1 data-i18n-html="ui.titleHtml">Wie Cybermobbing<br><em>viral geht</em></h1>
+  <p class="sub1" data-i18n="ui.subtitle">120-Sekunden-Simulation</p>
+  <button id="startBtn"><span aria-hidden="true">&#9654;&#xFE0E;</span> <span data-i18n="ui.start">Simulation starten</span></button>
+  <div class="start-footer">
+    <button class="start-share" id="startShareBtn">
+      <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-i18n="ui.share">Simulation teilen</span>
+    </button>
+    <div class="start-views">
+      <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span id="viewCountStart">--</span>
+    </div>
+  </div>
+</div>
+
+<!-- LIMIT PAGE (shown when daily limit reached) -->
+<div id="limitPage">
+  <div class="limit-phone">
+    <div class="limit-notifs">
+      <div class="limit-n"><span class="limit-ico limit-ico-wa">&#128172;</span><div data-i18n-html="limit.n1"><strong>+247 Nachrichten</strong> in 3 Gruppen</div></div>
+      <div class="limit-n"><span class="limit-ico limit-ico-heart">&#10084;&#65039;</span><div data-i18n-html="limit.n2"><strong>+1.8k Likes</strong> auf das Foto von dir</div></div>
+      <div class="limit-n"><span class="limit-ico limit-ico-cam">&#128248;</span><div data-i18n-html="limit.n3"><strong>12 Screenshots</strong> von deinem Bild</div></div>
+      <div class="limit-n"><span class="limit-ico limit-ico-tk">&#127925;</span><div data-i18n-html="limit.n4"><strong>4 TikTok-Videos</strong> mit deinem Foto</div></div>
+      <div class="limit-n"><span class="limit-ico limit-ico-phone">&#128241;</span><div data-i18n-html="limit.n5"><strong>Mama</strong> versucht anzurufen...</div></div>
+    </div>
+    <div class="limit-msg">
+      <div class="limit-title" data-i18n-html="limit.title">Auch diese Simulation<br>braucht eine Pause.</div>
+      <div class="limit-sub"><span data-i18n="limit.sub">Heute haben schon zu viele Menschen zugeschaut.</span><br><span data-i18n="limit.availableIn">Wieder verf&uuml;gbar in:</span> <strong id="limitTimer">--:--:--</strong></div>
+      <div class="limit-sub2" data-i18n-html="limit.note">Cybermobbing h&ouml;rt leider nicht auf,<br>nur weil man wegschaut.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DISCLAIMER (visible on all screens) -->
+<div class="disclaimer" data-i18n="disclaimer.full">Fiktives Szenario zu Bildungszwecken. Alle Namen und Inhalte sind erfunden. Die dargestellten App-Oberfl&auml;chen, Logos und Markenzeichen sind Eigentum der jeweiligen Unternehmen und werden hier ausschlie&szlig;lich zur realistischen Veranschaulichung im Bildungskontext verwendet. Diese Seite steht in keiner Verbindung zu den genannten Plattformen oder deren Betreibern. Die genannten Plattformen bieten Meldefunktionen und Hilfsangebote gegen Cybermobbing.</div>
+<div class="impr-link-bar"><span class="impr-link" id="impLinkGlobal" tabindex="0" role="button" data-i18n="ui.impressum">Impressum</span></div>
+
+<!-- IMPRESSUM MODAL -->
+<div id="impModal" class="imp-modal" role="dialog" aria-modal="true" aria-label="Impressum">
+  <div class="imp-phone">
+    <div class="imp-statusbar">
+      <span>21:34</span>
+      <span class="imp-statusbar-label" data-i18n="imp.title">Impressum</span>
+    </div>
+    <div class="imp-scroll">
+      <h2 data-i18n="imp.title">Impressum</h2>
+      <p class="imp-subtitle" data-i18n="imp.subtitle">Cybermobbing-Simulation by malziland</p>
+
+      <div class="imp-notice">
+        <p data-i18n="imp.notice">Diese Simulation ist ein Bildungstool zur Sensibilisierung gegen Cybermobbing. Alle dargestellten Personen, Namen und Inhalte sind frei erfunden.</p>
+      </div>
+
+      <div class="imp-block">
+        <p><strong>malziland &ndash; digitale Wissensgestaltung e.U.</strong></p>
+        <p>Inhaber: Christoph Krieger</p>
+        <p>Tassilostra&szlig;e 22, 4501 Neuhofen an der Krems, &Ouml;sterreich</p>
+        <p><a href="mailto:info@malzi.me">info@malzi.me</a></p>
+      </div>
+
+      <div class="imp-block">
+        <p>Gewerbewortlaut: Unternehmensberater einschlie&szlig;lich der Unternehmensorganisation, eingeschr&auml;nkt auf Personalentwicklung</p>
+        <p>GISA: 33320410 &middot; UID: ATU76410108</p>
+        <p>FN: 549939 i &middot; Firmenbuchgericht: Landesgericht Linz</p>
+        <p>WKO: Ober&ouml;sterreich &middot; Gewerbebeh&ouml;rde: BH Linz-Land</p>
+      </div>
+
+      <div class="imp-block">
+        <p data-i18n="imp.purpose">Zweck: Bereitstellung und Betrieb einer interaktiven Cybermobbing-Simulation f&uuml;r Workshops zur Medienkompetenz an Schulen.</p>
+      </div>
+
+      <div class="imp-block">
+        <p><strong data-i18n="imp.privacyTitle">Datenschutz gem&auml;&szlig; DSGVO</strong></p>
+        <p data-i18n="imp.privacyNoData">Diese Seite speichert keine personenbezogenen Daten. Es werden keine Cookies gesetzt, kein Tracking eingesetzt und keine IP-Adressen gespeichert.</p>
+        <p data-i18n="imp.privacyCounter">Der View-Counter speichert ausschlie&szlig;lich eine anonyme Z&auml;hlzahl ohne Bezug zu einzelnen Besuchern. Eine Zuordnung zu Personen ist nicht m&ouml;glich.</p>
+        <p data-i18n-html="imp.privacyHosting">Das Hosting erfolgt &uuml;ber Google Firebase (Google Ireland Ltd). Es gelten die <a href="https://firebase.google.com/terms" target="_blank">Firebase-Nutzungsbedingungen</a> und die <a href="https://policies.google.com/privacy" target="_blank">Google-Datenschutzerkl&auml;rung</a>.</p>
+        <p data-i18n-html="imp.privacyContact">Bei Fragen zum Datenschutz: <a href="mailto:info@malzi.me">info@malzi.me</a></p>
+      </div>
+
+      <button class="imp-close-btn" id="impCloseBtn" data-i18n="ui.close">Schlie&szlig;en</button>
+      <div class="imp-home-indicator"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAUSE -->
+<button id="pauseBtn" class="pause-btn hidden">II</button>
+<div id="pauseOverlay" class="pause-overlay hidden">
+  <div class="pause-text" data-i18n="ui.paused">Pausiert &mdash; tippe um fortzufahren</div>
+</div>
+
+<!-- TIMER BAR -->
+<div class="tbar"><div class="fill" id="tf"></div><div class="lbl" id="tl"></div></div>
+<div class="flash" id="fl"></div>
+<div class="toast" id="toast"></div>
+
+<!-- PHONE FRAME -->
+<div class="phone hidden" id="phone">
+  <div class="di"></div>
+  <div class="sb">
+    <span id="sbTime"></span>
+    <span class="r">
+      <span class="bars sb-bars"><i></i><i></i><i></i><i></i></span>
+      <span class="sb-5g">5G</span>
+      <svg aria-hidden="true" width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="4" width="4" height="8" rx="1" fill="#fff"/><rect x="5" y="2" width="4" height="10" rx="1" fill="#fff"/><rect x="10" y="0" width="4" height="12" rx="1" fill="#fff"/><rect x="15.5" y="1" width="2" height="10" rx=".5" fill="none" stroke="#fff" stroke-width=".7"/><rect x="16" y="4" width="1" height="4.5" rx=".3" fill="#fff"/></svg>
+    </span>
+  </div>
+  <div class="hi"></div>
+  <div class="scr">
+
+    <!-- WHATSAPP -->
+    <div class="app wa" id="aWa">
+      <div class="wa-hd">
+        <span class="bk">&#8249;</span>
+        <div class="av">3B</div>
+        <div class="inf"><h3 data-i18n="wa.groupName">Klasse 3B &#127979;</h3><p data-i18n="wa.groupMembers">Marco, Sara, Tim, Tom +19</p></div>
+        <div class="acts">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8696a0" stroke-width="1.5"><path d="M15.05 5A5 5 0 0119 8.95M15.05 1A9 9 0 0123 8.94M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.09 5.18 2 2 0 015.11 3h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 11.91a16 16 0 006 6l2.27-2.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8696a0" stroke-width="1.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </div>
+      </div>
+      <div class="wa-msgs" id="wC"></div>
+      <div class="wa-bar">
+        <div class="inp">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8696a0" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
+          <span data-i18n="wa.inputPlaceholder">Nachricht</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8696a0" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" stroke-linecap="round"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8696a0" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+        <div class="mic"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
+      </div>
+    </div>
+
+    <!-- INSTAGRAM -->
+    <div class="app ig" id="aIg">
+      <div class="ig-hd">
+        <span class="bk"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="avr"><i></i></div>
+        <span class="usr">sara.xoxo</span>
+        <span class="more">&middot;&middot;&middot;</span>
+      </div>
+      <div class="ig-body" id="igB">
+        <div class="ig-img" id="igPh"></div>
+        <div class="ig-acts">
+          <svg id="igH" viewBox="0 0 24 24" fill="none" stroke="#f5f5f5" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f5f5f5" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f5f5f5" stroke-width="1.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg class="save" viewBox="0 0 24 24" fill="none" stroke="#f5f5f5" stroke-width="1.5"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="ig-stats">
+          <div class="lkc" id="igLk" data-i18n="ig.likesZero">0 &bdquo;Gef&auml;llt mir&ldquo;-Angaben</div>
+          <div class="allc" id="igCc"></div>
+        </div>
+        <div class="ig-views" id="igVw"></div>
+        <div class="ig-coms" id="igCm"></div>
+      </div>
+      <div class="ig-nav">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+    </div>
+
+    <!-- TIKTOK -->
+    <div class="app tk" id="aTk">
+      <div class="tk-vid" id="tkBg"></div>
+      <div class="tk-lbl"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" stroke-linecap="round" stroke-linejoin="round"/></svg> <span data-i18n="tk.label">Reaktionsvideo &middot; @marco_2012</span></div>
+      <div class="tk-side">
+        <div class="tk-sb"><svg viewBox="0 0 24 24" fill="#fff"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span class="n" id="tkLk">0</span></div>
+        <div class="tk-sb"><svg viewBox="0 0 24 24" fill="#fff"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span class="n" id="tkCm">0</span></div>
+        <div class="tk-sb"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="n" id="tkSh">0</span></div>
+      </div>
+      <div class="tk-bot"><div class="u">@lukas.der.echte</div><div class="d" data-i18n-html="tk.botDesc">I can't &#128128;&#128128; <span class="tag">#school</span> <span class="tag">#exposed</span> <span class="tag">#fy</span></div></div>
+      <div class="tk-cmt" id="tkCo"><div class="hdr" id="tkCmH" data-i18n="tk.commentsHeader">Kommentare</div><div class="lst" id="tkCl"></div></div>
+      <div class="tk-nav">
+        <div class="ni act"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/></svg><span class="tk-nav-active" data-i18n="tk.navStart">Start</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg><span data-i18n="tk.navDiscover">Entdecken</span></div>
+        <div class="cr"><div class="bg1"></div><div class="bg2"></div><div class="fg"><svg viewBox="0 0 24 24" fill="#000" stroke="none"><path d="M12 4v16M4 12h16" stroke="#000" stroke-width="2.5" stroke-linecap="round"/></svg></div></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="tk.navInbox">Posteingang</span></div>
+        <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke-linecap="round"/><circle cx="12" cy="7" r="4"/></svg><span data-i18n="tk.navProfile">Profil</span></div>
+      </div>
+    </div>
+
+    <!-- HOMESCREEN -->
+    <div class="app hs" id="aHs">
+      <div class="hs-time"><div class="t" id="hsClock"></div><div class="d" id="hsDate"></div></div>
+      <div class="hs-notifs" id="hsN"></div>
+      <div class="hs-dock">
+        <div class="hs-ai"><img src="assets/icons/whatsapp.png" alt="WhatsApp"><div class="bdg" id="xW">23</div><div class="nm">WhatsApp</div></div>
+        <div class="hs-ai"><img src="assets/icons/instagram.png" alt="Instagram"><div class="bdg" id="xI">186</div><div class="nm">Instagram</div></div>
+        <div class="hs-ai"><img src="assets/icons/tiktok.png" alt="TikTok"><div class="bdg" id="xT">4.2k</div><div class="nm">TikTok</div></div>
+        <div class="hs-ai"><img src="assets/icons/messages.png" alt="Nachrichten"><div class="bdg" id="xN">47</div><div class="nm" data-i18n="ui.messages">Nachrichten</div></div>
+        <div class="hs-ai"><img src="assets/icons/snapchat.png" alt="Snapchat"><div class="bdg" id="xS">12</div><div class="nm">Snapchat</div></div>
+      </div>
+    </div>
+
+    <!-- MESSAGES (Tom -> Mama) -->
+    <div class="app im" id="aIm">
+      <div class="im-hd">
+        <span class="bk"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2.5"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg> <span data-i18n="im.back">Zur&uuml;ck</span></span>
+        <div class="cnt"><div class="nm" data-i18n="im.contactName">Mama &#10084;&#65039;</div><div class="sub" data-i18n="im.label">iMessage</div></div>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="1.5"><path d="M15.05 5A5 5 0 0119 8.95M15.05 1A9 9 0 0123 8.94M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.09 5.18 2 2 0 015.11 3h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 11.91a16 16 0 006 6l2.27-2.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="im-msgs" id="imC"></div>
+      <div class="im-bar">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg>
+        <div class="inp">iMessage</div>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+
+    <!-- FINAL: dramatic text -->
+    <div class="app fin" id="aFn">
+      <div class="fl" id="fA" data-i18n="fin.line1">Das waren 120 Sekunden.</div>
+      <div class="fin-spacer"></div>
+      <div class="fl" id="fB" data-i18n="fin.line2">F&uuml;r Tom geht das seit 3 Wochen.</div>
+      <div class="fl" id="fC" data-i18n="fin.line3">Jeden Tag.</div>
+      <div class="fl" id="fC2" data-i18n="fin.line4">Auch nachts.</div>
+      <div class="fin-spacer"></div>
+      <div class="fl" id="fE" data-i18n-html="fin.line5">Alle haben es gesehen<br>und morgen in der Schule<br>geht es weiter.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CTA: fullscreen call to action (outside phone frame) -->
+<!-- Logo, slogan and link are loaded from helplineConfig in config.js -->
+<div class="cta-screen hidden" id="aCta">
+  <a target="_blank" rel="noopener" class="cta-logo hidden" id="ctaLogo"></a>
+  <div class="cta-links" id="ctaLinks"></div>
+  <div class="cta-helpline" id="ctaHelpline"></div>
+  <div class="cta-text" id="ctaMsg" data-i18n="fin.help">Cybermobbing ist kein Spa&szlig; &ndash; es ist Gewalt, die man nicht sieht. Wenn Worte dich verletzen oder du siehst, wie andere fertiggemacht werden: Du musst das nicht alleine aushalten. Brich das Schweigen.</div>
+  <div class="fin-actions">
+    <div class="fin-buttons">
+      <button class="footer-share" id="footerShareBtn">
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="ui.share">Simulation teilen</span>
+      </button>
+      <button class="footer-replay" id="footerReplayBtn">
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6M23 20v-6h-6" stroke-linecap="round" stroke-linejoin="round"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="ui.replay">Nochmal</span>
+      </button>
+    </div>
+    <div class="fin-views">
+      <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span id="viewCount">--</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- BACKGROUND MUSIC -->
+<audio id="bgm" preload="auto" src="assets/bgm.mp3"></audio>
+
+<!-- FIREBASE SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" integrity="sha384-sEVIly94UBRLKWdkYoPpSG7GD/e79YHMrxVyZaOk712Ga7+EAw6w1EFi+xBzBdd+" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" integrity="sha384-1/m+A1jVWbD3yiK3/vtFvm1+LjK1WLpSoDY+Kaxppwn/yP9BVSgdHTNQVOjrzUO5" crossorigin="anonymous"></script>
+
+<!-- APP SCRIPTS -->
+<script src="js/i18n.js?v=1774958212"></script>
+<script src="js/audio.js?v=1774958212"></script>
+<script src="js/helpers.js?v=1774958212"></script>
+<script src="js/timer.js?v=1774958212"></script>
+<script src="js/scenes/p1-whatsapp.js?v=1774958212"></script>
+<script src="js/scenes/p2-instagram.js?v=1774958212"></script>
+<script src="js/scenes/p3-tiktok.js?v=1774958212"></script>
+<script src="js/scenes/p4-homescreen.js?v=1774958212"></script>
+<script src="js/scenes/p4b-messages.js?v=1774958212"></script>
+<script src="js/scenes/p5-finale.js?v=1774958212"></script>
+<script src="js/config.js?v=1774958212"></script>
+<script src="js/firebase-counter.js?v=1774958212"></script>
+<script src="js/main.js?v=1774958212"></script>
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+.DS_Store
+.firebase/
+.firebaserc
+node_modules/
+js/config.js
+google*.html
+assets/icons/
+assets/rat-auf-draht.png

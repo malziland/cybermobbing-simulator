@@ -1,0 +1,27 @@
+{
+  "name": "cybermobbing-simulation",
+  "version": "1.1.0",
+  "description": "Interaktive 120-Sekunden-Simulation: Wie Cybermobbing viral geht. Bildungstool für Workshops an Schulen.",
+  "author": "malziland – digitale Wissensgestaltung e.U.",
+  "license": "MIT",
+  "homepage": "https://cybermobbing.web.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/malziland/cybermobbing-simulation"
+  },
+  "scripts": {
+    "setup": "bash setup.sh",
+    "cache-bust": "bash scripts/cache-bust.sh",
+    "predeploy": "bash scripts/cache-bust.sh",
+    "deploy": "bash scripts/cache-bust.sh && firebase deploy --project cybermobbing"
+  },
+  "keywords": [
+    "cybermobbing",
+    "cyberbullying",
+    "simulation",
+    "education",
+    "workshop",
+    "school",
+    "prevention"
+  ]
+}

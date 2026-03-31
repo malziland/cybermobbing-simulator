@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cybermobbing Simulation - Tests</title>
+  <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.20.1.css" integrity="sha384-Y4wM5mZnhfI8z1YGc/h8wyWk1hRjRBH8uLriybSF3KTGSYB8SbLvjQnkhVKHfqPg" crossorigin="anonymous">
+</head>
+<body>
+
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+
+  <!-- DOM fixtures needed by timer tests -->
+  <div id="tf" style="width:0"></div>
+  <div id="tl"></div>
+  <div id="sbTime">21:34</div>
+  <div id="hsClock">21:34</div>
+
+  <!-- QUnit -->
+  <script src="https://code.jquery.com/qunit/qunit-2.20.1.js" integrity="sha384-qg/4t+0uOs/GHC3pMTtqdei7LZDKBsRQcqE0KagQ8c26loVFJAs/2VDaK023mhfj" crossorigin="anonymous"></script>
+
+  <!-- App scripts in dependency order -->
+  <script src="../js/i18n.js"></script>
+  <script src="../js/audio.js"></script>
+  <script src="../js/helpers.js"></script>
+  <script src="../js/timer.js"></script>
+  <!-- Scene scripts (depend on i18n, audio, helpers, timer) -->
+  <script src="../js/scenes/p1-whatsapp.js"></script>
+  <script src="../js/scenes/p2-instagram.js"></script>
+  <script src="../js/scenes/p3-tiktok.js"></script>
+  <script src="../js/scenes/p4-homescreen.js"></script>
+  <script src="../js/scenes/p4b-messages.js"></script>
+  <script src="../js/scenes/p5-finale.js"></script>
+  <!-- Main (depends on everything above) -->
+  <script src="../js/main.js"></script>
+
+  <!-- Test files -->
+  <script src="test-i18n.js"></script>
+  <script src="test-helpers.js"></script>
+  <script src="test-timer.js"></script>
+  <script src="test-main.js"></script>
+  <script src="test-audio.js"></script>
+  <script src="test-scenes.js"></script>
+
+</body>
+</html>

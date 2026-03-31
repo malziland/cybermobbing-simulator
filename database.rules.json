@@ -1,0 +1,17 @@
+{
+  "rules": {
+    "views": {
+      ".read": true,
+      ".write": "newData.isNumber() && newData.val() === data.val() + 1"
+    },
+    "daily": {
+      ".read": true,
+      "$date": {
+        ".write": "newData.isNumber() && ((!data.exists() && newData.val() === 1) || newData.val() === data.val() + 1)",
+        ".validate": "$date.matches(/^\\d{4}-\\d{2}-\\d{2}$/)"
+      }
+    },
+    ".read": false,
+    ".write": false
+  }
+}
