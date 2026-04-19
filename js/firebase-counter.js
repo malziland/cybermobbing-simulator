@@ -36,11 +36,35 @@ dailyRef.once('value', function (snapshot) {
 });
 
 /**
+ * Per-browser deduplication: a browser increments the counter at most once
+ * per UTC day. Prevents inflated counts from refresh loops (e.g. students
+ * replaying the simulation within one lesson) and raises the bar for
+ * casual abuse -- a scripted attacker still bypasses this by clearing
+ * localStorage, but organic double-counting is eliminated entirely.
+ * Storage failures (private mode, disabled cookies) fall through silently
+ * so the counter keeps working.
+ */
+var COUNT_STORAGE_KEY = 'cms_last_count';
+
+function hasCountedToday() {
+  try { return localStorage.getItem(COUNT_STORAGE_KEY) === today; }
+  catch (e) { return false; }
+}
+
+function markCountedToday() {
+  try { localStorage.setItem(COUNT_STORAGE_KEY, today); }
+  catch (e) { /* localStorage unavailable -- accept duplicate count */ }
+}
+
+/**
  * Atomically increments both the total and daily view counters.
  * Called once when the simulation starts (from go() in main.js).
  * Uses Firebase transactions to avoid race conditions with concurrent users.
+ * Skips the increment entirely if this browser has already counted today.
  */
 function incrementCounters() {
+  if (hasCountedToday()) return;
+  markCountedToday();
   viewsRef.transaction(function (current) { return (current || 0) + 1; })
     .catch(function (err) { if (typeof console !== 'undefined') console.warn('Counter increment failed:', err); });
   dailyRef.transaction(function (current) { return (current || 0) + 1; })
