@@ -32,6 +32,7 @@ var TRANSLATIONS = {
     'imp.privacyTitle': 'Datenschutz gem\u00E4\u00DF DSGVO',
     'imp.privacyNoData': 'Diese Seite speichert keine personenbezogenen Daten. Es werden keine Cookies gesetzt, kein Tracking eingesetzt und keine IP-Adressen gespeichert.',
     'imp.privacyCounter': 'Der View-Counter speichert ausschlie\u00DFlich eine anonyme Z\u00E4hlzahl ohne Bezug zu einzelnen Besuchern. Eine Zuordnung zu Personen ist nicht m\u00F6glich.',
+    'imp.privacyLocalStorage': 'Die Seite legt zwei rein funktionale Werte im lokalen Browserspeicher (localStorage) ab: die gew\u00E4hlte Sprache und eine Tagesmarke, damit derselbe Browser den View-Counter nicht mehrfach erh\u00F6ht. Beide Werte bleiben auf deinem Ger\u00E4t, enthalten keine personenbezogenen Daten und werden nicht \u00FCbertragen.',
     'imp.privacyHosting': 'Das Hosting erfolgt \u00FCber Google Firebase (Google Ireland Ltd). Es gelten die <a href="https://firebase.google.com/terms" target="_blank">Firebase-Nutzungsbedingungen</a> und die <a href="https://policies.google.com/privacy" target="_blank">Google-Datenschutzerkl\u00E4rung</a>.',
     'imp.privacyContact': 'Bei Fragen zum Datenschutz: <a href="mailto:info@malzi.me">info@malzi.me</a>',
 
@@ -171,6 +172,7 @@ var TRANSLATIONS = {
     'imp.privacyTitle': 'Privacy (GDPR)',
     'imp.privacyNoData': 'This site does not store any personal data. No cookies are set, no tracking is used, and no IP addresses are stored.',
     'imp.privacyCounter': 'The view counter stores only an anonymous count with no relation to individual visitors. Attribution to persons is not possible.',
+    'imp.privacyLocalStorage': 'The site stores two purely functional values in browser localStorage: the selected language and a daily marker that prevents the same browser from incrementing the view counter multiple times. Both values stay on your device, contain no personal data and are never transmitted.',
     'imp.privacyHosting': 'Hosting is provided by Google Firebase (Google Ireland Ltd). The <a href="https://firebase.google.com/terms" target="_blank">Firebase Terms of Service</a> and <a href="https://policies.google.com/privacy" target="_blank">Google Privacy Policy</a> apply.',
     'imp.privacyContact': 'For privacy questions: <a href="mailto:info@malzi.me">info@malzi.me</a>',
 

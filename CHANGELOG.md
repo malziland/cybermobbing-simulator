@@ -4,6 +4,11 @@ Alle relevanten Änderungen an diesem Projekt werden hier dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) und folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.1.3] - 2026-04-19
+
+### Hinzugefügt
+- Impressum/Datenschutz: neuer Absatz `imp.privacyLocalStorage` (deutsch + englisch), der die beiden funktionalen localStorage-Werte offenlegt: `sim_lang` (gewählte Sprache) und `cms_last_count` (Tagesmarke für den View-Counter-Dedup). Ergänzt die bisherige „keine Cookies"-Aussage um Transparenz zu lokalem Browserspeicher. Beide Werte bleiben auf dem Endgerät, enthalten keine personenbezogenen Daten und werden nicht übertragen.
+
 ## [1.1.2] - 2026-04-19
 
 ### Dokumentation
