@@ -13,7 +13,7 @@
     "setup": "bash setup.sh",
     "cache-bust": "bash scripts/cache-bust.sh",
     "predeploy": "bash scripts/cache-bust.sh",
-    "deploy": "bash scripts/cache-bust.sh && firebase deploy --project cybermobbing"
+    "deploy": "firebase deploy --project cybermobbing"
   },
   "keywords": [
     "cybermobbing",

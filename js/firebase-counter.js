@@ -47,15 +47,32 @@ function incrementCounters() {
     .catch(function (err) { if (typeof console !== 'undefined') console.warn('Daily counter increment failed:', err); });
 }
 
-// Live-update all counter display elements whenever the total changes
+// Live-update all counter display elements whenever the total changes.
+// If the Firebase connection is blocked (ad blockers, school firewalls,
+// Firefox ETP), the callback never fires; hide the counter boxes after
+// 5s so users do not see the "--" placeholder stuck on screen.
+var viewCountLoaded = false;
+
+function hideViewCounters() {
+  var boxes = document.querySelectorAll('.start-views, .fin-views');
+  for (var i = 0; i < boxes.length; i++) boxes[i].style.display = 'none';
+}
+
 viewsRef.on('value', function (snapshot) {
+  viewCountLoaded = true;
   var count = snapshot.val() || 0;
   var formatted = count.toLocaleString('de-DE');
   var el = document.getElementById('viewCount');
   var el2 = document.getElementById('viewCountStart');
   if (el) el.textContent = formatted;
   if (el2) el2.textContent = formatted;
+}, function () {
+  hideViewCounters();
 });
+
+setTimeout(function () {
+  if (!viewCountLoaded) hideViewCounters();
+}, 5000);
 
 /**
  * Starts a live countdown timer showing the time remaining until midnight,
@@ -65,11 +82,21 @@ function startLimitTimer() {
   var el = document.getElementById('limitTimer');
   if (!el) return;
 
-  /** Updates the HH:MM:SS countdown display */
+  /**
+   * Updates the HH:MM:SS countdown display.
+   * The daily counter key (`today`) is derived from UTC, so the reset
+   * must also be computed against UTC midnight — otherwise a user in
+   * CET/CEST sees a 24h countdown at local midnight while the UTC key
+   * actually rolls over 1-2h later.
+   */
   function update() {
     var now = new Date();
-    var midnight = new Date(now);
-    midnight.setHours(24, 0, 0, 0);
+    var midnight = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() + 1,
+      0, 0, 0
+    ));
     var diff = midnight - now;
 
     var h = Math.floor(diff / 3600000);
