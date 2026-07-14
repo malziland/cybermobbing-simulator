@@ -4,6 +4,11 @@ Alle relevanten Änderungen an diesem Projekt werden hier dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) und folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.1.4] - 2026-07-14
+
+### Geändert
+- Firmenwortlaut aktualisiert: „malziland – digitale Wissensgestaltung e.U." → „malziland - learning | training | consulting e.U." (Impressum, Meta-Author und JSON-LD in `index.html`, `LICENSE`, `README.md`, `package.json`)
+
 ## [1.1.3] - 2026-04-19
 
 ### Hinzugefügt
