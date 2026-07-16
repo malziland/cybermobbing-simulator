@@ -20,6 +20,7 @@ Playwright 1.61.1 · gitleaks 8.30.1 · geprüfter Stand: Commit `d801143`.
 | Tastatur-Smoketest (UI-Profil) | Prozedur in docs/RUNBOOK.md; automatisiert als Teil von `npm run test:e2e` (echte Tastatur-Events) | bestanden (automatisiert), 2026-07-16; Empfehlung: gelegentlich manuell auf echtem Gerät wiederholen |
 | Reproduzierbarer Stand | Lockfiles committet (Root + video-export), Node gepinnt (`.nvmrc`, `engines`), CDN-Skripte SRI-gepinnt, CI-Actions SHA-gepinnt | erfüllt, 2026-07-16 |
 | Release v1.2.0 deployt | annotierter Tag `v1.2.0`, `npm run deploy`, Live-Check von außen (curl) | grün, 2026-07-16: Live-HTML lädt SDK 12.16.0, CSS enthält AA-Farben, Cache-Stempel frisch, HTTP 200 |
+| KURZAUDIT-Remediation v1.2.1 (BUG-01, DOC-01, OPS-01, BIZ-01) | je Finding die im Audit benannte Verifikation | grün, 2026-07-16: Regeln live getestet als anonymer REST-Client (beliebiger /views-Wert → denied; Erstwert 5001 → denied; Erstwert 1 auf frischem Key → akzeptiert, Testkey als Admin entfernt); Regel-Syntax beim Deploy validiert; BIZ-01 per neuer E2E-Assertion; OPS-01 per Code-Review (Stub unconditional; Vollexport nicht ausgeführt — braucht BlackHole-Audio-Hardware) |
 
 ## Externe Kontrollen (außerhalb des Repos)
 
