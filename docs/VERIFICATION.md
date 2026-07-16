@@ -19,6 +19,7 @@ Playwright 1.61.1 · gitleaks 8.30.1 · geprüfter Stand: Commit `d801143`.
 | Rollback-Probe | worktree-Checkout v1.1.5, Setup + Suite dort; Details docs/RUNBOOK.md | durchgeführt 2026-07-16; Suite läuft; Fund: setup.sh-CDN-Verrottung → behoben (Commit `422aa13`) |
 | Tastatur-Smoketest (UI-Profil) | Prozedur in docs/RUNBOOK.md; automatisiert als Teil von `npm run test:e2e` (echte Tastatur-Events) | bestanden (automatisiert), 2026-07-16; Empfehlung: gelegentlich manuell auf echtem Gerät wiederholen |
 | Reproduzierbarer Stand | Lockfiles committet (Root + video-export), Node gepinnt (`.nvmrc`, `engines`), CDN-Skripte SRI-gepinnt, CI-Actions SHA-gepinnt | erfüllt, 2026-07-16 |
+| Release v1.2.0 deployt | annotierter Tag `v1.2.0`, `npm run deploy`, Live-Check von außen (curl) | grün, 2026-07-16: Live-HTML lädt SDK 12.16.0, CSS enthält AA-Farben, Cache-Stempel frisch, HTTP 200 |
 
 ## Externe Kontrollen (außerhalb des Repos)
 
