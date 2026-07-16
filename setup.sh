@@ -3,14 +3,15 @@
 # These icons are trademarks of their respective owners and are used
 # for educational purposes only (§42f UrhG / Zitatrecht).
 #
-# WARNING: The Apple mzstatic URLs below were valid at initial release
-# but Apple rotates these tokens without notice. If the CDN returns
-# JSON error payloads or redirects, this script will fail loudly
-# instead of silently writing garbage into assets/icons/.
+# Icon URLs are resolved at runtime via the official iTunes Lookup API
+# (stable), because raw mzstatic CDN URLs rotate without notice --
+# hardcoded tokens broke every fresh clone within months (found during
+# the 2026-07 rollback probe, see docs/RUNBOOK.md).
+#
+# Requires: curl, python3 (JSON parsing), file
 #
 # If a fork hits a failure here, either:
-#   1. Look up the current App Store icon URL for the app in question
-#      and update the ICONS table below, or
+#   1. Check whether the bundle IDs below still exist in the App Store, or
 #   2. Ship replacement icons directly in assets/icons/ and remove
 #      this script from the setup step.
 
@@ -19,13 +20,13 @@ set -e
 ICON_DIR="assets/icons"
 mkdir -p "$ICON_DIR"
 
-# name|url
+# name|app-store-bundle-id
 ICONS=$(cat <<'EOF'
-whatsapp|https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/44/0e/f1/440ef192-4011-5a42-8b09-d8a21e1a0963/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/246x0w.webp
-instagram|https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/96/08/a2/9608a24d-1e37-5209-e445-45490adce130/Prod-0-0-1x_U007emarketing-0-7-0-85-220.png/246x0w.webp
-tiktok|https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/4b/41/bf/4b41bff5-2e09-9271-dadd-56f859b1ba7e/AppIcon_TikTok-0-0-1x_U007epad-0-0-0-85-220.png/246x0w.webp
-messages|https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/b0/90/17/b09017e0-f78a-9c3e-5e4c-eee48acb4fda/AppIcon-messagesApp-0-0-1x_U007emarketing-0-7-0-85-220.png/246x0w.webp
-snapchat|https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/cf/70/41/cf7041ff-9a32-4e07-ad0d-a4dfed25b535/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/246x0w.webp
+whatsapp|net.whatsapp.WhatsApp
+instagram|com.burbn.instagram
+tiktok|com.zhiliaoapp.musically
+messages|com.apple.MobileSMS
+snapchat|com.toyopagroup.picaboo
 EOF
 )
 
@@ -34,22 +35,37 @@ MIN_BYTES=2000   # real icons are ~30-80 KB; anything under 2 KB is an error pay
 echo "Downloading app icons..."
 
 failures=0
-while IFS='|' read -r name url; do
+while IFS='|' read -r name bundle; do
   [ -z "$name" ] && continue
   out="$ICON_DIR/$name.png"
+
+  url=$(curl -sf "https://itunes.apple.com/lookup?bundleId=$bundle&country=us" \
+    | python3 -c 'import sys,json;r=json.load(sys.stdin).get("results",[]);print(r[0].get("artworkUrl512","") if r else "")' \
+    || echo "")
+  if [ -z "$url" ]; then
+    echo "ERROR: $name: iTunes lookup for $bundle returned no artwork URL" >&2
+    failures=$((failures + 1))
+    continue
+  fi
+
   http_status=$(curl -sSL -w '%{http_code}' -o "$out" "$url" || echo "000")
   ctype=$(file -b --mime-type "$out")
   size=$(wc -c < "$out" | tr -d ' ')
 
-  if [ "$http_status" != "200" ] || [ "$ctype" != "image/webp" ] || [ "$size" -lt "$MIN_BYTES" ]; then
+  case "$ctype" in
+    image/png|image/jpeg|image/webp) type_ok=1 ;;
+    *) type_ok=0 ;;
+  esac
+
+  if [ "$http_status" != "200" ] || [ "$type_ok" != "1" ] || [ "$size" -lt "$MIN_BYTES" ]; then
     echo "ERROR: $name failed validation" >&2
     echo "  http:  $http_status" >&2
-    echo "  type:  $ctype (expected image/webp)" >&2
+    echo "  type:  $ctype (expected png/jpeg/webp)" >&2
     echo "  size:  $size bytes (min $MIN_BYTES)" >&2
     rm -f "$out"
     failures=$((failures + 1))
   else
-    echo "  $name OK  ($size bytes)"
+    echo "  $name OK  ($size bytes, $ctype)"
   fi
 done <<< "$ICONS"
 
