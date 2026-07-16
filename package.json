@@ -7,7 +7,7 @@
   "homepage": "https://cybermobbing.web.app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/malziland/cybermobbing-simulation"
+    "url": "https://github.com/malziland/cybermobbing-simulator"
   },
   "scripts": {
     "setup": "bash setup.sh",

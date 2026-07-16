@@ -4,6 +4,29 @@ Alle relevanten Änderungen an diesem Projekt werden hier dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) und folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [Unreleased]
+
+Nachzug auf den Familien-Standard (PROJEKTSTART-Lückenplan, siehe `docs/KONZEPT.md`).
+
+### Hinzugefügt
+- **Doku-Fundament:** `docs/adr/` (ADR-0001–0006), `docs/SECURITY-MODEL.md`, `docs/RUNBOOK.md`, `docs/VERIFICATION.md`, `AGENTS.md` (+ `CLAUDE.md`-Verweis)
+- **Werkzeugkette:** ESLint 10 + Prettier (`npm run lint`/`format`), headless QUnit-Runner via Playwright (`npm run test`), lokale Vorschau (`npm run dev`), Node-Pinning (`.nvmrc`, `engines`, `package-lock.json`), `.editorconfig`
+- **E2E- und Accessibility-Tests** (`npm run test:e2e`): kompletter Nutzerfluss tastaturgesteuert und hermetisch (ohne Produktions-Firebase), axe-core-Checks (WCAG 2.x AA) für Start- und Hilfsangebote-Ansicht
+- **CI (GitHub Actions):** Lint, Tests, E2E, Secret-Scan (gitleaks), Dependency-Audit; Actions per Commit-SHA gepinnt; Dependabot-Konfiguration
+- **Test-Zeitraffer** `?testspeed=N` (1–60) für Tests, Produktionsverhalten unverändert (ADR-0006)
+- Video-Export-Werkzeug (`scripts/video-export/`) ist jetzt versioniert (ohne `node_modules`/`output`)
+
+### Behoben
+- **Impressum per Tastatur bedienbar:** der Fußzeilen-Link (`span[role=button]`) reagierte nur auf Klick, nicht auf Enter/Leertaste (WCAG 2.1.1)
+- **Kontraste des Rahmen-UI auf WCAG AA** angehoben: Start-Untertitel und Credit-Zeile (#666/#555 → #777), Start-/Teilen-Buttons (Weiß auf #fe2c55 = 3,68:1 → Hintergrund #e0264d = 4,6:1); die simulierten App-Szenen bleiben bewusst originalgetreu (ADR-0005)
+- **`setup.sh` lädt Icons wieder zuverlässig:** die fest verdrahteten Apple-CDN-URLs waren verrottet (404); Auflösung jetzt zur Laufzeit über die offizielle iTunes-Lookup-API — gefunden durch die Rollback-Probe
+- **Startverzögerung nutzt das pausierbare Timer-System** (`simTimeout` statt nativem `setTimeout`); behebt zwei „global failure"-Fehler der Test-Suite
+
+### Geändert
+- Firebase-SDK (CDN) 12.12.0 → 12.16.0 (SRI-Hashes erneuert), QUnit 2.25.0 → 2.26.0
+- `package.json`: Repository-URL korrigiert (`…/cybermobbing-simulator`)
+- README: Abschnitt „Entwicklung & Tests" mit den neuen Befehlen
+
 ## [1.1.5] - 2026-07-16
 
 ### Hinzugefügt

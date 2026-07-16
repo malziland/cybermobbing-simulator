@@ -64,9 +64,24 @@ js/
 4. Meta-Tags in `index.html` manuell uebersetzen (SEO)
 5. Impressum muss vom jeweiligen Betreiber ersetzt werden
 
-## Tests
+## Entwicklung & Tests
 
-`tests/test-runner.html` im Browser oeffnen. Verwendet QUnit (kein npm noetig).
+Fuer die Simulation selbst ist kein Build-Schritt noetig (bewusste Entscheidung,
+siehe `docs/adr/ADR-0001` — ein `build`-Kommando entfaellt daher). Die
+Entwicklungswerkzeuge brauchen Node 24 (`.nvmrc`):
+
+```bash
+npm ci                # Werkzeuge installieren
+npm run lint          # ESLint + Prettier
+npm run test          # QUnit-Suite headless (Playwright)
+npm run test:e2e      # End-to-End + Accessibility (axe-core)
+npm run dev           # lokale Vorschau (Firebase-Hosting-Emulator)
+```
+
+Alternativ ohne npm: `tests/test-runner.html` im Browser oeffnen (QUnit).
+Weitere Doku: `AGENTS.md` (Befehle & Leitplanken), `docs/RUNBOOK.md` (Betrieb,
+Deploy, Rollback), `docs/adr/` (Entscheidungen), `docs/VERIFICATION.md`
+(Nachweise).
 
 ## Impressum
 
