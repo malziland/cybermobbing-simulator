@@ -10,6 +10,7 @@
 // ========== TIMER ==========
 
 /** @type {number|undefined} Interval ID for the progress bar tick */
+// eslint-disable-next-line no-unassigned-vars -- assigned from main.js/audio.js (cross-file global)
 var tmr;
 
 /** @type {number} Elapsed simulation time in seconds (incremented by 0.1 every 100ms) */
