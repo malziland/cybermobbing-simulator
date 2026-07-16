@@ -6,8 +6,8 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
 #start.gone{opacity:0;pointer-events:none}
 #start h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:700;text-align:center;margin-bottom:.5rem;letter-spacing:-.02em}
 #start h1 em{color:#fe2c55;font-style:normal}
-#start .sub1{font-size:1.1rem;color:#666;margin-bottom:2.5rem}
-#start button{padding:14px 40px;border:none;border-radius:50px;background:#fe2c55;color:#fff;font-size:1.1rem;font-weight:600;cursor:pointer;font-family:inherit;transition:transform .15s}
+#start .sub1{font-size:1.1rem;color:#777;margin-bottom:2.5rem} /* >=4.5:1 on #000 (WCAG AA) */
+#start button{padding:14px 40px;border:none;border-radius:50px;background:#e0264d;color:#fff;font-size:1.1rem;font-weight:600;cursor:pointer;font-family:inherit;transition:transform .15s} /* #e0264d: 4.6:1 with white text (AA); #fe2c55 was 3.68:1 */
 #start button:hover{transform:scale(1.05)}
 
 /* Start screen footer */
@@ -24,7 +24,7 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
 .start-share:hover{background:rgba(254,44,85,.1)!important;color:#fe2c55!important;transform:none!important}
 .start-views{display:flex;align-items:center;gap:4px;font-size:11px;color:#fe2c55;font-variant-numeric:tabular-nums;margin-bottom:25px}
 .start-views span{color:#fe2c55;font-weight:600}
-.start-credit{font-size:.68rem;color:#555;margin-top:-15px}
+.start-credit{font-size:.68rem;color:#777;margin-top:-15px} /* >=4.5:1 on #000 (WCAG AA) */
 .start-credit a{color:#888;text-decoration:underline}
 .start-credit a:hover{color:#fe2c55}
 
@@ -369,13 +369,13 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
   display:flex;align-items:center;justify-content:center;gap:5px;
   padding:12px 18px;width:100%;
   border:none;border-radius:50px;
-  background:#fe2c55;
+  background:#e0264d; /* 4.6:1 with white text (WCAG AA); #fe2c55 was 3.68:1 */
   color:#fff;font-size:clamp(11px,2.8vw,13px);font-weight:600;
   cursor:pointer;font-family:inherit;
   transition:background .2s,transform .15s;
   white-space:nowrap;
 }
-.footer-share:hover{background:#e0264d;transform:scale(1.03)}
+.footer-share:hover{background:#c91f42;transform:scale(1.03)}
 .footer-share:active{transform:scale(.97)}
 
 .footer-replay{
