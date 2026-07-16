@@ -4,9 +4,12 @@ Alle relevanten Änderungen an diesem Projekt werden hier dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) und folgt [Semantic Versioning](https://semver.org/lang/de/).
 
-## [Unreleased]
+## [1.2.0] - 2026-07-16
 
 Nachzug auf den Familien-Standard (PROJEKTSTART-Lückenplan, siehe `docs/KONZEPT.md`).
+Zusätzlich extern eingerichtet (außerhalb des Repos, siehe `docs/VERIFICATION.md`):
+Branch Protection mit CI-Pflicht-Checks, Dependabot-Alerts + Security-Updates;
+Secret Scanning/Push Protection und Google-Budget-Alarm waren bereits aktiv.
 
 ### Hinzugefügt
 - **Doku-Fundament:** `docs/adr/` (ADR-0001–0006), `docs/SECURITY-MODEL.md`, `docs/RUNBOOK.md`, `docs/VERIFICATION.md`, `AGENTS.md` (+ `CLAUDE.md`-Verweis)
