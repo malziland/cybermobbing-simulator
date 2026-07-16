@@ -11,9 +11,25 @@
   },
   "scripts": {
     "setup": "bash setup.sh",
+    "lint": "eslint . && prettier --check \"js/**/*.js\" \"tests/**/*.js\" \"scripts/*.js\"",
+    "format": "prettier --write \"js/**/*.js\" \"tests/**/*.js\" \"scripts/*.js\"",
+    "test": "node scripts/run-tests.js",
+    "test:e2e": "node scripts/run-e2e.js",
+    "dev": "firebase emulators:start --only hosting --project cybermobbing",
     "cache-bust": "bash scripts/cache-bust.sh",
     "predeploy": "bash scripts/cache-bust.sh",
     "deploy": "firebase deploy --project cybermobbing"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@eslint/js": "^9.30.0",
+    "eslint": "^9.30.0",
+    "globals": "^16.3.0",
+    "playwright": "^1.53.0",
+    "prettier": "^3.6.0"
   },
   "keywords": [
     "cybermobbing",
