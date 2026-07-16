@@ -39,7 +39,7 @@ IP-Speicherung durch die App; die beiden localStorage-Werte (`sim_lang`,
 | Risiko | Maßnahme | Beleg |
 |---|---|---|
 | Counter-Manipulation (beliebige Werte schreiben) | RTDB-Regeln erlauben nur `+1`-Inkremente auf `/views` und `/daily/<datum>` (Datumsformat validiert), alles andere fail-closed | `database.rules.json` |
-| Kosten-Explosion durch virale Last/Missbrauch | Tageslimit `DAILY_LIMIT` (ADR-0004) beendet das Zählen und zeigt die Limit-Seite; Cache-Header entlasten Hosting | `js/firebase-counter.js`, `firebase.json` |
+| Kosten-Explosion durch virale Last/Missbrauch | Tageslimit `DAILY_LIMIT` (ADR-0004, clientseitig) beendet das Zählen und zeigt die Limit-Seite; zusätzlich serverseitiger Deckel in den DB-Regeln (`/daily/<datum>` max. 5000); Cache-Header entlasten Hosting; Budget-Alert als letzte Grenze | `js/firebase-counter.js`, `database.rules.json`, `firebase.json` |
 | Doppelzählung im Unterricht | localStorage-Tagesmarke, ein Zählimpuls pro Browser und UTC-Tag | `js/firebase-counter.js` |
 | XSS / Fremdskripte | Strikte CSP (`default-src 'none'`, kein `'unsafe-inline'` für Skripte, ADR-0002), `X-Frame-Options: DENY`, `frame-ancestors 'none'` | `firebase.json` |
 | Manipuliertes CDN-SDK | Firebase-SDK per SRI-Integritäts-Hash gepinnt | `index.html` |

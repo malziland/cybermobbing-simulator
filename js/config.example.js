@@ -10,7 +10,8 @@ var firebaseConfig = {
   appId: 'YOUR_APP_ID',
 };
 
-// Daily view limit (set to 0 to disable)
+// Daily view limit (set to 0 to disable). Client-side UX limit only;
+// database.rules.json additionally caps daily writes at 5000 server-side.
 var DAILY_LIMIT = 1000;
 
 // Helpline configuration for the CTA page.
