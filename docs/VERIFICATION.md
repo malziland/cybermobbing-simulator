@@ -15,7 +15,7 @@ Playwright 1.61.1 · gitleaks 8.30.1 · geprüfter Stand: Commit `d801143`.
 | E2E-Test kritischster Nutzerfluss + a11y (axe-core, WCAG 2.x A/AA) | `npm run test:e2e` (tastaturgesteuert, hermetisch ohne Produktions-Firebase) | grün: alle Checks bestanden (Start-Scan, Impressum Enter/Escape, Start, Szenenwechsel, Pause/Resume, Volllauf, CTA-Scan, CTA-Bedienung) |
 | Secret-Scan | `gitleaks git --redact .` (gesamte Historie) + CI-Job `secret-scan` | lokal grün, 2026-07-16: „no leaks found" (gitleaks 8.30.1); CI siehe Zeile CI-Lauf |
 | Dependency-Audit | `npm audit --audit-level=high` (Root und scripts/video-export) + CI-Job `dependency-audit` | grün, 2026-07-16: 0 Vulnerabilities in beiden Verzeichnissen |
-| CI-Lauf grün | GitHub Actions Workflow `ci` (.github/workflows/ci.yml) | offen — Push steht aus, wird nach erstem grünen Lauf mit Run-Referenz nachgetragen |
+| CI-Lauf grün | GitHub Actions Workflow `ci` (.github/workflows/ci.yml) | grün, 2026-07-16: Run 29518803296 (push auf main, alle 3 Jobs success) — github.com/malziland/cybermobbing-simulator/actions/runs/29518803296 |
 | Rollback-Probe | worktree-Checkout v1.1.5, Setup + Suite dort; Details docs/RUNBOOK.md | durchgeführt 2026-07-16; Suite läuft; Fund: setup.sh-CDN-Verrottung → behoben (Commit `422aa13`) |
 | Tastatur-Smoketest (UI-Profil) | Prozedur in docs/RUNBOOK.md; automatisiert als Teil von `npm run test:e2e` (echte Tastatur-Events) | bestanden (automatisiert), 2026-07-16; Empfehlung: gelegentlich manuell auf echtem Gerät wiederholen |
 | Reproduzierbarer Stand | Lockfiles committet (Root + video-export), Node gepinnt (`.nvmrc`, `engines`), CDN-Skripte SRI-gepinnt, CI-Actions SHA-gepinnt | erfüllt, 2026-07-16 |
