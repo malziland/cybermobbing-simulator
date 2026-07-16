@@ -33,9 +33,14 @@ function p1() {
   simTimeout(function () {
     var d = document.createElement('div');
     d.className = 'wm-photo';
-    d.innerHTML = '<span class="who who-marco">Marco</span>' +
+    d.innerHTML =
+      '<span class="who who-marco">Marco</span>' +
       '<div class="img" id="waP"></div>' +
-      '<div class="cap">' + t('wa.marco1') + ' <span class="meta">' + formatTime(clockBaseH, clockBaseM) + ' <span class="wa-check">\u2713\u2713</span></span></div>';
+      '<div class="cap">' +
+      t('wa.marco1') +
+      ' <span class="meta">' +
+      formatTime(clockBaseH, clockBaseM) +
+      ' <span class="wa-check">\u2713\u2713</span></span></div>';
     c.appendChild(d);
     mkPhoto(document.getElementById('waP'), '220px');
     setLayer(1);
@@ -45,19 +50,38 @@ function p1() {
 
   // Sara
   simTimeout(function () {
-    waType(c, '<span class="who who-sara">Sara</span>' + t('wa.sara1') + ' <span class="meta">' + formatTime(clockBaseH, clockBaseM) + '</span>', 1200);
+    waType(
+      c,
+      '<span class="who who-sara">Sara</span>' +
+        t('wa.sara1') +
+        ' <span class="meta">' +
+        formatTime(clockBaseH, clockBaseM) +
+        '</span>',
+      1200
+    );
   }, 3000);
 
   // Tim
   simTimeout(function () {
-    waType(c, '<span class="who who-tim">Tim</span>' + t('wa.tim1') + ' <span class="meta">' + formatTime(clockBaseH, clockBaseM) + '</span>', 1400);
+    waType(
+      c,
+      '<span class="who who-tim">Tim</span>' +
+        t('wa.tim1') +
+        ' <span class="meta">' +
+        formatTime(clockBaseH, clockBaseM) +
+        '</span>',
+      1400
+    );
   }, 6500);
 
   // Leon sends sticker
   simTimeout(function () {
     var d = document.createElement('div');
     d.className = 'wm-sticker';
-    d.innerHTML = '<img src="assets/sticker.png"><div class="stk-emoji">\uD83E\uDD21</div><div class="meta">' + formatTime(clockBaseH, clockBaseM) + '</div>';
+    d.innerHTML =
+      '<img src="assets/sticker.png"><div class="stk-emoji">\uD83E\uDD21</div><div class="meta">' +
+      formatTime(clockBaseH, clockBaseM) +
+      '</div>';
     c.appendChild(d);
     c.scrollTop = c.scrollHeight;
     sndWa();
@@ -65,12 +89,28 @@ function p1() {
 
   // Leon
   simTimeout(function () {
-    waType(c, '<span class="who who-leon">Leon</span>' + t('wa.leon1') + ' <span class="meta">' + formatTime(clockBaseH, clockBaseM) + '</span>', 1000);
+    waType(
+      c,
+      '<span class="who who-leon">Leon</span>' +
+        t('wa.leon1') +
+        ' <span class="meta">' +
+        formatTime(clockBaseH, clockBaseM) +
+        '</span>',
+      1000
+    );
   }, 11000);
 
   // Sara
   simTimeout(function () {
-    waType(c, '<span class="who who-sara">Sara</span>' + t('wa.sara2') + ' <span class="meta">' + formatTime(clockBaseH, clockBaseM) + '</span>', 1500);
+    waType(
+      c,
+      '<span class="who who-sara">Sara</span>' +
+        t('wa.sara2') +
+        ' <span class="meta">' +
+        formatTime(clockBaseH, clockBaseM) +
+        '</span>',
+      1500
+    );
   }, 14000);
 
   simTimeout(function () {
@@ -81,7 +121,15 @@ function p1() {
 
   // Marco
   simTimeout(function () {
-    waType(c, '<span class="who who-marco">Marco</span>' + t('wa.marco2') + ' <span class="meta">' + formatTime(clockBaseH, clockBaseM) + '</span>', 1200);
+    waType(
+      c,
+      '<span class="who who-marco">Marco</span>' +
+        t('wa.marco2') +
+        ' <span class="meta">' +
+        formatTime(clockBaseH, clockBaseM) +
+        '</span>',
+      1200
+    );
   }, 20000);
 
   // Tom leaves the group -- system message, not a chat bubble

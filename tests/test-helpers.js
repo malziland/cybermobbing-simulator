@@ -27,8 +27,10 @@ QUnit.module('helpers', function () {
     assert.ok(users.length >= 10, 'At least 10 avatar entries: ' + users.length);
     users.forEach(function (user) {
       var html = getAvatar(user);
-      assert.ok(html.indexOf('av-anon') === -1 || user === 'anon99',
-        user + ' resolves to a non-default avatar');
+      assert.ok(
+        html.indexOf('av-anon') === -1 || user === 'anon99',
+        user + ' resolves to a non-default avatar'
+      );
     });
   });
 
@@ -43,9 +45,7 @@ QUnit.module('helpers', function () {
 
   QUnit.test('sw() toggles classes on/off between two elements', function (assert) {
     var fixture = document.getElementById('qunit-fixture');
-    fixture.innerHTML =
-      '<div id="test-sw-a" class="on"></div>' +
-      '<div id="test-sw-b"></div>';
+    fixture.innerHTML = '<div id="test-sw-a" class="on"></div>' + '<div id="test-sw-b"></div>';
     sw('test-sw-a', 'test-sw-b');
     var a = document.getElementById('test-sw-a');
     var b = document.getElementById('test-sw-b');
@@ -136,12 +136,12 @@ QUnit.module('helpers', function () {
     var done = assert.async();
     // Clear any pending timers from other tests to prevent scene functions firing
     var savedTimers = simTimers.slice();
-    simTimers.forEach(function (t) { clearTimeout(t.nativeId); });
+    simTimers.forEach(function (t) {
+      clearTimeout(t.nativeId);
+    });
     simTimers = [];
     var fixture = document.getElementById('qunit-fixture');
-    fixture.innerHTML =
-      '<div id="test-sw-c" class="on"></div>' +
-      '<div id="test-sw-d"></div>';
+    fixture.innerHTML = '<div id="test-sw-c" class="on"></div>' + '<div id="test-sw-d"></div>';
     sw('test-sw-c', 'test-sw-d');
     var ea = document.getElementById('test-sw-c');
     assert.ok(ea.classList.contains('off'), 'Element A has off class immediately');
@@ -174,9 +174,7 @@ QUnit.module('helpers', function () {
 
   QUnit.test('setLayer(1) does NOT add on to e2/e3 elements', function (assert) {
     var fixture = document.getElementById('qunit-fixture');
-    fixture.innerHTML =
-      '<div class="e2"></div>' +
-      '<div class="e3"></div>';
+    fixture.innerHTML = '<div class="e2"></div>' + '<div class="e3"></div>';
     setLayer(1);
     assert.ok(!fixture.querySelector('.e2').classList.contains('on'), 'e2 has no on at layer 1');
     assert.ok(!fixture.querySelector('.e3').classList.contains('on'), 'e3 has no on at layer 1');
@@ -184,9 +182,7 @@ QUnit.module('helpers', function () {
 
   QUnit.test('setLayer(2) adds on to e2 but NOT to e3', function (assert) {
     var fixture = document.getElementById('qunit-fixture');
-    fixture.innerHTML =
-      '<div class="e2"></div>' +
-      '<div class="e3"></div>';
+    fixture.innerHTML = '<div class="e2"></div>' + '<div class="e3"></div>';
     setLayer(2);
     assert.ok(fixture.querySelector('.e2').classList.contains('on'), 'e2 has on at layer 2');
     assert.ok(!fixture.querySelector('.e3').classList.contains('on'), 'e3 has no on at layer 2');
@@ -194,9 +190,7 @@ QUnit.module('helpers', function () {
 
   QUnit.test('setLayer(3) adds on to BOTH e2 and e3', function (assert) {
     var fixture = document.getElementById('qunit-fixture');
-    fixture.innerHTML =
-      '<div class="e2"></div>' +
-      '<div class="e3"></div>';
+    fixture.innerHTML = '<div class="e2"></div>' + '<div class="e3"></div>';
     setLayer(3);
     assert.ok(fixture.querySelector('.e2').classList.contains('on'), 'e2 has on at layer 3');
     assert.ok(fixture.querySelector('.e3').classList.contains('on'), 'e3 has on at layer 3');
@@ -215,7 +209,9 @@ QUnit.module('helpers', function () {
     fixture.innerHTML = '<div id="test-chat-snd"></div>';
     var container = document.getElementById('test-chat-snd');
     var soundCalled = false;
-    addMsg(container, 'Hello', 'wm other', function () { soundCalled = true; });
+    addMsg(container, 'Hello', 'wm other', function () {
+      soundCalled = true;
+    });
     assert.ok(soundCalled, 'Sound function was called');
   });
 });

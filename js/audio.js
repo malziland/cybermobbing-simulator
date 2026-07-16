@@ -150,7 +150,6 @@ function sndBuzz() {
   o.stop(t + 0.15);
 }
 
-
 /**
  * Starts a rapid stream of faint, randomized high-pitched ticks (2500-3300 Hz)
  * to simulate the sound of someone typing on a phone keyboard.
@@ -227,13 +226,15 @@ var simTimerIdCounter = 0;
  */
 function simTimeout(fn, delay) {
   var id = ++simTimerIdCounter;
-  var timer = {id: id, fn: fn, remaining: delay, startedAt: Date.now()};
+  var timer = { id: id, fn: fn, remaining: delay, startedAt: Date.now() };
 
   function schedule() {
     timer.startedAt = Date.now();
     timer.nativeId = setTimeout(function () {
       // Timer has fired -- remove from active list, then execute callback
-      simTimers = simTimers.filter(function (t) { return t.id !== id; });
+      simTimers = simTimers.filter(function (t) {
+        return t.id !== id;
+      });
       fn();
     }, timer.remaining);
   }
@@ -267,7 +268,7 @@ function togglePause() {
     simTimers.forEach(function (t) {
       clearTimeout(t.nativeId);
       // Calculate how much time has already elapsed and subtract it
-      t.remaining -= (Date.now() - t.startedAt);
+      t.remaining -= Date.now() - t.startedAt;
       if (t.remaining < 0) t.remaining = 0;
     });
     if (bgMusic) bgMusic.pause();
@@ -277,10 +278,12 @@ function togglePause() {
     overlay.classList.remove('hidden');
   } else {
     // -- RESUME: restart everything with corrected offsets --
-    simTimers.forEach(function (t) { t.schedule(); });
+    simTimers.forEach(function (t) {
+      t.schedule();
+    });
     if (bgMusic) bgMusic.play().catch(function () {});
     // Recompute clockStart so elapsed time stays consistent after the pause gap
-    clockStart = Date.now() - (sec * 1000);
+    clockStart = Date.now() - sec * 1000;
     if (typeof startClock === 'function') startClock();
     tmr = setInterval(tick, 100);
     btn.textContent = t('ui.pause');

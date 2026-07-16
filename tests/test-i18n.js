@@ -33,7 +33,7 @@ QUnit.module('i18n', function () {
   QUnit.test('t() replaces {placeholder} values', function (assert) {
     var orig = currentLang;
     currentLang = 'de';
-    assert.equal(t('ig.likesCount', {count: 42}), '42 \u201EGef\u00E4llt mir\u201C-Angaben');
+    assert.equal(t('ig.likesCount', { count: 42 }), '42 \u201EGef\u00E4llt mir\u201C-Angaben');
     currentLang = orig;
   });
 
@@ -72,7 +72,10 @@ QUnit.module('i18n', function () {
     var orig = currentLang;
     currentLang = 'de';
     applyI18n();
-    assert.ok(fixture.querySelector('[data-i18n-html]').innerHTML.indexOf('<br>') !== -1, 'Contains HTML');
+    assert.ok(
+      fixture.querySelector('[data-i18n-html]').innerHTML.indexOf('<br>') !== -1,
+      'Contains HTML'
+    );
     currentLang = orig;
   });
 
@@ -82,7 +85,10 @@ QUnit.module('i18n', function () {
     // detectLanguage falls back to 'de' when no URL param, localStorage, or matching navigator.language
     // We can't easily mock all three, but we can verify the function exists and returns a valid lang
     var result = detectLanguage();
-    assert.ok(result === 'de' || result === 'en', 'detectLanguage returns a valid language: ' + result);
+    assert.ok(
+      result === 'de' || result === 'en',
+      'detectLanguage returns a valid language: ' + result
+    );
     // With no URL param set and default browser, 'de' is the fallback
     assert.ok(typeof result === 'string', 'detectLanguage returns a string');
   });
@@ -91,11 +97,23 @@ QUnit.module('i18n', function () {
     var orig = currentLang;
     currentLang = 'de';
     // ig.likesCount uses {count}, test with a number
-    assert.equal(t('ig.likesCount', {count: 99}), '99 \u201EGef\u00E4llt mir\u201C-Angaben', 'Single placeholder replaced');
+    assert.equal(
+      t('ig.likesCount', { count: 99 }),
+      '99 \u201EGef\u00E4llt mir\u201C-Angaben',
+      'Single placeholder replaced'
+    );
     // ig.commentsCount also uses {count}
-    assert.equal(t('ig.commentsCount', {count: 7}), 'Alle 7 Kommentare ansehen', 'Another single placeholder replaced');
+    assert.equal(
+      t('ig.commentsCount', { count: 7 }),
+      'Alle 7 Kommentare ansehen',
+      'Another single placeholder replaced'
+    );
     // Test that unused replacements don't break anything
-    assert.equal(t('ig.likesCount', {count: 5, extra: 'ignored'}), '5 \u201EGef\u00E4llt mir\u201C-Angaben', 'Extra replacements are harmless');
+    assert.equal(
+      t('ig.likesCount', { count: 5, extra: 'ignored' }),
+      '5 \u201EGef\u00E4llt mir\u201C-Angaben',
+      'Extra replacements are harmless'
+    );
     currentLang = orig;
   });
 
@@ -117,23 +135,26 @@ QUnit.module('i18n', function () {
     });
   });
 
-  QUnit.test('No translation key contains [ or ] in its value (broken references)', function (assert) {
-    ['de', 'en'].forEach(function (lang) {
-      var keys = Object.keys(TRANSLATIONS[lang]);
-      keys.forEach(function (key) {
-        var val = TRANSLATIONS[lang][key];
-        assert.ok(val.indexOf('[') === -1, lang.toUpperCase() + ' key "' + key + '" has no [');
-        assert.ok(val.indexOf(']') === -1, lang.toUpperCase() + ' key "' + key + '" has no ]');
+  QUnit.test(
+    'No translation key contains [ or ] in its value (broken references)',
+    function (assert) {
+      ['de', 'en'].forEach(function (lang) {
+        var keys = Object.keys(TRANSLATIONS[lang]);
+        keys.forEach(function (key) {
+          var val = TRANSLATIONS[lang][key];
+          assert.ok(val.indexOf('[') === -1, lang.toUpperCase() + ' key "' + key + '" has no [');
+          assert.ok(val.indexOf(']') === -1, lang.toUpperCase() + ' key "' + key + '" has no ]');
+        });
       });
-    });
-  });
+    }
+  );
 
   QUnit.test('t() does not modify the original TRANSLATIONS object', function (assert) {
     var orig = currentLang;
     currentLang = 'de';
     var before = TRANSLATIONS.de['ig.likesCount'];
     // Call t() with a replacement -- this should NOT mutate the stored string
-    t('ig.likesCount', {count: 999});
+    t('ig.likesCount', { count: 999 });
     var after = TRANSLATIONS.de['ig.likesCount'];
     assert.equal(before, after, 'TRANSLATIONS.de["ig.likesCount"] unchanged after t() call');
     assert.ok(after.indexOf('999') === -1, 'Original string does not contain replaced value');
@@ -162,24 +183,27 @@ QUnit.module('i18n', function () {
 
   // ===== EXPANDED TESTS =====
 
-  QUnit.test('detectLanguage() with localStorage fallback: sim_lang is picked up', function (assert) {
-    var origLang = currentLang;
-    var origStored = localStorage.getItem('sim_lang');
-    // Remove any URL param influence by testing localStorage path
-    localStorage.setItem('sim_lang', 'en');
-    var result = detectLanguage();
-    // detectLanguage checks URL param first, then localStorage -- if no URL param, localStorage wins
-    // We can't control the URL param in tests, but we verify localStorage is respected
-    // when it's set to a valid language
-    assert.ok(result === 'de' || result === 'en', 'detectLanguage returns a valid language');
-    // Clean up
-    if (origStored) {
-      localStorage.setItem('sim_lang', origStored);
-    } else {
-      localStorage.removeItem('sim_lang');
+  QUnit.test(
+    'detectLanguage() with localStorage fallback: sim_lang is picked up',
+    function (assert) {
+      var origLang = currentLang;
+      var origStored = localStorage.getItem('sim_lang');
+      // Remove any URL param influence by testing localStorage path
+      localStorage.setItem('sim_lang', 'en');
+      var result = detectLanguage();
+      // detectLanguage checks URL param first, then localStorage -- if no URL param, localStorage wins
+      // We can't control the URL param in tests, but we verify localStorage is respected
+      // when it's set to a valid language
+      assert.ok(result === 'de' || result === 'en', 'detectLanguage returns a valid language');
+      // Clean up
+      if (origStored) {
+        localStorage.setItem('sim_lang', origStored);
+      } else {
+        localStorage.removeItem('sim_lang');
+      }
+      currentLang = origLang;
     }
-    currentLang = origLang;
-  });
+  );
 
   QUnit.test('t() returns same string when called twice (idempotent)', function (assert) {
     var orig = currentLang;
@@ -188,8 +212,8 @@ QUnit.module('i18n', function () {
     var second = t('ui.start');
     assert.equal(first, second, 't() is idempotent for plain keys');
 
-    var firstR = t('ig.likesCount', {count: 10});
-    var secondR = t('ig.likesCount', {count: 10});
+    var firstR = t('ig.likesCount', { count: 10 });
+    var secondR = t('ig.likesCount', { count: 10 });
     assert.equal(firstR, secondR, 't() is idempotent with replacements');
     currentLang = orig;
   });
@@ -202,38 +226,50 @@ QUnit.module('i18n', function () {
     currentLang = orig;
   });
 
-  QUnit.test('All DE keys with < also have matching EN key with < (HTML keys consistent)', function (assert) {
-    var deKeys = Object.keys(TRANSLATIONS.de);
-    deKeys.forEach(function (key) {
-      if (TRANSLATIONS.de[key].indexOf('<') !== -1) {
-        assert.ok(
-          TRANSLATIONS.en[key] && TRANSLATIONS.en[key].indexOf('<') !== -1,
-          'EN key "' + key + '" also contains HTML (matching DE)'
-        );
-      }
-    });
-  });
+  QUnit.test(
+    'All DE keys with < also have matching EN key with < (HTML keys consistent)',
+    function (assert) {
+      var deKeys = Object.keys(TRANSLATIONS.de);
+      deKeys.forEach(function (key) {
+        if (TRANSLATIONS.de[key].indexOf('<') !== -1) {
+          assert.ok(
+            TRANSLATIONS.en[key] && TRANSLATIONS.en[key].indexOf('<') !== -1,
+            'EN key "' + key + '" also contains HTML (matching DE)'
+          );
+        }
+      });
+    }
+  );
 
   QUnit.test('No key value starts or ends with whitespace', function (assert) {
     ['de', 'en'].forEach(function (lang) {
       Object.keys(TRANSLATIONS[lang]).forEach(function (key) {
         var val = TRANSLATIONS[lang][key];
-        assert.ok(val === val.trim(),
-          lang.toUpperCase() + ' key "' + key + '" has no leading/trailing whitespace');
+        assert.ok(
+          val === val.trim(),
+          lang.toUpperCase() + ' key "' + key + '" has no leading/trailing whitespace'
+        );
       });
     });
   });
 
   QUnit.test('applyI18n() does NOT modify elements without data-i18n attribute', function (assert) {
     var fixture = document.getElementById('qunit-fixture');
-    fixture.innerHTML = '<span class="no-i18n">Untouched</span><span data-i18n="ui.start">old</span>';
+    fixture.innerHTML =
+      '<span class="no-i18n">Untouched</span><span data-i18n="ui.start">old</span>';
     var orig = currentLang;
     currentLang = 'de';
     applyI18n();
-    assert.equal(fixture.querySelector('.no-i18n').textContent, 'Untouched',
-      'Element without data-i18n is not modified');
-    assert.equal(fixture.querySelector('[data-i18n]').textContent, 'Simulation starten',
-      'Element with data-i18n IS modified');
+    assert.equal(
+      fixture.querySelector('.no-i18n').textContent,
+      'Untouched',
+      'Element without data-i18n is not modified'
+    );
+    assert.equal(
+      fixture.querySelector('[data-i18n]').textContent,
+      'Simulation starten',
+      'Element with data-i18n IS modified'
+    );
     currentLang = orig;
   });
 
@@ -241,10 +277,10 @@ QUnit.module('i18n', function () {
     var fixture = document.getElementById('qunit-fixture');
     fixture.innerHTML =
       '<div>' +
-        '<span data-i18n="ui.start">old1</span>' +
-        '<div>' +
-          '<span data-i18n="ui.share">old2</span>' +
-        '</div>' +
+      '<span data-i18n="ui.start">old1</span>' +
+      '<div>' +
+      '<span data-i18n="ui.share">old2</span>' +
+      '</div>' +
       '</div>';
     var orig = currentLang;
     currentLang = 'de';

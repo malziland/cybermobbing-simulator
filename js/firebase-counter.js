@@ -47,13 +47,19 @@ dailyRef.once('value', function (snapshot) {
 var COUNT_STORAGE_KEY = 'cms_last_count';
 
 function hasCountedToday() {
-  try { return localStorage.getItem(COUNT_STORAGE_KEY) === today; }
-  catch (e) { return false; }
+  try {
+    return localStorage.getItem(COUNT_STORAGE_KEY) === today;
+  } catch (e) {
+    return false;
+  }
 }
 
 function markCountedToday() {
-  try { localStorage.setItem(COUNT_STORAGE_KEY, today); }
-  catch (e) { /* localStorage unavailable -- accept duplicate count */ }
+  try {
+    localStorage.setItem(COUNT_STORAGE_KEY, today);
+  } catch (e) {
+    /* localStorage unavailable -- accept duplicate count */
+  }
 }
 
 /**
@@ -65,10 +71,20 @@ function markCountedToday() {
 function incrementCounters() {
   if (hasCountedToday()) return;
   markCountedToday();
-  viewsRef.transaction(function (current) { return (current || 0) + 1; })
-    .catch(function (err) { if (typeof console !== 'undefined') console.warn('Counter increment failed:', err); });
-  dailyRef.transaction(function (current) { return (current || 0) + 1; })
-    .catch(function (err) { if (typeof console !== 'undefined') console.warn('Daily counter increment failed:', err); });
+  viewsRef
+    .transaction(function (current) {
+      return (current || 0) + 1;
+    })
+    .catch(function (err) {
+      if (typeof console !== 'undefined') console.warn('Counter increment failed:', err);
+    });
+  dailyRef
+    .transaction(function (current) {
+      return (current || 0) + 1;
+    })
+    .catch(function (err) {
+      if (typeof console !== 'undefined') console.warn('Daily counter increment failed:', err);
+    });
 }
 
 // Live-update all counter display elements whenever the total changes.
@@ -82,17 +98,21 @@ function hideViewCounters() {
   for (var i = 0; i < boxes.length; i++) boxes[i].style.display = 'none';
 }
 
-viewsRef.on('value', function (snapshot) {
-  viewCountLoaded = true;
-  var count = snapshot.val() || 0;
-  var formatted = count.toLocaleString('de-DE');
-  var el = document.getElementById('viewCount');
-  var el2 = document.getElementById('viewCountStart');
-  if (el) el.textContent = formatted;
-  if (el2) el2.textContent = formatted;
-}, function () {
-  hideViewCounters();
-});
+viewsRef.on(
+  'value',
+  function (snapshot) {
+    viewCountLoaded = true;
+    var count = snapshot.val() || 0;
+    var formatted = count.toLocaleString('de-DE');
+    var el = document.getElementById('viewCount');
+    var el2 = document.getElementById('viewCountStart');
+    if (el) el.textContent = formatted;
+    if (el2) el2.textContent = formatted;
+  },
+  function () {
+    hideViewCounters();
+  }
+);
 
 setTimeout(function () {
   if (!viewCountLoaded) hideViewCounters();
@@ -115,12 +135,9 @@ function startLimitTimer() {
    */
   function update() {
     var now = new Date();
-    var midnight = new Date(Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate() + 1,
-      0, 0, 0
-    ));
+    var midnight = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0)
+    );
     var diff = midnight - now;
 
     var h = Math.floor(diff / 3600000);
@@ -128,8 +145,10 @@ function startLimitTimer() {
     var s = Math.floor((diff % 60000) / 1000);
 
     el.textContent =
-      String(h).padStart(2, '0') + ':' +
-      String(m).padStart(2, '0') + ':' +
+      String(h).padStart(2, '0') +
+      ':' +
+      String(m).padStart(2, '0') +
+      ':' +
       String(s).padStart(2, '0');
 
     // When midnight arrives, reload to clear the limit

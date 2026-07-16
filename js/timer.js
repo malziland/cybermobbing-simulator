@@ -23,7 +23,7 @@ var sec = 0;
  */
 function tick() {
   sec += 0.1;
-  document.getElementById('tf').style.width = Math.min(sec / 120 * 100, 100) + '%';
+  document.getElementById('tf').style.width = Math.min((sec / 120) * 100, 100) + '%';
   if (sec <= 120) {
     document.getElementById('tl').textContent = Math.floor(sec) + 's / 120s';
   }
@@ -71,12 +71,40 @@ function initClock() {
   // Set homescreen date to today's real date
   var hsDate = document.getElementById('hsDate');
   if (hsDate) {
-    var days = currentLang === 'en'
-      ? ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
-      : ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-    var months = currentLang === 'en'
-      ? ['January','February','March','April','May','June','July','August','September','October','November','December']
-      : ['J\u00E4nner','Februar','M\u00E4rz','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+    var days =
+      currentLang === 'en'
+        ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        : ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+    var months =
+      currentLang === 'en'
+        ? [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December',
+          ]
+        : [
+            'J\u00E4nner',
+            'Februar',
+            'M\u00E4rz',
+            'April',
+            'Mai',
+            'Juni',
+            'Juli',
+            'August',
+            'September',
+            'Oktober',
+            'November',
+            'Dezember',
+          ];
     hsDate.textContent = days[now.getDay()] + ', ' + now.getDate() + '. ' + months[now.getMonth()];
   }
 }

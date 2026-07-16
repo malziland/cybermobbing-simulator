@@ -19,7 +19,11 @@
  */
 function p4() {
   // Initial badge counts (already elevated to show harassment was ongoing)
-  var w = 23, ig = 186, tk = 4231, n = 47, s = 12;
+  var w = 23,
+    ig = 186,
+    tk = 4231,
+    n = 47,
+    s = 12;
 
   // Badge counter escalation via simTimeout chain (pausable)
   var badgeActive = true;
@@ -51,7 +55,8 @@ function p4() {
   ];
 
   // Notification banner queue via simTimeout chain (pausable)
-  var nc = document.getElementById('hsN'), ni = 0;
+  var nc = document.getElementById('hsN'),
+    ni = 0;
   function notifTick() {
     if (ni >= nts.length) return;
     var x = nts[ni];

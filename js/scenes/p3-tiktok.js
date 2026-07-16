@@ -25,7 +25,8 @@
  */
 function p3() {
   setLayer(3);
-  var v = 0, cc = 0;
+  var v = 0,
+    cc = 0;
 
   // Viral engagement counters via simTimeout chain (pausable)
   // Views climb 60-179 per tick, shares derived as ~1/180 of views
@@ -44,25 +45,32 @@ function p3() {
     var lst = document.getElementById('tkCl');
 
     var cms = [
-      [0,     'lukas.der.echte', t('tk.lukas')],
-      [2500,  'sara_2012',       t('tk.sara')],
-      [5000,  'noah.x',          t('tk.noah')],
-      [7500,  'anon99',          t('tk.anon')],
-      [10000, 'tom.m',           t('tk.tom'), 1],
-      [13000, 'aggro.44',        t('tk.aggro')],
-      [16000, 'marco_2012',      t('tk.marco')],
-      [18500, 'troll.page',      t('tk.troll')],
+      [0, 'lukas.der.echte', t('tk.lukas')],
+      [2500, 'sara_2012', t('tk.sara')],
+      [5000, 'noah.x', t('tk.noah')],
+      [7500, 'anon99', t('tk.anon')],
+      [10000, 'tom.m', t('tk.tom'), 1],
+      [13000, 'aggro.44', t('tk.aggro')],
+      [16000, 'marco_2012', t('tk.marco')],
+      [18500, 'troll.page', t('tk.troll')],
     ];
 
     cms.forEach(function (m) {
       simTimeout(function () {
         var d = document.createElement('div');
         d.className = 'tc' + (m[3] ? ' vic' : '');
-        d.innerHTML = getAvatar(m[1], true) +
-          '<div><div class="nm">@' + m[1] + '</div><div class="tx">' + m[2] + '</div></div>';
+        d.innerHTML =
+          getAvatar(m[1], true) +
+          '<div><div class="nm">@' +
+          m[1] +
+          '</div><div class="tx">' +
+          m[2] +
+          '</div></div>';
         lst.appendChild(d);
         sndTk();
-        requestAnimationFrame(function () { lst.scrollTop = lst.scrollHeight; });
+        requestAnimationFrame(function () {
+          lst.scrollTop = lst.scrollHeight;
+        });
       }, m[0]);
     });
 
@@ -73,7 +81,9 @@ function p3() {
       var img = new Image();
       img.src = 'assets/sticker.png';
       img.className = 'tk-sticker-img';
-      img.onload = function () { lst.scrollTop = lst.scrollHeight; };
+      img.onload = function () {
+        lst.scrollTop = lst.scrollHeight;
+      };
       var wrap = document.createElement('div');
       wrap.className = 'tk-sticker-wrap';
       wrap.appendChild(img);
@@ -100,7 +110,8 @@ function p3() {
   }, 17000);
 
   simTimeout(function () {
-    flash(); sndShutter();
+    flash();
+    sndShutter();
     toast(t('tk.toastVideos'), 2000);
   }, 20000);
 

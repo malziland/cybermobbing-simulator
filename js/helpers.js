@@ -15,17 +15,25 @@
  * @type {Object<string, [string, string]>}
  */
 var avatars = {
-  'marco': ['MA','av-marco'], 'marco_2012': ['MA','av-marco'],
-  'sara': ['SA','av-sara'], 'sara.xoxo': ['SA','av-sara'], 'sara_2012': ['SA','av-sara'],
-  'tim': ['TI','av-tim'], 'tim_0711': ['TI','av-tim'],
-  'leon': ['LE','av-leon'], 'leon_fcb': ['LE','av-leon'],
-  'tom': ['TO','av-tom'], 'tom.m': ['TO','av-tom'],
-  'lukas': ['LU','av-lukas'], 'lukas.der.echte': ['LU','av-lukas'], 'xxl.lukas': ['LU','av-xxl'],
-  'noah.x': ['NO','av-noah'],
-  'anon99': ['AN','av-anon'],
-  'aggro.44': ['AG','av-aggro'],
-  'troll.page': ['TR','av-troll'],
-  'hype.page': ['HP','av-hype']
+  marco: ['MA', 'av-marco'],
+  marco_2012: ['MA', 'av-marco'],
+  sara: ['SA', 'av-sara'],
+  'sara.xoxo': ['SA', 'av-sara'],
+  sara_2012: ['SA', 'av-sara'],
+  tim: ['TI', 'av-tim'],
+  tim_0711: ['TI', 'av-tim'],
+  leon: ['LE', 'av-leon'],
+  leon_fcb: ['LE', 'av-leon'],
+  tom: ['TO', 'av-tom'],
+  'tom.m': ['TO', 'av-tom'],
+  lukas: ['LU', 'av-lukas'],
+  'lukas.der.echte': ['LU', 'av-lukas'],
+  'xxl.lukas': ['LU', 'av-xxl'],
+  'noah.x': ['NO', 'av-noah'],
+  anon99: ['AN', 'av-anon'],
+  'aggro.44': ['AG', 'av-aggro'],
+  'troll.page': ['TR', 'av-troll'],
+  'hype.page': ['HP', 'av-hype'],
 };
 
 /**
@@ -36,7 +44,7 @@ var avatars = {
  * @returns {string} HTML div with initials and character-specific CSS class
  */
 function getAvatar(username, big) {
-  var a = avatars[username] || ['??','av-anon'];
+  var a = avatars[username] || ['??', 'av-anon'];
   return '<div class="av-circle ' + a[1] + (big ? ' av-big' : '') + '">' + a[0] + '</div>';
 }
 
@@ -56,7 +64,9 @@ function sw(a, b) {
   ea.classList.remove('on');
   eb.classList.add('on');
   // Remove 'off' class after the CSS transition completes
-  setTimeout(function () { ea.classList.remove('off'); }, 500);
+  setTimeout(function () {
+    ea.classList.remove('off');
+  }, 500);
 }
 
 /**
@@ -67,7 +77,7 @@ function sw(a, b) {
 function flash() {
   var f = document.getElementById('fl');
   f.classList.remove('go');
-  void f.offsetWidth;           // Force reflow to restart animation
+  void f.offsetWidth; // Force reflow to restart animation
   f.classList.add('go');
 }
 
@@ -80,7 +90,9 @@ function toast(txt, dur) {
   var t = document.getElementById('toast');
   t.textContent = txt;
   t.classList.add('show');
-  simTimeout(function () { t.classList.remove('show'); }, dur || 2500);
+  simTimeout(function () {
+    t.classList.remove('show');
+  }, dur || 2500);
 }
 
 /**

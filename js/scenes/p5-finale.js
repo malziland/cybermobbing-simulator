@@ -63,7 +63,7 @@ function p6() {
   if (disc) disc.classList.remove('hidden');
 
   // Populate helpline from config (logo, slogan, link)
-  var cfg = (typeof helplineConfig !== 'undefined') ? helplineConfig : {};
+  var cfg = typeof helplineConfig !== 'undefined' ? helplineConfig : {};
   var logoEl = document.getElementById('ctaLogo');
   var helplineEl = document.getElementById('ctaHelpline');
 
@@ -71,7 +71,8 @@ function p6() {
   // All operator-controlled strings (logo, labels, hrefs) go through
   // DOM APIs (textContent / setAttribute) so a fork with quotes or
   // angle brackets in helplineConfig cannot break or inject markup.
-  var linkIconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var linkIconSvg =
+    '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   if (cfg.logo && logoEl) {
     logoEl.href = cfg.link || '#';
@@ -100,13 +101,13 @@ function p6() {
       linksEl.appendChild(buildCtaLink(cfg.link, cfg.linkLabel));
     }
     if (cfg.infoLink) {
-      var label = (currentLang === 'en' && cfg.infoLabelEn) ? cfg.infoLabelEn : (cfg.infoLabel || '');
+      var label = currentLang === 'en' && cfg.infoLabelEn ? cfg.infoLabelEn : cfg.infoLabel || '';
       linksEl.appendChild(buildCtaLink(cfg.infoLink, label));
     }
   }
 
   if (cfg.slogan && helplineEl) {
-    helplineEl.textContent = (currentLang === 'en' && cfg.sloganEn) ? cfg.sloganEn : cfg.slogan;
+    helplineEl.textContent = currentLang === 'en' && cfg.sloganEn ? cfg.sloganEn : cfg.slogan;
   }
 
   // Show CTA fullscreen

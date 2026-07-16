@@ -7,7 +7,6 @@
  */
 
 var TRANSLATIONS = {
-
   de: {
     // ===== UI =====
     'ui.title': 'Wie Cybermobbing viral geht',
@@ -23,27 +22,38 @@ var TRANSLATIONS = {
     'ui.close': 'Schlie\u00DFen',
     'ui.linkCopied': 'Link kopiert!',
     'ui.messages': 'Nachrichten',
-    'ui.credit': 'Ein <a href="https://github.com/malziland/cybermobbing-simulator" target="_blank">Open-Source</a>-Bildungsprojekt von malziland',
+    'ui.credit':
+      'Ein <a href="https://github.com/malziland/cybermobbing-simulator" target="_blank">Open-Source</a>-Bildungsprojekt von malziland',
 
     // ===== IMPRESSUM =====
     'imp.title': 'Impressum',
     'imp.subtitle': 'Cybermobbing-Simulation by malziland',
-    'imp.notice': 'Diese Simulation ist ein Bildungstool zur Sensibilisierung gegen Cybermobbing. Alle dargestellten Personen, Namen und Inhalte sind frei erfunden.',
-    'imp.purpose': 'Zweck: Bereitstellung und Betrieb einer interaktiven Cybermobbing-Simulation f\u00FCr Workshops zur Medienkompetenz an Schulen.',
+    'imp.notice':
+      'Diese Simulation ist ein Bildungstool zur Sensibilisierung gegen Cybermobbing. Alle dargestellten Personen, Namen und Inhalte sind frei erfunden.',
+    'imp.purpose':
+      'Zweck: Bereitstellung und Betrieb einer interaktiven Cybermobbing-Simulation f\u00FCr Workshops zur Medienkompetenz an Schulen.',
     'imp.privacyTitle': 'Datenschutz gem\u00E4\u00DF DSGVO',
-    'imp.privacyNoData': 'Diese Seite speichert keine personenbezogenen Daten. Es werden keine Cookies gesetzt, kein Tracking eingesetzt und keine IP-Adressen gespeichert.',
-    'imp.privacyCounter': 'Der View-Counter speichert ausschlie\u00DFlich eine anonyme Z\u00E4hlzahl ohne Bezug zu einzelnen Besuchern. Eine Zuordnung zu Personen ist nicht m\u00F6glich.',
-    'imp.privacyLocalStorage': 'Die Seite legt zwei rein funktionale Werte im lokalen Browserspeicher (localStorage) ab: die gew\u00E4hlte Sprache und eine Tagesmarke, damit derselbe Browser den View-Counter nicht mehrfach erh\u00F6ht. Beide Werte bleiben auf deinem Ger\u00E4t, enthalten keine personenbezogenen Daten und werden nicht \u00FCbertragen.',
-    'imp.privacyHosting': 'Das Hosting erfolgt \u00FCber Google Firebase (Google Ireland Ltd). Es gelten die <a href="https://firebase.google.com/terms" target="_blank">Firebase-Nutzungsbedingungen</a> und die <a href="https://policies.google.com/privacy" target="_blank">Google-Datenschutzerkl\u00E4rung</a>.',
-    'imp.privacyContact': 'Bei Fragen zum Datenschutz: <a href="mailto:info@malzi.me">info@malzi.me</a>',
+    'imp.privacyNoData':
+      'Diese Seite speichert keine personenbezogenen Daten. Es werden keine Cookies gesetzt, kein Tracking eingesetzt und keine IP-Adressen gespeichert.',
+    'imp.privacyCounter':
+      'Der View-Counter speichert ausschlie\u00DFlich eine anonyme Z\u00E4hlzahl ohne Bezug zu einzelnen Besuchern. Eine Zuordnung zu Personen ist nicht m\u00F6glich.',
+    'imp.privacyLocalStorage':
+      'Die Seite legt zwei rein funktionale Werte im lokalen Browserspeicher (localStorage) ab: die gew\u00E4hlte Sprache und eine Tagesmarke, damit derselbe Browser den View-Counter nicht mehrfach erh\u00F6ht. Beide Werte bleiben auf deinem Ger\u00E4t, enthalten keine personenbezogenen Daten und werden nicht \u00FCbertragen.',
+    'imp.privacyHosting':
+      'Das Hosting erfolgt \u00FCber Google Firebase (Google Ireland Ltd). Es gelten die <a href="https://firebase.google.com/terms" target="_blank">Firebase-Nutzungsbedingungen</a> und die <a href="https://policies.google.com/privacy" target="_blank">Google-Datenschutzerkl\u00E4rung</a>.',
+    'imp.privacyContact':
+      'Bei Fragen zum Datenschutz: <a href="mailto:info@malzi.me">info@malzi.me</a>',
 
     // ===== SHARE =====
     'share.title': 'Cybermobbing-Simulation',
-    'share.text': 'Wie Cybermobbing viral geht \u2013 120-Sekunden-Simulation.\n\nWenn du betroffen bist: Rat auf Draht 147',
+    'share.text':
+      'Wie Cybermobbing viral geht \u2013 120-Sekunden-Simulation.\n\nWenn du betroffen bist: Rat auf Draht 147',
 
     // ===== DISCLAIMER =====
-    'disclaimer.full': 'Fiktives Szenario zu Bildungszwecken. Alle Namen und Inhalte sind erfunden. Die dargestellten App-Oberfl\u00E4chen, Logos und Markenzeichen sind Eigentum der jeweiligen Unternehmen und werden hier ausschlie\u00DFlich zur realistischen Veranschaulichung im Bildungskontext verwendet. Diese Seite steht in keiner Verbindung zu den genannten Plattformen oder deren Betreibern. Die genannten Plattformen bieten Meldefunktionen und Hilfsangebote gegen Cybermobbing.',
-    'disclaimer.helplineLogo': 'Das Logo von 147 Rat auf Draht wird mit freundlicher Genehmigung verwendet.',
+    'disclaimer.full':
+      'Fiktives Szenario zu Bildungszwecken. Alle Namen und Inhalte sind erfunden. Die dargestellten App-Oberfl\u00E4chen, Logos und Markenzeichen sind Eigentum der jeweiligen Unternehmen und werden hier ausschlie\u00DFlich zur realistischen Veranschaulichung im Bildungskontext verwendet. Diese Seite steht in keiner Verbindung zu den genannten Plattformen oder deren Betreibern. Die genannten Plattformen bieten Meldefunktionen und Hilfsangebote gegen Cybermobbing.',
+    'disclaimer.helplineLogo':
+      'Das Logo von 147 Rat auf Draht wird mit freundlicher Genehmigung verwendet.',
 
     // ===== LIMIT PAGE =====
     'limit.n1': '<strong>+247 Nachrichten</strong> in 3 Gruppen',
@@ -84,7 +94,8 @@ var TRANSLATIONS = {
     'ig.marco': '\uD83D\uDE02\uD83D\uDE02 keiner vermisst dich wenn du weg bist tom',
     'ig.lukas': '@tom.m geh einfach keiner braucht dich hier \uD83D\uDC80 f\u00FCr immer',
     'ig.tom2': 'H\u00D6RT AUF. ICH MELDE DAS ALLES.',
-    'ig.hype': 'wer den in der schule sieht \u2192 foto machen posten taggen \uD83D\uDD25\uD83D\uDD25',
+    'ig.hype':
+      'wer den in der schule sieht \u2192 foto machen posten taggen \uD83D\uDD25\uD83D\uDD25',
     'ig.toastScreenshot': '\uD83D\uDCF8 lukas.der.echte hat einen Screenshot gemacht',
     'ig.toastReaction': '\uD83C\uDFAC lukas.der.echte macht ein Reaktionsvideo...',
     'ig.toastTiktok': '\uD83D\uDCE4 Neues TikTok-Video mit deinem Foto ver\u00F6ffentlicht',
@@ -104,7 +115,8 @@ var TRANSLATIONS = {
     'tk.aggro': 'heult auf tiktok \uD83D\uDE02 wie erbermlich kannst du sein',
     'tk.marco': '@tom.m du bist so tot morgen in der schule glaub mir \uD83E\uDD21',
     'tk.troll': 'jeder der das sieht \u2192 liken teilen reposten \uD83D\uDC80\uD83D\uDD25',
-    'tk.botDesc': 'I can\'t \uD83D\uDC80\uD83D\uDC80 <span class="tag">#school</span> <span class="tag">#exposed</span> <span class="tag">#fy</span>',
+    'tk.botDesc':
+      'I can\'t \uD83D\uDC80\uD83D\uDC80 <span class="tag">#school</span> <span class="tag">#exposed</span> <span class="tag">#fy</span>',
     'tk.stickerLabel': 'OPFER',
     'tk.toastReport': '\u23F3 Deine Meldung wird gepr\u00FCft',
     'tk.toastVideos': '\uD83D\uDCF8 3 weitere Videos mit deinem Foto erstellt',
@@ -115,7 +127,8 @@ var TRANSLATIONS = {
     'hs.n3': '<strong>hype.page</strong> hat deinen vollen Namen gepostet',
     'hs.n4': '<strong>2.8k Views</strong> auf das TikTok-Video',
     'hs.n5': '<strong>Mama</strong> versucht anzurufen...',
-    'hs.n6': '<strong>Neue Gruppe</strong>: \u201ETom exposed \uD83E\uDD21\u201C \u2014 41 Mitglieder',
+    'hs.n6':
+      '<strong>Neue Gruppe</strong>: \u201ETom exposed \uD83E\uDD21\u201C \u2014 41 Mitglieder',
     'hs.n7': '<strong>Neuer Kommentar</strong>: \u201El\u00F6sch dich einfach \uD83D\uDC80\u201C',
     'hs.n8': '<strong>aggro.44</strong> hat ein Meme aus deinem Foto gemacht',
 
@@ -132,7 +145,8 @@ var TRANSLATIONS = {
     'fin.line3': 'Jeden Tag.',
     'fin.line4': 'Auch nachts.',
     'fin.line5': 'Alle haben es gesehen<br>und morgen in der Schule<br>geht es weiter.',
-    'fin.help': 'Cybermobbing ist kein Spa\u00DF \u2013 es ist Gewalt, die man nicht sieht. Wenn Worte dich verletzen oder du siehst, wie andere fertiggemacht werden: Du musst das nicht alleine aushalten. Brich das Schweigen.',
+    'fin.help':
+      'Cybermobbing ist kein Spa\u00DF \u2013 es ist Gewalt, die man nicht sieht. Wenn Worte dich verletzen oder du siehst, wie andere fertiggemacht werden: Du musst das nicht alleine aushalten. Brich das Schweigen.',
 
     // ===== PHOTO OVERLAYS =====
     'photo.igUser': 'marco_2012',
@@ -146,7 +160,7 @@ var TRANSLATIONS = {
     'photo.pov': 'POV: du hast keine freunde',
     'photo.tags': '#exposed #schule #rip',
     'photo.emojiBot': '\uD83E\uDD21\uD83D\uDC80\uD83D\uDD95\uD83E\uDD2E',
-    'photo.bozo': 'rip bozo \uD83D\uDC80'
+    'photo.bozo': 'rip bozo \uD83D\uDC80',
   },
 
   en: {
@@ -164,26 +178,35 @@ var TRANSLATIONS = {
     'ui.close': 'Close',
     'ui.linkCopied': 'Link copied!',
     'ui.messages': 'Messages',
-    'ui.credit': 'An <a href="https://github.com/malziland/cybermobbing-simulator" target="_blank">open-source</a> education project by malziland',
+    'ui.credit':
+      'An <a href="https://github.com/malziland/cybermobbing-simulator" target="_blank">open-source</a> education project by malziland',
 
     // ===== IMPRESSUM =====
     'imp.title': 'Legal Notice',
     'imp.subtitle': 'Cyberbullying Simulation by malziland',
-    'imp.notice': 'This simulation is an educational tool to raise awareness about cyberbullying. All depicted persons, names and content are entirely fictional.',
-    'imp.purpose': 'Purpose: Development and operation of an interactive cyberbullying simulation for media literacy workshops in schools.',
+    'imp.notice':
+      'This simulation is an educational tool to raise awareness about cyberbullying. All depicted persons, names and content are entirely fictional.',
+    'imp.purpose':
+      'Purpose: Development and operation of an interactive cyberbullying simulation for media literacy workshops in schools.',
     'imp.privacyTitle': 'Privacy (GDPR)',
-    'imp.privacyNoData': 'This site does not store any personal data. No cookies are set, no tracking is used, and no IP addresses are stored.',
-    'imp.privacyCounter': 'The view counter stores only an anonymous count with no relation to individual visitors. Attribution to persons is not possible.',
-    'imp.privacyLocalStorage': 'The site stores two purely functional values in browser localStorage: the selected language and a daily marker that prevents the same browser from incrementing the view counter multiple times. Both values stay on your device, contain no personal data and are never transmitted.',
-    'imp.privacyHosting': 'Hosting is provided by Google Firebase (Google Ireland Ltd). The <a href="https://firebase.google.com/terms" target="_blank">Firebase Terms of Service</a> and <a href="https://policies.google.com/privacy" target="_blank">Google Privacy Policy</a> apply.',
+    'imp.privacyNoData':
+      'This site does not store any personal data. No cookies are set, no tracking is used, and no IP addresses are stored.',
+    'imp.privacyCounter':
+      'The view counter stores only an anonymous count with no relation to individual visitors. Attribution to persons is not possible.',
+    'imp.privacyLocalStorage':
+      'The site stores two purely functional values in browser localStorage: the selected language and a daily marker that prevents the same browser from incrementing the view counter multiple times. Both values stay on your device, contain no personal data and are never transmitted.',
+    'imp.privacyHosting':
+      'Hosting is provided by Google Firebase (Google Ireland Ltd). The <a href="https://firebase.google.com/terms" target="_blank">Firebase Terms of Service</a> and <a href="https://policies.google.com/privacy" target="_blank">Google Privacy Policy</a> apply.',
     'imp.privacyContact': 'For privacy questions: <a href="mailto:info@malzi.me">info@malzi.me</a>',
 
     // ===== SHARE =====
     'share.title': 'Cyberbullying Simulation',
-    'share.text': 'How cyberbullying goes viral \u2013 120-second simulation.\n\nIf you are affected: seek help.',
+    'share.text':
+      'How cyberbullying goes viral \u2013 120-second simulation.\n\nIf you are affected: seek help.',
 
     // ===== DISCLAIMER =====
-    'disclaimer.full': 'Fictional scenario for educational purposes. All names and content are fictitious. The depicted app interfaces, logos and trademarks are the property of their respective owners and are used here solely for realistic illustration in an educational context. This site is not affiliated with the mentioned platforms or their operators. The mentioned platforms offer reporting tools and support against cyberbullying.',
+    'disclaimer.full':
+      'Fictional scenario for educational purposes. All names and content are fictitious. The depicted app interfaces, logos and trademarks are the property of their respective owners and are used here solely for realistic illustration in an educational context. This site is not affiliated with the mentioned platforms or their operators. The mentioned platforms offer reporting tools and support against cyberbullying.',
     'disclaimer.helplineLogo': 'The 147 Rat auf Draht logo is used with kind permission.',
 
     // ===== LIMIT PAGE =====
@@ -195,7 +218,7 @@ var TRANSLATIONS = {
     'limit.title': 'This simulation also<br>needs a break.',
     'limit.sub': 'Too many people have already watched today.',
     'limit.availableIn': 'Available again in:',
-    'limit.note': 'Cyberbullying doesn\'t stop<br>just because you look away.',
+    'limit.note': "Cyberbullying doesn't stop<br>just because you look away.",
 
     // ===== WHATSAPP (P1) =====
     'wa.groupName': 'Class 3B \uD83C\uDFEB',
@@ -203,11 +226,11 @@ var TRANSLATIONS = {
     'wa.inputPlaceholder': 'Message',
     'wa.dateLabel': 'TODAY',
     'wa.marco1': 'yo look at this guy \uD83D\uDE02\uD83D\uDE02 he has no clue',
-    'wa.sara1': 'HAHA NOOO \uD83D\uDC80\uD83D\uDC80\uD83D\uDC80 I caaan\'t anymore',
+    'wa.sara1': "HAHA NOOO \uD83D\uDC80\uD83D\uDC80\uD83D\uDC80 I caaan't anymore",
     'wa.tim1': 'bro how embarassing is he \uD83D\uDE02 no wonder nobody talks to him',
     'wa.leon1': 'Send it to 3A and 4B. They all need to see this \uD83D\uDC80',
     'wa.sara2': 'WAIT screenshot \uD83D\uDD25\uD83D\uDD25 going on my instaaaa',
-    'wa.marco2': 'dude tomorrow at school you\'re done \uD83E\uDD21',
+    'wa.marco2': "dude tomorrow at school you're done \uD83E\uDD21",
     'wa.tomLeaves': '\u2190 Tom has left the group',
     'wa.toastScreenshot': '\uD83D\uDCF8 Sara took a screenshot',
     'wa.toastEditing': '\u270F\uFE0F Sara is editing the photo...',
@@ -218,14 +241,15 @@ var TRANSLATIONS = {
     'ig.likesCount': '{count} likes',
     'ig.commentsCount': 'View all {count} comments',
     'ig.storyViews': '234 story views \u00B7 48 from other classes',
-    'ig.sara': 'HAHAHA I CAN\'T \uD83D\uDC80\uD83D\uDC80 look at him omggg',
+    'ig.sara': "HAHAHA I CAN'T \uD83D\uDC80\uD83D\uDC80 look at him omggg",
     'ig.tim': 'bro just delete yourself \uD83D\uDE02\uD83D\uDE02 so embarassing',
     'ig.leon': 'If you walk around like that you deserve it \uD83E\uDD21',
     'ig.tom1': 'Please delete this. This is not funny. Please.',
-    'ig.marco': '\uD83D\uDE02\uD83D\uDE02 nobody misses you when you\'re gone tom',
+    'ig.marco': "\uD83D\uDE02\uD83D\uDE02 nobody misses you when you're gone tom",
     'ig.lukas': '@tom.m just leave nobody needs you here \uD83D\uDC80 ever',
-    'ig.tom2': 'STOP. I\'M REPORTING ALL OF THIS.',
-    'ig.hype': 'anyone who sees him at school \u2192 take a photo post it tag him \uD83D\uDD25\uD83D\uDD25',
+    'ig.tom2': "STOP. I'M REPORTING ALL OF THIS.",
+    'ig.hype':
+      'anyone who sees him at school \u2192 take a photo post it tag him \uD83D\uDD25\uD83D\uDD25',
     'ig.toastScreenshot': '\uD83D\uDCF8 lukas.der.echte took a screenshot',
     'ig.toastReaction': '\uD83C\uDFAC lukas.der.echte is making a reaction video...',
     'ig.toastTiktok': '\uD83D\uDCE4 New TikTok video published with your photo',
@@ -241,11 +265,12 @@ var TRANSLATIONS = {
     'tk.sara': 'HAHAHA TOM M. 3B Central High \uD83D\uDE02\uD83D\uDE02 EXPOSED',
     'tk.noah': '14 Linzer Street. In case anyone wants to stop by \uD83D\uDC80',
     'tk.anon': 'he goes to our school lol everyone knows him \uD83D\uDE02',
-    'tk.tom': 'That\'s me. Please report this video. Please.',
+    'tk.tom': "That's me. Please report this video. Please.",
     'tk.aggro': 'crying on tiktok \uD83D\uDE02 how pathetic can you be',
-    'tk.marco': '@tom.m you\'re so dead tomorrow at school believe me \uD83E\uDD21',
+    'tk.marco': "@tom.m you're so dead tomorrow at school believe me \uD83E\uDD21",
     'tk.troll': 'everyone who sees this \u2192 like share repost \uD83D\uDC80\uD83D\uDD25',
-    'tk.botDesc': 'I can\'t \uD83D\uDC80\uD83D\uDC80 <span class="tag">#school</span> <span class="tag">#exposed</span> <span class="tag">#fy</span>',
+    'tk.botDesc':
+      'I can\'t \uD83D\uDC80\uD83D\uDC80 <span class="tag">#school</span> <span class="tag">#exposed</span> <span class="tag">#fy</span>',
     'tk.stickerLabel': 'LOSER',
     'tk.toastReport': '\u23F3 Your report is being reviewed',
     'tk.toastVideos': '\uD83D\uDCF8 3 more videos created with your photo',
@@ -262,7 +287,7 @@ var TRANSLATIONS = {
 
     // ===== MESSAGES (P4b) =====
     'im.mama': 'Tom, honey? Are you okay? \u2764\uFE0F',
-    'im.tom': 'Mom, I can\'t take this anymore.',
+    'im.tom': "Mom, I can't take this anymore.",
     'im.contactName': 'Mom \u2764\uFE0F',
     'im.label': 'iMessage',
     'im.back': 'Back',
@@ -273,7 +298,8 @@ var TRANSLATIONS = {
     'fin.line3': 'Every day.',
     'fin.line4': 'Even at night.',
     'fin.line5': 'Everyone saw it<br>and tomorrow at school<br>it continues.',
-    'fin.help': 'Cyberbullying is not a joke \u2013 it\'s violence you can\'t see. If words are hurting you or you see others being torn apart: You don\'t have to endure this alone. Break the silence.',
+    'fin.help':
+      "Cyberbullying is not a joke \u2013 it's violence you can't see. If words are hurting you or you see others being torn apart: You don't have to endure this alone. Break the silence.",
 
     // ===== PHOTO OVERLAYS =====
     'photo.igUser': 'marco_2012',
@@ -287,8 +313,8 @@ var TRANSLATIONS = {
     'photo.pov': 'POV: you have no friends',
     'photo.tags': '#exposed #school #rip',
     'photo.emojiBot': '\uD83E\uDD21\uD83D\uDC80\uD83D\uDD95\uD83E\uDD2E',
-    'photo.bozo': 'rip bozo \uD83D\uDC80'
-  }
+    'photo.bozo': 'rip bozo \uD83D\uDC80',
+  },
 };
 
 /** Current language code */
@@ -328,9 +354,10 @@ function detectLanguage() {
  *   t('ig.likesCount', {count: 42}) // "42 „Gefällt mir"-Angaben"
  */
 function t(key, replacements) {
-  var str = (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key])
-         || (TRANSLATIONS.de && TRANSLATIONS.de[key])
-         || '[' + key + ']';
+  var str =
+    (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) ||
+    (TRANSLATIONS.de && TRANSLATIONS.de[key]) ||
+    '[' + key + ']';
 
   if (replacements) {
     Object.keys(replacements).forEach(function (k) {
