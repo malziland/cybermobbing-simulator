@@ -4,6 +4,16 @@ Alle relevanten Änderungen an diesem Projekt werden hier dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) und folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.2.1] - 2026-07-16
+
+Behebung aller vier Findings des KURZAUDITS vom 2026-07-16 (AUDIT-REMEDIATION).
+
+### Behoben
+- **BUG-01:** `/views`-Datenbankregel erlaubt jetzt den allerersten Zählimpuls auf einer frischen Datenbank — der View-Counter von Forks blieb bisher dauerhaft leer
+- **DOC-01:** Falsche Aussage in `SECURITY.md` korrigiert (Tageslimit war nie regelseitig durchgesetzt); zusätzlich echter serverseitiger Deckel in den Datenbank-Regeln: `/daily/<datum>` maximal 5000 Schreibvorgänge pro Tag
+- **OPS-01:** Video-Export serviert immer den Offline-Stub statt der echten Firebase-Konfiguration — Filmläufe zählen den Live-Counter nicht mehr hoch
+- **BIZ-01:** Der zur Laufzeit gesetzte Seitentitel behält den Marken-Zusatz „| malziland" (SEO, seit v1.1.5); E2E-Test prüft das jetzt mit
+
 ## [1.2.0] - 2026-07-16
 
 Nachzug auf den Familien-Standard (PROJEKTSTART-Lückenplan, siehe `docs/KONZEPT.md`).
