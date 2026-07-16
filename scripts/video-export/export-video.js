@@ -260,7 +260,9 @@ function startStaticServer() {
     let rel = url === '/' ? '/index.html' : url;
     const filePath = path.join(ROOT_DIR, rel);
     if (!filePath.startsWith(ROOT_DIR)) { res.writeHead(403).end(); return; }
-    if (rel === '/js/config.js' && !fs.existsSync(filePath)) {
+    // Always serve the stub (never the real config), so filming can never
+    // touch the production database or inflate the live view counter (OPS-01)
+    if (rel === '/js/config.js') {
       res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(CONFIG_STUB);
       return;
