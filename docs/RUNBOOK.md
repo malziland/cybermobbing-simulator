@@ -44,18 +44,30 @@ Zwei Wege, je nach Situation:
    ```bash
    git worktree add /tmp/rollback vX.Y.Z   # alten Stand isoliert auschecken
    cd /tmp/rollback
+   bash setup.sh                           # App-Icons sind gitignored, im frischen worktree fehlen sie!
    cp <pfad-zur-lokalen>/js/config.js js/config.js
    firebase deploy --project cybermobbing
    cd - && git worktree remove /tmp/rollback
    ```
    Die Datenbank ist davon nicht betroffen (nur Zählerstände, kein Schema).
 
-### Rollback-Probe
+### Rollback-Probe (zuletzt durchgeführt: 2026-07-16, Ziel-Tag v1.1.5)
 
-Ergebnis der verpflichtenden Probe: siehe docs/VERIFICATION.md (Zeile
-„Rollback-Probe"). Die Probe checkt den letzten Release-Tag in einem
-temporären worktree aus, führt dort Setup und Tests aus und entfernt den
-worktree wieder — die Projekthistorie bleibt unberührt.
+Ablauf: Tag in temporärem worktree ausgecheckt, dort Setup und QUnit-Suite
+(headless, `node scripts/run-tests.js <worktree-pfad>`) ausgeführt, worktree
+entfernt — Historie unberührt. Ergebnisse:
+
+- **setup.sh @v1.1.5: fehlgeschlagen** (Apples CDN-Icon-Tokens rotiert, 404).
+  Ursache im aktuellen Stand behoben: setup.sh löst die Icon-URLs jetzt zur
+  Laufzeit über die iTunes-Lookup-API auf; verifiziert in leerem Verzeichnis
+  (5/5 Icons geladen). Lehre: Bei Rollback auf Tags ≤ v1.1.5 die Icons aus
+  dem Arbeits-Checkout kopieren oder das aktuelle setup.sh verwenden.
+- **QUnit-Suite @v1.1.5: läuft**; 2 bekannte „global failure"-Fehler des
+  alten Test-Aufbaus (nativer setTimeout-Leak; im aktuellen Stand behoben,
+  Commit 7bcc545). Kein Hindernis für den Rollback des Produkts.
+- **Schnellster Rollback-Weg bleibt** der Release-Verlauf der
+  Firebase-Konsole (Weg 1), der die tatsächlich ausgelieferten Dateien
+  inklusive Icons wiederherstellt.
 
 ## Störfall: View-Counter zeigt „--" oder verschwindet
 

@@ -4,6 +4,7 @@
  * Serves the repository over a local HTTP server, opens tests/test-runner.html
  * in headless Chromium (Playwright) and exits non-zero if any test fails.
  * Usage: npm run test
+ *        node scripts/run-tests.js [rootDir]  (e.g. a worktree for rollback probes)
  */
 'use strict';
 
@@ -11,7 +12,7 @@ const path = require('path');
 const { chromium } = require('playwright');
 const { createStaticServer } = require('./static-server');
 
-const ROOT = path.resolve(__dirname, '..');
+const ROOT = path.resolve(process.argv[2] || path.resolve(__dirname, '..'));
 
 (async function main() {
   const server = await createStaticServer(ROOT);
