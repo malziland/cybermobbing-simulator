@@ -1,0 +1,12 @@
+{
+  "name": "cybermobbing-video-export",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Isolierter Video-Export für die Cybermobbing-Simulation. Filmt die Simulation 120 Sek lang ab und mischt Audio (BGM + Web-Audio-Plings via BlackHole) zu einer MP4-Datei im Hochformat 1080x1920.",
+  "scripts": {
+    "export": "node export-video.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}
