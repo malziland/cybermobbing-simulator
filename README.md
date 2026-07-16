@@ -82,7 +82,9 @@ Die Icons in `assets/icons/` sind Markenzeichen der jeweiligen Unternehmen (Meta
 
 ## Credits
 
-malziland - learning | training | consulting e.U.
+Konzept & Umsetzung: [Christoph Krieger](https://www.linkedin.com/in/christophkrieger/)
+
+malziland - learning | training | consulting e.U. — Neuhofen an der Krems, Oesterreich
 
 ## Lizenz
 

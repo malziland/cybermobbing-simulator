@@ -24,6 +24,9 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
 .start-share:hover{background:rgba(254,44,85,.1)!important;color:#fe2c55!important;transform:none!important}
 .start-views{display:flex;align-items:center;gap:4px;font-size:11px;color:#fe2c55;font-variant-numeric:tabular-nums;margin-bottom:25px}
 .start-views span{color:#fe2c55;font-weight:600}
+.start-credit{font-size:.68rem;color:#555;margin-top:-15px}
+.start-credit a{color:#888;text-decoration:underline}
+.start-credit a:hover{color:#fe2c55}
 
 /* Pause button — subtle tap target */
 .pause-btn{

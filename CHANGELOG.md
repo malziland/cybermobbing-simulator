@@ -4,6 +4,20 @@ Alle relevanten Änderungen an diesem Projekt werden hier dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) und folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.1.5] - 2026-07-16
+
+### Hinzugefügt
+- **SEO / Auffindbarkeit:** JSON-LD erweitert — Christoph Krieger als `creator` (Person) mit `sameAs`-Links zu LinkedIn und GitHub, malziland-Organisation mit `founder`-Verknüpfung, zweiter Typ `LearningResource`, `image`/`screenshot`, GitHub-Repo als `sameAs`, `inLanguage` de+en
+- Sichtbare Credit-Zeile am Startbildschirm („Ein Open-Source-Bildungsprojekt von malziland", verlinkt auf das GitHub-Repo dieses Projekts; DE + EN via `ui.credit`)
+- `llms.txt`: maschinenlesbarer Projekt-Steckbrief für KI-Crawler (DE + EN, mit Betreiber- und Autoren-Angaben)
+- `og:locale:alternate` (en_US), Meta-Author um Christoph Krieger ergänzt, Titel-Tag mit Marken-Zusatz „| malziland"
+
+### Geändert
+- `sitemap.xml`: `lastmod` aktualisiert
+- `README.md`: Credits-Abschnitt mit Namen und LinkedIn-Link
+- JSON-LD: `https://malzi.me` als Organisations-URL entfernt — malzi.me ist ein eigenständiges Projekt und wird nicht mehr quer-verlinkt
+- `firebase.json`: `scripts/video-export/**` vom Hosting ausgeschlossen (lokales Werkzeug, gehört nicht auf den Live-Server)
+
 ## [1.1.4] - 2026-07-14
 
 ### Geändert

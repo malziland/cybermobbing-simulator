@@ -1,0 +1,30 @@
+# Cybermobbing-Simulation — Wie Cybermobbing viral geht
+
+> Interaktive 120-Sekunden-Simulation, die zeigt, wie schnell Cybermobbing viral geht.
+> Ein kostenloses Open-Source-Bildungstool für Workshops zur Medienkompetenz an Schulen.
+> Ein Projekt von malziland - learning | training | consulting e.U. (Inhaber: Christoph Krieger), Neuhofen an der Krems, Österreich.
+
+Die Simulation durchläuft fünf Phasen — von der ersten WhatsApp-Nachricht über Instagram
+und TikTok bis zum überfluteten Homescreen — und zeigt in Echtzeit, wie sich Cybermobbing
+ausbreitet. Am Ende werden Hilfsangebote eingeblendet (z. B. Rat auf Draht 147 in Österreich).
+Alle dargestellten Personen, Namen und Inhalte sind frei erfunden (fiktives Szenario zu
+Bildungszwecken). Die Seite ist zweisprachig (Deutsch/Englisch), speichert keine
+personenbezogenen Daten und setzt keine Cookies.
+
+## Links
+
+- [Live-Simulation](https://cybermobbing.web.app): die Simulation selbst
+- [Quellcode auf GitHub](https://github.com/malziland/cybermobbing-simulator): Open Source (MIT-Lizenz)
+- [Christoph Krieger auf LinkedIn](https://www.linkedin.com/in/christophkrieger/): Konzept & Umsetzung
+
+## Kontakt
+
+- E-Mail: info@malzi.me
+
+## English summary
+
+A free, open-source 120-second interactive simulation showing how fast cyberbullying goes
+viral — built for media-literacy workshops in schools. Created by Christoph Krieger
+(malziland - learning | training | consulting e.U., Austria). All depicted persons, names
+and content are entirely fictional. Available in German and English, no cookies, no
+personal data collected.
