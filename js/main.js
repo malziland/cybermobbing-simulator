@@ -104,7 +104,7 @@ function go() {
   // clearable via simTimers like every other scheduled scene step
   simTimeout(function () {
     sec = 0;
-    tmr = setInterval(tick, 100);
+    tmr = setInterval(tick, 100 / SIM_SPEED);
     startClock();
     p1();
   }, 500);
@@ -225,7 +225,17 @@ document.addEventListener('DOMContentLoaded', function () {
   // Impressum links
   var impLinkGlobal = document.getElementById('impLinkGlobal');
   var impCloseBtn = document.getElementById('impCloseBtn');
-  if (impLinkGlobal) impLinkGlobal.addEventListener('click', openImpressum);
+  if (impLinkGlobal) {
+    impLinkGlobal.addEventListener('click', openImpressum);
+    // span[role=button] gets no synthetic click on Enter/Space like a real
+    // <button> does -- required for keyboard operability (WCAG 2.1.1)
+    impLinkGlobal.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openImpressum();
+      }
+    });
+  }
   if (impCloseBtn) impCloseBtn.addEventListener('click', closeImpressum);
 
   // Impressum modal: close on backdrop click and Escape key

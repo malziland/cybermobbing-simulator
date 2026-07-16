@@ -202,6 +202,20 @@ function startMusic() {
 var simPaused = false;
 
 /**
+ * @type {number} Test-only time-lapse factor, set via URL parameter
+ * `?testspeed=N` (integer 1-60). All simTimeout delays and the progress-bar
+ * tick interval are divided by it, so N=10 runs the 120s simulation in ~12s.
+ * Defaults to 1 (real time); invalid or out-of-range values fall back to 1,
+ * so production behavior is unchanged unless the parameter is given explicitly.
+ * Used by the E2E tests (scripts/run-e2e.js), see docs/adr/ADR-0006.
+ */
+var SIM_SPEED = (function () {
+  var m = /[?&]testspeed=(\d+)/.exec(window.location.search);
+  var v = m ? parseInt(m[1], 10) : 1;
+  return v >= 1 && v <= 60 ? v : 1;
+})();
+
+/**
  * @type {Array<{id: number, fn: Function, remaining: number, startedAt: number, nativeId: number, schedule: Function}>}
  * Active pausable timers. Each entry tracks the callback, how many ms remain,
  * when it was last (re-)started, and a schedule() function to arm it.
@@ -226,7 +240,7 @@ var simTimerIdCounter = 0;
  */
 function simTimeout(fn, delay) {
   var id = ++simTimerIdCounter;
-  var timer = { id: id, fn: fn, remaining: delay, startedAt: Date.now() };
+  var timer = { id: id, fn: fn, remaining: delay / SIM_SPEED, startedAt: Date.now() };
 
   function schedule() {
     timer.startedAt = Date.now();
@@ -285,7 +299,7 @@ function togglePause() {
     // Recompute clockStart so elapsed time stays consistent after the pause gap
     clockStart = Date.now() - sec * 1000;
     if (typeof startClock === 'function') startClock();
-    tmr = setInterval(tick, 100);
+    tmr = setInterval(tick, 100 / SIM_SPEED);
     btn.textContent = t('ui.pause');
     overlay.classList.add('hidden');
   }
