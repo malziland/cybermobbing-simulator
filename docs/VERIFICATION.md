@@ -28,6 +28,6 @@ Playwright 1.61.1 · gitleaks 8.30.1 · geprüfter Stand: Commit `d801143`.
 |---|---|---|
 | Branch Protection auf `main` inkl. Required Checks | aktiv | 2026-07-16 per GitHub-API gesetzt: Required Checks `lint-and-test`, `secret-scan`, `dependency-audit`; Force-Push und Löschen blockiert. Bewusste Solo-Ausnahme: Admin darf direkt pushen (`enforce_admins: false`), sonst wäre der Arbeitsfluss ohne PRs blockiert |
 | GitHub Secret Scanning + Push Protection | aktiv | 2026-07-16 per API verifiziert (war bereits aktiv — GitHub-Standard für öffentliche Repos) |
-| 2FA auf GitHub-Account | offen (Betreiber) | per API mit diesem Token nicht auslesbar; Check: github.com/settings/security → „Two-factor authentication" |
+| 2FA auf GitHub-Account | aktiv | 2026-07-16 per Sichtprüfung durch Betreiber (Screenshot: „Two-factor authentication: Enabled", Authenticator-App konfiguriert, 2 Passkeys) |
 | Dependabot-Alerts + automatische Sicherheits-Updates | aktiv | 2026-07-16 per API aktiviert (`vulnerability-alerts`, `automated-security-fixes`) |
 | Google-Cloud-Budget-Alert fürs Firebase-Projekt | aktiv | 2026-07-16 per gcloud verifiziert: Budget „Firebase Project cybermobbing", 25 €/Monat, E-Mail-Warnungen bei 50/90/100 % (bestand bereits; versehentlich angelegtes Duplikat wieder entfernt) |
