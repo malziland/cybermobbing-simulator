@@ -173,7 +173,9 @@ document.addEventListener('DOMContentLoaded', function () {
   bgMusic = document.getElementById('bgm');
   var impModal = document.getElementById('impModal');
   applyI18n();
-  document.title = t('ui.title') + ' \u2013 ' + t('ui.subtitle');
+  // Keep the brand suffix from the static SEO title (index.html) when
+  // swapping in the localized runtime title (BIZ-01)
+  document.title = t('ui.title') + ' \u2013 ' + t('ui.subtitle') + ' | malziland';
   if (impModal) impModal.setAttribute('aria-label', t('imp.title'));
 
   // Append helpline logo disclaimer if a logo is configured

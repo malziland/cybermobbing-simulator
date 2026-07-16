@@ -90,6 +90,10 @@ async function axeScan(page, includeSelector, label) {
   console.log('E2E: start screen');
   await page.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
   await page.waitForSelector('#startBtn');
+  check(
+    (await page.title()).indexOf('| malziland') !== -1,
+    'runtime title keeps the brand suffix (BIZ-01)'
+  );
   await axeScan(page, '#start', 'start screen');
 
   console.log('E2E: impressum via keyboard');
