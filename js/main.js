@@ -28,23 +28,47 @@ function mkPhoto(el, h) {
   el.style.height = h || '100%';
   el.innerHTML =
     '<div class="photo-wrap">' +
-      '<div class="real-photo"></div>' +
-      '<div class="edits">' +
-        // Layer 2: Instagram - typische Insta-Story Bearbeitungen
-        '<div class="e e2 e2-emoji-top">' + t('photo.emoji1') + '</div>' +
-        '<div class="e e2 e2-text-look">' + t('photo.lookText') + '</div>' +
-        '<div class="e e2 e2-poop">' + t('photo.poop') + '</div>' +
-        '<div class="e e2 e2-ugly">' + t('photo.ugly') + '</div>' +
-        '<div class="e e2 e2-never">' + t('photo.never') + '</div>' +
-        // Layer 3: TikTok - Meme-Style, TikTok-typische Texte
-        '<div class="e e3 e3-exposed">' + t('photo.exposed') + '</div>' +
-        '<div class="e e3 e3-pov">' + t('photo.pov') + '</div>' +
-        '<div class="e e3 e3-tags">' + t('photo.tags') + '</div>' +
-        '<div class="e e3 e3-emoji-bot">' + t('photo.emojiBot') + '</div>' +
-        '<div class="e e3 e3-bozo">' + t('photo.bozo') + '</div>' +
-      '</div>' +
-      '<div class="igfr" data-user="' + t('photo.igUser') + '" data-likes="' + t('photo.igLikes') + '"></div>' +
-      '<div class="grain"></div>' +
+    '<div class="real-photo"></div>' +
+    '<div class="edits">' +
+    // Layer 2: Instagram - typische Insta-Story Bearbeitungen
+    '<div class="e e2 e2-emoji-top">' +
+    t('photo.emoji1') +
+    '</div>' +
+    '<div class="e e2 e2-text-look">' +
+    t('photo.lookText') +
+    '</div>' +
+    '<div class="e e2 e2-poop">' +
+    t('photo.poop') +
+    '</div>' +
+    '<div class="e e2 e2-ugly">' +
+    t('photo.ugly') +
+    '</div>' +
+    '<div class="e e2 e2-never">' +
+    t('photo.never') +
+    '</div>' +
+    // Layer 3: TikTok - Meme-Style, TikTok-typische Texte
+    '<div class="e e3 e3-exposed">' +
+    t('photo.exposed') +
+    '</div>' +
+    '<div class="e e3 e3-pov">' +
+    t('photo.pov') +
+    '</div>' +
+    '<div class="e e3 e3-tags">' +
+    t('photo.tags') +
+    '</div>' +
+    '<div class="e e3 e3-emoji-bot">' +
+    t('photo.emojiBot') +
+    '</div>' +
+    '<div class="e e3 e3-bozo">' +
+    t('photo.bozo') +
+    '</div>' +
+    '</div>' +
+    '<div class="igfr" data-user="' +
+    t('photo.igUser') +
+    '" data-likes="' +
+    t('photo.igLikes') +
+    '"></div>' +
+    '<div class="grain"></div>' +
     '</div>';
 }
 
@@ -76,7 +100,9 @@ function go() {
   mkPhoto(document.getElementById('tkBg'));
   setLayer(1);
   initClock();
-  setTimeout(function () {
+  // simTimeout (not native setTimeout) so the start delay is pausable and
+  // clearable via simTimers like every other scheduled scene step
+  simTimeout(function () {
     sec = 0;
     tmr = setInterval(tick, 100);
     startClock();
@@ -97,11 +123,13 @@ function shareSimulation() {
   var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   if (isMobile && navigator.share) {
-    navigator.share({
-      title: t('share.title'),
-      text: t('share.text'),
-      url: url
-    }).catch(function () {});
+    navigator
+      .share({
+        title: t('share.title'),
+        text: t('share.text'),
+        url: url,
+      })
+      .catch(function () {});
     return;
   }
 
@@ -115,7 +143,9 @@ function shareSimulation() {
     document.body.appendChild(ta);
     ta.focus();
     ta.select();
-    try { document.execCommand('copy'); } catch (e) {}
+    try {
+      document.execCommand('copy');
+    } catch (e) {}
     document.body.removeChild(ta);
   }
 
@@ -124,7 +154,9 @@ function shareSimulation() {
   toastEl.classList.remove('hidden');
   toastEl.textContent = t('ui.linkCopied');
   toastEl.classList.add('show');
-  simTimeout(function () { toastEl.classList.remove('show'); }, 2500);
+  simTimeout(function () {
+    toastEl.classList.remove('show');
+  }, 2500);
 }
 
 // ========== DOM READY ==========
@@ -145,14 +177,18 @@ document.addEventListener('DOMContentLoaded', function () {
   if (impModal) impModal.setAttribute('aria-label', t('imp.title'));
 
   // Append helpline logo disclaimer if a logo is configured
-  var cfg = (typeof helplineConfig !== 'undefined') ? helplineConfig : {};
+  var cfg = typeof helplineConfig !== 'undefined' ? helplineConfig : {};
   if (cfg.logo) {
     var discEl = document.querySelector('.disclaimer');
     if (discEl) discEl.textContent += ' ' + t('disclaimer.helplineLogo');
   }
 
-  function openImpressum() { impModal.classList.add('show'); }
-  function closeImpressum() { impModal.classList.remove('show'); }
+  function openImpressum() {
+    impModal.classList.add('show');
+  }
+  function closeImpressum() {
+    impModal.classList.remove('show');
+  }
 
   // Start button
   var startBtn = document.getElementById('startBtn');
@@ -175,7 +211,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Replay button
   var replayBtn = document.getElementById('footerReplayBtn');
-  if (replayBtn) replayBtn.addEventListener('click', function () { window.location.reload(); });
+  if (replayBtn)
+    replayBtn.addEventListener('click', function () {
+      window.location.reload();
+    });
 
   // Pause
   var pauseBtn = document.getElementById('pauseBtn');
