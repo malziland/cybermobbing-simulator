@@ -20,15 +20,12 @@ Playwright 1.61.1 · gitleaks 8.30.1 · geprüfter Stand: Commit `d801143`.
 | Tastatur-Smoketest (UI-Profil) | Prozedur in docs/RUNBOOK.md; automatisiert als Teil von `npm run test:e2e` (echte Tastatur-Events) | bestanden (automatisiert), 2026-07-16; Empfehlung: gelegentlich manuell auf echtem Gerät wiederholen |
 | Reproduzierbarer Stand | Lockfiles committet (Root + video-export), Node gepinnt (`.nvmrc`, `engines`), CDN-Skripte SRI-gepinnt, CI-Actions SHA-gepinnt | erfüllt, 2026-07-16 |
 
-## Externe Kontrollen (nur Betreiber, außerhalb des Repos)
+## Externe Kontrollen (außerhalb des Repos)
 
 | Kontrolle | Status | Verifiziert am / wie |
 |---|---|---|
-| Branch Protection auf `main` inkl. Required Checks | offen | — |
-| GitHub Secret Scanning + Push Protection | offen | — |
-| 2FA auf GitHub-Account | offen | — |
-| Dependabot-Alerts aktiviert | offen | — |
-| Google-Cloud-Budget-Alert fürs Firebase-Projekt | offen | — |
-
-Anleitung für diese fünf Punkte: siehe Abschlussbericht des Standard-Nachzugs
-bzw. docs/KONZEPT.md Abschnitt 6 (~15 Minuten Klickarbeit).
+| Branch Protection auf `main` inkl. Required Checks | aktiv | 2026-07-16 per GitHub-API gesetzt: Required Checks `lint-and-test`, `secret-scan`, `dependency-audit`; Force-Push und Löschen blockiert. Bewusste Solo-Ausnahme: Admin darf direkt pushen (`enforce_admins: false`), sonst wäre der Arbeitsfluss ohne PRs blockiert |
+| GitHub Secret Scanning + Push Protection | aktiv | 2026-07-16 per API verifiziert (war bereits aktiv — GitHub-Standard für öffentliche Repos) |
+| 2FA auf GitHub-Account | offen (Betreiber) | per API mit diesem Token nicht auslesbar; Check: github.com/settings/security → „Two-factor authentication" |
+| Dependabot-Alerts + automatische Sicherheits-Updates | aktiv | 2026-07-16 per API aktiviert (`vulnerability-alerts`, `automated-security-fixes`) |
+| Google-Cloud-Budget-Alert fürs Firebase-Projekt | aktiv | 2026-07-16 per gcloud verifiziert: Budget „Firebase Project cybermobbing", 25 €/Monat, E-Mail-Warnungen bei 50/90/100 % (bestand bereits; versehentlich angelegtes Duplikat wieder entfernt) |
