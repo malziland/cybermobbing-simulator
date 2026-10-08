@@ -4,10 +4,12 @@
   },
   "hosting": {
     "public": ".",
+    "predeploy": ["node scripts/deploy-files.js"],
     "ignore": [
       "firebase.json",
       "database.rules.json",
       "**/.*",
+      "**/.*/**",
       "**/node_modules/**",
       "docs/**",
       "tests/**",

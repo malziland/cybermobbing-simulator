@@ -17,17 +17,16 @@ cd "$ROOT" || exit 2
 
 sum() { shasum -a 256 | cut -d' ' -f1; }
 
-# What the page consists of (firebase.json decides what is deployed)
-FILES=$(
-  {
-    echo index.html
-    find css js assets -type f ! -name '.*' ! -name 'config.example.js'
-    for f in favicon.svg llms.txt robots.txt sitemap.xml LICENSE; do [ -f "$f" ] && echo "$f"; done
-  } | sort
-)
+# What the page consists of: the same list the deployment gate works with
+FILES=$(node scripts/deploy-files.js --list) || {
+  echo "RESULT: scripts/deploy-files.js could not list the files -- the check itself failed"
+  exit 2
+}
 
-# What must not be reachable: documentation, tests and tooling stay in the repository
-HIDDEN="docs/RUNBOOK.md docs/adr/ADR-0001-projekt-einordnung.md tests/test-runner.html
+# What must not be reachable: hidden folders (up to v1.2.1 the live site served
+# .git/ and .claude/), documentation, tests and tooling
+HIDDEN=".git/HEAD .git/config .git/index .claude/settings.local.json .github/workflows/ci.yml
+docs/RUNBOOK.md docs/adr/ADR-0001-projekt-einordnung.md tests/test-runner.html
 scripts/run-e2e.js scripts/verify-live.sh README.md CHANGELOG.md AGENTS.md SECURITY.md
 package.json package-lock.json eslint.config.js setup.sh firebase.json database.rules.json
 js/config.example.js"
