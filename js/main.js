@@ -258,6 +258,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (e.key !== 'b' && e.key !== 'B') return;
     if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     if (impModal && impModal.classList.contains('show')) return;
+    // No projector view in a narrow window, so nothing to switch
+    if (!stageFits()) return;
     stageToggle();
     stageRemember();
   });

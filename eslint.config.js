@@ -101,6 +101,8 @@ const appGlobals = {
   stageUrl: 'writable',
   stageRemember: 'writable',
   stageSync: 'writable',
+  stageFits: 'writable',
+  STAGE_MIN_WIDTH: 'writable',
   stageSet: 'writable',
   stageToggle: 'writable',
   stageInner: 'writable',

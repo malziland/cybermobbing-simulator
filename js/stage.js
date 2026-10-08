@@ -87,6 +87,25 @@ function stageFit() {
 }
 
 /**
+ * @type {number} The projector view and the switches for it exist from this
+ * window width on (CSS pixels, inclusive: 701 has them, 700 has not). Below,
+ * the page is the phone version: a 16:9 stage would be tiny in an upright
+ * window. The limit is low on purpose, so that old projectors (800 x 600, or
+ * 1024 x 768 at 125 % scaling) keep the projector view. The same limit stands
+ * in css/styles.css as max-width:700px; the E2E run checks both sides of it.
+ */
+var STAGE_MIN_WIDTH = 701;
+
+/**
+ * Tells whether the window is wide enough for the projector view.
+ * @returns {boolean} True from STAGE_MIN_WIDTH on
+ */
+function stageFits() {
+  if (!window.matchMedia) return true;
+  return window.matchMedia('(min-width:' + STAGE_MIN_WIDTH + 'px)').matches;
+}
+
+/**
  * Applies the current state to the page: body classes for the CSS and the
  * pressed state of every view button (elements with data-view="phone" or
  * data-view="beamer"). The stage is "live" (visible) only while the
@@ -96,9 +115,12 @@ function stageFit() {
 function stageSync() {
   var phone = document.getElementById('phone');
   var running = !!phone && !phone.classList.contains('hidden');
-  var live = stageWanted && running;
+  // In a narrow window the page is the phone version, whatever was chosen;
+  // the choice itself is kept and applies again once the window is wide
+  var on = stageWanted && stageFits();
+  var live = on && running;
   var changed = document.body.classList.contains('stage-live') !== live;
-  document.body.classList.toggle('beamer', stageWanted);
+  document.body.classList.toggle('beamer', on);
   document.body.classList.toggle('sim-running', running);
   document.body.classList.toggle('stage-live', live);
   var buttons = document.querySelectorAll('[data-view]');
@@ -647,8 +669,9 @@ function stageInit() {
   }
 
   // The phone beside the stage is scaled by script, so follow window changes
+  // and switch between phone version and chosen view when the limit is crossed
   window.addEventListener('resize', function () {
-    stageFit();
+    stageSync();
     stageScrollPhone();
     stageFitLists();
   });

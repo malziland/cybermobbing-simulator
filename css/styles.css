@@ -759,6 +759,18 @@ body.stage-live{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(var(--u)*1.35);--bar-si
 /* Low windows: the hint below the view picker gives way first */
 @media (max-height:620px){.beamer-hint{display:none}}
 
+/* ===== NARROW WINDOWS =====
+   Up to 900px: no volume slider in the phone view, the timeline needs the room
+   (the sound button stays; the projector view scales as a whole and keeps it).
+   Up to 700px: the phone version -- no projector view and no switches for it
+   (STAGE_MIN_WIDTH in js/stage.js is the same limit). */
+@media (max-width:900px){
+  body:not(.stage-live) .ctl-sound input{display:none}
+}
+@media (max-width:700px){
+  .view-pick,.beamer-hint,.ctl-view,.ctl-view + .ctl-sep{display:none}
+}
+
 /* ===== MOBILE ===== */
 @media (max-width:500px){
   .phone{max-height:85vh!important;top:calc(50% - 20px)!important}
@@ -782,20 +794,10 @@ body.stage-live{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(var(--u)*1.35);--bar-si
   .imp-notice p{font-size:.76rem}
   .imp-close-btn{padding:10px 30px;font-size:.85rem;margin-top:14px}
   .imp-home-indicator{margin:12px auto 0;width:100px;height:4px}
-  /* View picker on phones: hidden, the projector view is useless on an upright
-     phone. It only shows (compact, no key hint) if the projector view was
-     chosen with ?beamer=1, to get back out of it. */
-  body:not(.beamer) .view-pick{display:none}
-  .view-pick{font-size:12px;gap:10px;margin-top:14px}
-  #start .view-opt{width:92px;height:62px;gap:6px;padding:8px 6px;font-size:.72rem}
-  .view-pick .view-ico{font-size:12px}
-  .beamer-hint{display:none}
   /* Control bar on phones: pause, progress and sound only. Jumping is off
      there (js/controls.js), the legal notice stays as a line below the bar. */
   :root{--bar-h:36px;--bar-bottom:calc(var(--ctl-bottom) + var(--ctl-impr)*1.25 + 6px)}
   .ctl-bar{gap:calc(var(--bar-h)*.24)}
   .ctl-scene,.ctl-sep,.ctl-sound input,.ctl-impr,.ctl-knob,.ctl-tip{display:none!important}
-  body:not(.beamer) .ctl-view{display:none}
   body.sim-running .impr-link-bar{display:block}
-  body.stage-live .phone{max-height:none!important;top:calc((100vh - var(--u)*56.25)/2 + var(--u)*1.6)!important}
 }

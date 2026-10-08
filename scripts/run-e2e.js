@@ -1323,10 +1323,12 @@ function missingOnStage(keys) {
   console.log('E2E: start screen - the two view tiles only where the projector view makes sense');
   const tileProbes = [
     [1280, 720, '', true],
-    [501, 800, '', true],
-    [500, 800, '', false],
+    [701, 800, '', true],
+    [700, 800, '', false],
     [393, 852, '', false],
-    [393, 852, '?beamer=1', true],
+    [701, 800, '?beamer=1', true],
+    [700, 800, '?beamer=1', false],
+    [393, 852, '?beamer=1', false],
   ];
   for (const probe of tileProbes) {
     const ctx = await browser.newContext({
@@ -1342,15 +1344,20 @@ function missingOnStage(keys) {
     await p.waitForSelector('#startBtn');
     const shown = await p.evaluate(function () {
       var el = document.querySelector('.view-pick');
-      return getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().height > 0;
+      return {
+        tiles: getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().height > 0,
+        beamer: document.body.classList.contains('beamer'),
+      };
     });
     check(
-      shown === probe[3],
+      shown.tiles === probe[3] && shown.beamer === (probe[3] && !!probe[2]),
       probe[0] +
         ' px wide' +
         (probe[2] ? ' with ' + probe[2] : '') +
         ': view tiles are ' +
-        (probe[3] ? 'shown' : 'hidden')
+        (probe[3] ? 'shown' : 'hidden') +
+        ', projector view is ' +
+        (probe[3] && probe[2] ? 'on' : 'off')
     );
     await ctx.close();
   }
@@ -1360,6 +1367,13 @@ function missingOnStage(keys) {
     [1280, 720],
     [1920, 1080],
     [1024, 768],
+    [901, 700],
+    [900, 700],
+    [768, 1024],
+    [701, 900],
+    [700, 900],
+    [570, 1210],
+    [501, 800],
     [393, 852],
     [375, 667],
   ];
@@ -1395,6 +1409,105 @@ function missingOnStage(keys) {
         ' px high (expected ' +
         m.wantHeight.toFixed(1) +
         ')'
+    );
+    // What the bar holds depends on the width; the timeline must keep its room
+    const parts = await p.evaluate(function () {
+      function width(sel) {
+        var el = document.querySelector(sel);
+        if (!el || getComputedStyle(el).display === 'none') return 0;
+        return el.getBoundingClientRect().width;
+      }
+      return {
+        bar: width('#ctlBar'),
+        track: width('#ctlTrack'),
+        slider: width('#volSlider') > 0,
+        mute: width('#soundBtn') > 0,
+        views: width('.ctl-view') > 0,
+        knob: width('.ctl-knob') > 0,
+      };
+    });
+    const wantSlider = size[0] > 900;
+    const wantViews = size[0] > 700;
+    const wantKnob = size[0] > 500;
+    const share = parts.track / parts.bar;
+    check(
+      parts.slider === wantSlider &&
+        parts.views === wantViews &&
+        parts.knob === wantKnob &&
+        parts.mute &&
+        share >= 0.3,
+      label +
+        ': ' +
+        (wantViews ? 'view switch' : 'no view switch') +
+        ', ' +
+        (wantSlider ? 'volume slider' : 'sound button only') +
+        ', timeline takes ' +
+        Math.round(share * 100) +
+        '% of the bar (' +
+        Math.round(parts.track) +
+        ' px)'
+    );
+    await ctx.close();
+  }
+
+  console.log('E2E: narrow window - phone version, the chosen view comes back when widened');
+  {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1280, height: 720 },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10&beamer=1');
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+    await p.evaluate(function () {
+      window.togglePause();
+      window.simSeek(24);
+    });
+    const wide1 = await visibleView(p);
+    await p.setViewportSize({ width: 700, height: 720 });
+    await p.waitForTimeout(150);
+    const narrow1 = await visibleView(p);
+    await p.keyboard.press('b'); // must not switch anything here
+    const narrowState = await p.evaluate(function () {
+      var box = document.getElementById('wC').getBoundingClientRect();
+      var last = document.querySelector('#wC').lastElementChild.getBoundingClientRect();
+      return {
+        live: document.body.classList.contains('stage-live'),
+        switchShown: getComputedStyle(document.querySelector('.ctl-view')).display !== 'none',
+        url: window.location.search,
+        below: Math.round(last.bottom - box.bottom),
+        sec: window.sec,
+      };
+    });
+    await p.setViewportSize({ width: 701, height: 720 });
+    await p.waitForTimeout(150);
+    const wide2 = await visibleView(p);
+    const wideState = await p.evaluate(function () {
+      return {
+        live: document.body.classList.contains('stage-live'),
+        switchShown: getComputedStyle(document.querySelector('.ctl-view')).display !== 'none',
+      };
+    });
+    check(
+      wide1.stage &&
+        !narrow1.stage &&
+        narrow1.phone &&
+        !narrowState.live &&
+        !narrowState.switchShown,
+      '700 px wide: the projector view gives way to the phone view, the switch is gone'
+    );
+    check(
+      /beamer=1/.test(narrowState.url) && narrowState.below <= 1 && narrowState.sec === 24,
+      '700 px wide: the choice is kept, the B key does nothing, the run stands where it was, newest message in sight'
+    );
+    check(
+      wide2.stage && wideState.live && wideState.switchShown,
+      '701 px wide: the projector view and the switch are back'
     );
     await ctx.close();
   }
