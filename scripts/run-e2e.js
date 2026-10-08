@@ -2662,6 +2662,30 @@ function missingOnStage(keys) {
       !afterBlur.scrubbing && !afterBlur.dragging && ranAfterBlur,
       'leaving the window in the middle of a drag ends it, the run continues'
     );
+    // The button was released where the page could not see it: the next move without a button ends the drag
+    await p.mouse.move(barX(70), bar.y);
+    await p.mouse.down();
+    await p.mouse.move(barX(80), bar.y, { steps: 4 });
+    await p.evaluate(frames);
+    const afterLostButton = await p.evaluate(function () {
+      var seek = document.getElementById('ctlSeek');
+      var r = seek.getBoundingClientRect();
+      var held = window.ctlScrubbing;
+      seek.dispatchEvent(
+        new PointerEvent('pointermove', {
+          bubbles: true,
+          buttons: 0,
+          clientX: r.left + r.width / 2,
+          clientY: r.top + 5,
+        })
+      );
+      return { held: held, scrubbing: window.ctlScrubbing, dragging: window.ctlDragging };
+    });
+    await p.mouse.up();
+    check(
+      afterLostButton.held && !afterLostButton.scrubbing && !afterLostButton.dragging,
+      'a pointer move without a pressed button ends the drag (released outside the window)'
+    );
     // Legal notice: keyboard focus goes into the dialog and comes back; nothing behind it can be used
     await p.focus('#impLinkRun');
     await p.keyboard.press('Enter');
@@ -2692,11 +2716,27 @@ function missingOnStage(keys) {
         dlgClosed.focus +
         ')'
     );
-    // Paused on the help page: the "link copied" note still goes away
+    // Paused on the help page: the "link copied" note still goes away.
+    // On the way there the focus sits on the pause button, which is switched off on that page.
     await p.evaluate(function () {
       if (!window.simPaused) window.togglePause();
+    });
+    await p.focus('#pauseBtn');
+    await p.evaluate(function () {
       window.simSeek(window.CTL_TOTAL);
     });
+    const focusAtEnd = await p.evaluate(function () {
+      return {
+        id: document.activeElement ? document.activeElement.id : '',
+        pauseOff: document.getElementById('pauseBtn').disabled,
+      };
+    });
+    check(
+      focusAtEnd.pauseOff && focusAtEnd.id === 'ctlSeek',
+      'when the pause button is switched off on the help page, a focus on it moves to the timeline (' +
+        focusAtEnd.id +
+        ')'
+    );
     await p.waitForTimeout(100);
     await p.click('#footerShareBtn');
     const copiedOn = await p.evaluate(function () {
@@ -2802,15 +2842,90 @@ function missingOnStage(keys) {
       const gap = await p.evaluate(function () {
         var credit = document.querySelector('.start-credit').getBoundingClientRect();
         var disc = document.querySelector('.disclaimer').getBoundingClientRect();
-        return Math.round(disc.top - credit.bottom);
+        var start = document.getElementById('start').getBoundingClientRect();
+        return {
+          credit: Math.round(disc.top - credit.bottom),
+          page: Math.round(disc.top - start.bottom),
+          room: document.documentElement.style.getPropertyValue('--disc-h'),
+          height: Math.round(disc.height),
+        };
       });
       check(
-        gap >= 0,
-        'start screen narrowed from 1280 to 560 px: the disclaimer does not cover the line above it (' +
-          gap +
-          ' px apart)'
+        gap.credit >= 0 && gap.page >= 0 && gap.room === gap.height + 'px',
+        'start screen narrowed from 1280 to 560 px: the page ends above the disclaimer, whose measured height (' +
+          gap.height +
+          ' px) is the room kept free (' +
+          gap.room +
+          ')'
       );
     }
+    await ctx.close();
+  }
+  {
+    // The example configuration has no logo and one link. The live page has a logo and two
+    // links, and one audit finding only showed with them: run the help page that way too.
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1280, height: 720 },
+    });
+    await makeHermetic(ctx);
+    const liveLike =
+      fs.readFileSync(path.join(ROOT, 'js', 'config.example.js'), 'utf8') +
+      "\nhelplineConfig = { logo: 'assets/sticker.png', logoAlt: 'Logo', link: 'https://example.org/', linkLabel: 'example.org', infoLink: 'https://example.org/info', infoLabel: 'Weitere Infos', slogan: 'Slogan' };\n";
+    await ctx.route('**/js/config.js*', function (route) {
+      route.fulfill({ contentType: 'text/javascript; charset=utf-8', body: liveLike });
+    });
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000 });
+    await p.waitForFunction(
+      function () {
+        return getComputedStyle(document.getElementById('start')).visibility === 'hidden';
+      },
+      { timeout: 3000 }
+    );
+    const liveHelp = await p.evaluate(function () {
+      window.togglePause();
+      // there, back into the run, and there again: nothing may double
+      window.simSeek(window.CTL_TOTAL);
+      window.simSeek(30);
+      window.simSeek(window.CTL_TOTAL);
+      var links = document.querySelectorAll('#ctaLinks a');
+      var heights = [];
+      for (var i = 0; i < links.length; i++) {
+        heights.push(Math.round(links[i].getBoundingClientRect().height));
+      }
+      var logo = document.querySelector('#ctaLogo img');
+      return {
+        logos: document.querySelectorAll('#ctaLogo img').length,
+        logoShown: !!logo && logo.getBoundingClientRect().height > 10,
+        links: links.length,
+        heights: heights,
+      };
+    });
+    check(
+      liveHelp.logos === 1 && liveHelp.logoShown && liveHelp.links === 2,
+      'help page like the live one: after going there twice it has one logo and two links (' +
+        liveHelp.logos +
+        ', ' +
+        liveHelp.links +
+        ')'
+    );
+    check(
+      liveHelp.heights.length === 2 &&
+        liveHelp.heights.every(function (h) {
+          return h >= 24;
+        }),
+      'help page like the live one: each link is at least 24 px high (' +
+        liveHelp.heights.join(', ') +
+        ')'
+    );
+    await p.waitForTimeout(150);
+    await axeScan(p, '#aCta', 'help page with a logo and two links');
     await ctx.close();
   }
   for (const size of [
