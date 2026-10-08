@@ -4,7 +4,8 @@
  *   share functionality, and DOM-ready event binding.
  *   Loaded last; wires up all UI buttons and kicks off the scene chain.
  * @requires i18n.js           - t() for all UI text, applyI18n() for initial DOM translation
- * @requires audio.js          - initAudio(), simPaused, simTimers, togglePause(), bgMusic
+ * @requires audio.js          - initAudio(), simPaused, simTimers, togglePause(), bgMusic,
+ *                               applyVolume(), setVolume(), toggleMute()
  * @requires helpers.js        - mkPhoto-internal helpers (setLayer), toast()
  * @requires timer.js          - sec, tmr, tick(), startClock()
  * @requires firebase-counter.js - incrementCounters() (optional, checked with typeof)
@@ -169,6 +170,7 @@ function shareSimulation() {
  *   - Replay button -> page reload
  *   - Pause button + overlay -> togglePause()
  *   - Projector view pickers (start screen, in-run) and B key -> stageSet() / stageToggle()
+ *   - Sound control (mute button, volume slider, M key) -> toggleMute() / setVolume()
  *   - Impressum modal (open/close/backdrop/Escape)
  *   - Applies i18n translations to the initial DOM
  */
@@ -201,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
     startBtn.addEventListener('click', function () {
       if (bgMusic) {
         bgMusic.loop = true;
-        bgMusic.volume = 0.4;
+        applyVolume();
         bgMusic.play().catch(function () {});
       }
       go();
@@ -245,6 +247,26 @@ document.addEventListener('DOMContentLoaded', function () {
     if (impModal && impModal.classList.contains('show')) return;
     stageToggle();
     stageRemember();
+  });
+
+  // Sound control: mute button, volume slider and the M key
+  var soundGroup = document.querySelector('.sound-mini');
+  var soundBtn = document.getElementById('soundBtn');
+  var volSlider = document.getElementById('volSlider');
+  if (soundGroup) soundGroup.setAttribute('aria-label', t('ui.sound'));
+  if (soundBtn) soundBtn.addEventListener('click', toggleMute);
+  if (volSlider) {
+    volSlider.setAttribute('aria-label', t('ui.volume'));
+    volSlider.addEventListener('input', function () {
+      setVolume(this.value / 100);
+    });
+  }
+  applyVolume();
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'm' && e.key !== 'M') return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (impModal && impModal.classList.contains('show')) return;
+    toggleMute();
   });
 
   // Pause

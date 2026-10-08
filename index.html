@@ -183,6 +183,14 @@
 
 <!-- PAUSE -->
 <button id="pauseBtn" class="pause-btn hidden">II</button>
+<!-- Sound control, bottom left: the counterpart of the view picker on the right -->
+<div class="sound-mini" role="group" aria-label="Ton">
+  <button type="button" class="sound-btn" id="soundBtn" aria-label="Ton ausschalten">
+    <svg class="ico-on" aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>
+    <svg class="ico-off" aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>
+  </button>
+  <input type="range" class="vol-slider" id="volSlider" min="0" max="100" step="5" value="100" aria-label="Lautst&auml;rke">
+</div>
 <div class="view-mini" role="group" aria-label="Ansicht">
   <button type="button" class="view-mini-opt" id="runPhoneBtn" data-view="phone" aria-pressed="true"><span class="view-ico view-ico-phone" aria-hidden="true"><i></i><i></i><i></i></span></button>
   <button type="button" class="view-mini-opt" id="runBeamerBtn" data-view="beamer" aria-pressed="false"><span class="view-ico view-ico-beamer" aria-hidden="true"><em></em><b></b><i></i><i></i></span></button>
@@ -351,7 +359,10 @@
       <div class="st-head">
         <div class="st-av st-av-ig"><i></i></div>
         <div class="st-title">sara.xoxo</div>
-        <div class="st-likes"><span class="st-heart" id="stIgHeart" aria-hidden="true">&#9829;</span><span id="stIgLk" data-i18n="ig.likesZero">0 &bdquo;Gef&auml;llt mir&ldquo;-Angaben</span></div>
+        <div class="st-counts">
+          <span class="st-cnt"><svg class="st-heart" id="stIgHeart" aria-hidden="true" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span id="stIgLk">0</span></span>
+          <span class="st-cnt"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span id="stIgCn">0</span></span>
+        </div>
       </div>
       <div class="st-media on">
         <div class="st-photo st-photo-ig"><div id="stIgPh"></div></div>
@@ -364,15 +375,17 @@
     <div class="st-scene st-tk" id="stTk" data-app="aTk">
       <div class="st-head">
         <div class="st-title">@lukas.der.echte</div>
-        <div class="st-sub" data-i18n-html="tk.botDesc">I can't &#128128;&#128128; <span class="tag">#school</span> <span class="tag">#exposed</span> <span class="tag">#fy</span></div>
+        <div class="st-counts">
+          <span class="st-cnt"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span id="stTkLk">0</span></span>
+          <span class="st-cnt"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span id="stTkCm">0</span></span>
+          <span class="st-cnt"><svg class="st-ico-line" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><span id="stTkSh">0</span></span>
+        </div>
       </div>
       <div class="st-media on">
-        <div class="st-tk-label" data-i18n="tk.label">Reaktionsvideo &middot; @marco_2012</div>
         <div class="st-photo st-photo-tk"><div id="stTkPh"></div></div>
-        <div class="st-tk-side">
-          <div class="st-cnt"><svg aria-hidden="true" viewBox="0 0 24 24" fill="#fff"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span id="stTkLk">0</span></div>
-          <div class="st-cnt"><svg aria-hidden="true" viewBox="0 0 24 24" fill="#fff"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span id="stTkCm">0</span></div>
-          <div class="st-cnt"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="stTkSh">0</span></div>
+        <div class="st-meta">
+          <div data-i18n="tk.label">Reaktionsvideo &middot; @marco_2012</div>
+          <div data-i18n-html="tk.botDesc">I can't &#128128;&#128128; <span class="tag">#school</span> <span class="tag">#exposed</span> <span class="tag">#fy</span></div>
         </div>
       </div>
       <div class="st-col">

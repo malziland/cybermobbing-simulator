@@ -75,6 +75,19 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
 .view-mini-opt[aria-pressed="true"]{background:rgba(254,44,85,.4);color:#fff}
 .view-mini .view-ico{font-size:10px}
 
+/* Sound control: mute button and volume slider in the bottom left corner,
+   the counterpart of the view picker on the right. */
+.sound-mini{display:none;position:fixed;bottom:10px;left:14px;z-index:8500;align-items:center;gap:6px;padding:3px 10px 3px 3px;border-radius:12px;background:rgba(255,255,255,.07)}
+#pauseBtn:not(.hidden) ~ .sound-mini{display:flex}
+.sound-btn{display:flex;align-items:center;justify-content:center;width:38px;height:34px;padding:0;border:none;border-radius:9px;background:transparent;color:rgba(255,255,255,.62);cursor:pointer;transition:color .2s,background .2s}
+.sound-btn:hover{color:#fff}
+.sound-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sound-btn .ico-off{display:none}
+.sound-btn.muted{background:rgba(254,44,85,.4);color:#fff}
+.sound-btn.muted .ico-on{display:none}
+.sound-btn.muted .ico-off{display:block}
+.vol-slider{width:84px;height:18px;margin:0;accent-color:#fe2c55;cursor:pointer}
+
 /* Pause overlay — dim area below phone */
 .pause-overlay{
   position:fixed;left:0;right:0;bottom:0;height:80px;z-index:8200;
@@ -604,6 +617,17 @@ body.stage-live .phone{
 .st-sub .tag{color:#25f4ee}
 .st-av{width:calc(var(--u)*3.4);height:calc(var(--u)*3.4);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*1.35);font-weight:700}
 
+/* The same layout in every app: counters at the right end of the head row,
+   the picture directly below the head row, small extra lines below the picture. */
+.st-counts{margin-left:auto;flex-shrink:0;display:flex;align-items:center;gap:calc(var(--u)*2.2)}
+.st-cnt{display:flex;align-items:center;gap:calc(var(--u)*.7);font-size:calc(var(--u)*2.4);font-weight:700;white-space:nowrap}
+.st-cnt svg{width:calc(var(--u)*2.6);height:calc(var(--u)*2.6);fill:currentColor}
+.st-cnt svg.st-ico-line{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.st-heart{color:#8e8e8e;transition:color .3s}
+.st-heart.on{color:#fe2c55}
+.st-meta{margin-top:calc(var(--u)*.8);font-size:calc(var(--u)*1.5);line-height:1.35;color:#c4c4c4}
+.st-meta .tag{color:#25f4ee}
+
 /* Middle: the picture of the scene. Right: the text. */
 .st-media{position:absolute;left:calc(var(--u)*27);top:calc(var(--u)*8);width:calc(var(--u)*22);height:calc(var(--u)*38.75);opacity:0;transition:opacity .4s}
 .st-media.on{opacity:1}
@@ -637,14 +661,13 @@ body.stage-live .phone{
 .st-sys{display:none;flex-shrink:0;align-self:center;margin-top:calc(var(--u)*1);padding:calc(var(--u)*.6) calc(var(--u)*1.6);border-radius:calc(var(--u)*1.2);background:#22313a;color:#e9edef;font-size:calc(var(--u)*2.4);font-weight:600}
 .st-sys.show{display:block;animation:stFade .4s ease}
 @keyframes stFade{from{opacity:0}}
-.st-note{position:absolute;left:calc(var(--u)*62.25);bottom:calc(var(--u)*4.2);max-width:calc(var(--u)*69);transform:translate(-50%,calc(var(--u)*1));padding:calc(var(--u)*.6) calc(var(--u)*2);border-radius:calc(var(--u)*1.4);background:rgba(58,58,60,.96);font-size:calc(var(--u)*2.3);font-weight:600;white-space:nowrap;opacity:0;transition:opacity .35s,transform .35s;pointer-events:none}
+.st-note{position:absolute;left:calc(var(--u)*62.25);bottom:calc(var(--u)*5.4);max-width:calc(var(--u)*69);transform:translate(-50%,calc(var(--u)*1));padding:calc(var(--u)*.6) calc(var(--u)*2);border-radius:calc(var(--u)*1.4);background:rgba(58,58,60,.96);font-size:calc(var(--u)*2.3);font-weight:600;white-space:nowrap;opacity:0;transition:opacity .35s,transform .35s;pointer-events:none}
 .st-note.show{opacity:1;transform:translate(-50%,0)}
 
 /* WhatsApp */
 .st-wa{background:#0b141a}
 .st-wa .st-head{background:#1f2c34}
 .st-av-wa{background:#2a3942;color:#8696a0}
-.st-wa .st-media{display:flex;align-items:center}
 .st-wa-b{background:#202c33;align-self:flex-start;border-top-left-radius:calc(var(--u)*.3)}
 .st-sticker{position:relative;align-self:flex-start}
 .st-sticker img{display:block;width:calc(var(--u)*10);height:calc(var(--u)*10);object-fit:contain;filter:drop-shadow(calc(var(--u)*.14) 0 0 #fff) drop-shadow(calc(var(--u)*-.14) 0 0 #fff) drop-shadow(0 calc(var(--u)*.14) 0 #fff) drop-shadow(0 calc(var(--u)*-.14) 0 #fff)}
@@ -655,19 +678,11 @@ body.stage-live .phone{
 .st-ig .st-head{background:#121212}
 .st-av-ig{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);padding:calc(var(--u)*.25)}
 .st-av-ig i{width:100%;height:100%;border-radius:50%;background:#000;display:block}
-.st-likes{margin-left:auto;display:flex;align-items:center;gap:calc(var(--u)*.9);font-size:calc(var(--u)*2.5);font-weight:700;white-space:nowrap}
-.st-heart{color:#8e8e8e;transition:color .3s}
-.st-heart.on{color:#fe2c55}
-.st-meta{margin-top:calc(var(--u)*.8);font-size:calc(var(--u)*1.5);line-height:1.35;color:#c4c4c4}
 .st-ig-b{background:#1a1a1a}
 
 /* TikTok */
 .st-tk{background:#000}
 .st-tk .st-head{background:#121212}
-.st-tk-label{height:calc(var(--u)*2.4);font-size:calc(var(--u)*1.5);line-height:calc(var(--u)*2);color:#e6e6e6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.st-tk-side{display:flex;justify-content:space-around;margin-top:calc(var(--u)*1)}
-.st-cnt{display:flex;align-items:center;gap:calc(var(--u)*.6);font-size:calc(var(--u)*2.2);font-weight:700}
-.st-cnt svg{width:calc(var(--u)*3);height:calc(var(--u)*3)}
 .st-tk-b{background:#161616}
 .st-tk-b .st-name{color:#c8c8c8}
 .stage .tk-sticker-wrap{width:calc(var(--u)*8);height:calc(var(--u)*8);margin-top:calc(var(--u)*.4)}
@@ -709,6 +724,24 @@ body.stage-live .phone{
 .st-fl{font-size:calc(var(--u)*3.8);font-weight:700;text-align:center;line-height:1.35;letter-spacing:-.02em;opacity:0;transform:translateY(calc(var(--u)*1.2));transition:opacity 1.8s ease,transform 1.8s ease}
 .st-fl.show{opacity:1;transform:none}
 .st-fn-gap{height:calc(var(--u)*2.4);flex-shrink:0}
+
+/* Controls in the projector view: sized and placed relative to the stage,
+   otherwise they are lost on a large screen. Pause in the middle with the
+   legal notice link below it, sound on the left, view picker on the right. */
+body.stage-live .pause-btn{bottom:calc((100vh - var(--u)*56.25)/2 + var(--u)*2.2);padding:calc(var(--u)*.3) calc(var(--u)*1.6);font-size:calc(var(--u)*2.2);color:rgba(255,255,255,.62)}
+body.stage-live .pause-btn:hover{color:#fff}
+body.stage-live .pause-overlay{bottom:calc((100vh - var(--u)*56.25)/2);height:calc(var(--u)*5.4)}
+body.stage-live .pause-text{position:relative;left:calc(var(--u)*17);font-size:calc(var(--u)*1.4)}
+body.stage-live .impr-link-bar{bottom:calc((100vh - var(--u)*56.25)/2 + var(--u)*.3)}
+body.stage-live .impr-link{font-size:calc(var(--u)*1.3);margin:0}
+body.stage-live .view-mini,body.stage-live .sound-mini{bottom:calc((100vh - var(--u)*56.25)/2 + var(--u)*.8);gap:calc(var(--u)*.3);padding:calc(var(--u)*.2);border-radius:calc(var(--u)*.8)}
+body.stage-live .view-mini{right:calc((100vw - var(--u)*100)/2 + var(--u)*1.5)}
+body.stage-live .sound-mini{left:calc((100vw - var(--u)*100)/2 + var(--u)*2);padding-right:calc(var(--u)*.8)}
+body.stage-live .view-mini-opt{width:calc(var(--u)*3.6);height:calc(var(--u)*2.7);border-radius:calc(var(--u)*.6)}
+body.stage-live .view-mini .view-ico{font-size:calc(var(--u)*.8)}
+body.stage-live .sound-btn{width:calc(var(--u)*3);height:calc(var(--u)*2.7);border-radius:calc(var(--u)*.6)}
+body.stage-live .sound-btn svg{width:calc(var(--u)*1.7);height:calc(var(--u)*1.7)}
+body.stage-live .vol-slider{width:calc(var(--u)*8);height:calc(var(--u)*1.4)}
 
 /* Photo scribbles: same positions as in the phone, sizes relative to the stage */
 .stage .photo-wrap .e{text-shadow:calc(var(--u)*.12) calc(var(--u)*.12) calc(var(--u)*.3) rgba(0,0,0,.8)}
@@ -758,6 +791,8 @@ body.stage-live .phone{
   .view-pick .view-ico{font-size:12px}
   .beamer-hint{display:none}
   .view-mini{right:6px}
+  .sound-mini{left:6px;padding:3px}
+  .vol-slider{display:none}
   body:not(.beamer) #pauseBtn:not(.hidden) ~ .view-mini{display:none}
   body.stage-live .phone{max-height:none!important;top:calc((100vh - var(--u)*56.25)/2 + var(--u)*1.6)!important}
 }

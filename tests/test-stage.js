@@ -29,7 +29,7 @@ QUnit.module(
         '<div id="stWaPh"></div></div><div class="st-list" id="stWaList"></div>' +
         '<div class="st-sys" id="stWaSys"></div></div>' +
         '<div class="st-scene" id="stIg" data-app="aIg"><div id="stIgPh"></div><span id="stIgHeart"></span>' +
-        '<span id="stIgLk"></span><div id="stIgCc"></div><div id="stIgVw"></div>' +
+        '<span id="stIgLk"></span><span id="stIgCn"></span><div id="stIgCc"></div><div id="stIgVw"></div>' +
         '<div class="st-list" id="stIgList"></div></div>' +
         '<div class="st-scene" id="stTk" data-app="aTk"><div id="stTkPh"></div><span id="stTkLk"></span>' +
         '<span id="stTkCm"></span><span id="stTkSh"></span><div class="st-list" id="stTkList"></div>' +
@@ -363,6 +363,18 @@ QUnit.module(
       assert.equal(document.getElementById('stTkLk').textContent, '4.7k', 'TikTok counter copied');
     });
 
+    QUnit.test('stageMirrorNumber() shows the bare number', function (assert) {
+      document.getElementById('igLk').textContent = '191 \u201EGef\u00E4llt mir\u201C-Angaben';
+      stageMirrorNumber('igLk', 'stIgLk');
+      assert.equal(document.getElementById('stIgLk').textContent, '191', 'likes: number only');
+      document.getElementById('igCc').textContent = 'Alle 7 Kommentare ansehen';
+      stageMirrorNumber('igCc', 'stIgCn');
+      assert.equal(document.getElementById('stIgCn').textContent, '7', 'comments: number only');
+      document.getElementById('igCc').textContent = '';
+      stageMirrorNumber('igCc', 'stIgCn');
+      assert.equal(document.getElementById('stIgCn').textContent, '0', 'no number yet -> 0');
+    });
+
     QUnit.test('Instagram heart turns red with the phone', function (assert) {
       stageOnHeart();
       assert.ok(
@@ -519,8 +531,8 @@ QUnit.module(
         );
         assert.equal(
           document.getElementById('stIgLk').textContent,
-          '42 Angaben',
-          'counter mirrored'
+          '42',
+          'like counter mirrored as a bare number'
         );
         assert.ok(
           document.getElementById('stIg').classList.contains('on'),

@@ -1,6 +1,6 @@
 /**
  * @file audio.js
- * @description Web Audio API sound engine and pausable timeout system.
+ * @description Web Audio API sound engine, volume control and pausable timeout system.
  *   Provides synthesized notification sounds for each platform (WhatsApp, Instagram,
  *   TikTok, iMessage), a camera shutter effect, typing indicator audio, and background
  *   music control. Also implements a custom pausable timer system ({@link simTimeout})
@@ -14,12 +14,87 @@
 /** @type {AudioContext} Shared Web Audio context used by all sound functions */
 var ax;
 
+// ========== VOLUME ==========
+
+/** @type {number} Volume of the background music at full master volume */
+var BGM_BASE_VOLUME = 0.4;
+
+/** @type {number} Master volume from 0 (silent) to 1 (full), set with the slider */
+var simVolume = 1;
+
+/** @type {boolean} True while the sound is switched off */
+var simMuted = false;
+
+/** @type {GainNode|undefined} Master gain that all synthesized sounds run through */
+var axOut;
+
 /**
- * Initializes the shared AudioContext. Must be called from a user gesture (click)
- * to satisfy browser autoplay policies.
+ * Returns the node sounds connect to: the master gain of the current context,
+ * or the plain destination if there is none for it (e.g. after the context
+ * was replaced in tests).
+ * @returns {AudioNode} Output node for synthesized sounds
+ */
+function audioOut() {
+  return axOut && axOut.context === ax ? axOut : ax.destination;
+}
+
+/**
+ * Applies volume and mute state to both sound paths (the master gain for the
+ * synthesized sounds, the <audio> element for the music) and to the sound
+ * control in the page. iOS ignores `volume` on media elements; there only
+ * muting affects the music.
+ */
+function applyVolume() {
+  if (axOut) axOut.gain.value = simMuted ? 0 : simVolume;
+  if (bgMusic) {
+    bgMusic.volume = BGM_BASE_VOLUME * simVolume;
+    bgMusic.muted = simMuted;
+  }
+  var silent = simMuted || simVolume === 0;
+  var btn = document.getElementById('soundBtn');
+  if (btn) {
+    btn.classList.toggle('muted', silent);
+    btn.setAttribute('aria-label', t(silent ? 'ui.soundUnmute' : 'ui.soundMute'));
+  }
+  var slider = document.getElementById('volSlider');
+  if (slider) slider.value = String(Math.round(simVolume * 100));
+}
+
+/**
+ * Sets the master volume. Moving the slider above zero also switches the
+ * sound back on.
+ * @param {number} v - Volume from 0 (silent) to 1 (full); out-of-range values are clamped
+ */
+function setVolume(v) {
+  var n = Number(v);
+  simVolume = isNaN(n) ? 0 : Math.min(1, Math.max(0, n));
+  if (simVolume > 0) simMuted = false;
+  applyVolume();
+}
+
+/**
+ * Switches the sound off or back on without losing the chosen volume. If the
+ * slider stands at zero, switching on raises it to half so there is sound.
+ */
+function toggleMute() {
+  if (simMuted || simVolume === 0) {
+    simMuted = false;
+    if (simVolume === 0) simVolume = 0.5;
+  } else {
+    simMuted = true;
+  }
+  applyVolume();
+}
+
+/**
+ * Initializes the shared AudioContext and its master gain. Must be called
+ * from a user gesture (click) to satisfy browser autoplay policies.
  */
 function initAudio() {
   ax = new (window.AudioContext || window.webkitAudioContext)();
+  axOut = ax.createGain();
+  axOut.connect(ax.destination);
+  applyVolume();
   ax.resume();
 }
 
@@ -37,7 +112,7 @@ function tone(freq, start, dur, vol, type) {
   var o = ax.createOscillator();
   var g = ax.createGain();
   o.connect(g);
-  g.connect(ax.destination);
+  g.connect(audioOut());
   o.frequency.setValueAtTime(freq, start);
   o.type = type || 'sine';
   // Quick 5ms attack ramp to avoid click artifacts, then exponential decay
@@ -79,7 +154,7 @@ function sndTk() {
   var o = ax.createOscillator();
   var g = ax.createGain();
   o.connect(g);
-  g.connect(ax.destination);
+  g.connect(audioOut());
   // Rapid frequency sweep downward creates the characteristic bloop
   o.frequency.setValueAtTime(1200, t);
   o.frequency.exponentialRampToValueAtTime(800, t + 0.08);
@@ -126,7 +201,7 @@ function sndShutter() {
   f.frequency.value = 2000;
   s.connect(f);
   f.connect(g);
-  g.connect(ax.destination);
+  g.connect(audioOut());
   g.gain.setValueAtTime(0.2, t);
   s.start(t);
 }
@@ -141,7 +216,7 @@ function sndBuzz() {
   var o = ax.createOscillator();
   var g = ax.createGain();
   o.connect(g);
-  g.connect(ax.destination);
+  g.connect(audioOut());
   o.frequency.setValueAtTime(150, t);
   o.type = 'sawtooth';
   g.gain.setValueAtTime(0.04, t);
@@ -179,13 +254,13 @@ function typStop() {
 var bgMusic;
 
 /**
- * Starts the background music track at 40% volume.
- * Silently catches play() rejections (e.g. if autoplay is blocked).
+ * Starts the background music track at the current volume (40% at full
+ * master volume). Silently catches play() rejections (e.g. if autoplay is blocked).
  */
 function startMusic() {
   bgMusic = document.getElementById('bgm');
   if (bgMusic) {
-    bgMusic.volume = 0.4;
+    applyVolume();
     bgMusic.play().catch(function () {});
   }
 }

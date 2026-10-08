@@ -26,9 +26,17 @@ Es gibt eine zweite Darstellung desselben Ablaufs, die **Beamer-Ansicht**:
 - **Aufbau in drei Teilen:** links das Handy selbst, vollständig sichtbar; in der
   Mitte das Bild der Szene (Foto oder Video); rechts der Text. Das Handy ist
   dasselbe Element wie in der Handy-Ansicht, nur an den Rand gerückt und als
-  Ganzes skaliert. In der Mitteilungs-Szene stehen Uhr und App-Symbole mit ihren
-  Zählern als Zeile über den Mitteilungen; die Szene „Nachrichten" und der
-  Schlusstext haben kein eigenes Bild und nutzen die ganze Breite neben dem Handy.
+  Ganzes skaliert.
+- **Derselbe Aufbau in jeder App:** Das Bild sitzt immer an derselben Stelle
+  direkt unter der Kopfzeile; nur seine Form folgt der App (quer, quadratisch,
+  hochkant). Zahlen stehen immer am rechten Ende der Kopfzeile als Symbol mit
+  Zahl, Zusatztexte immer klein unter dem Bild. In der Mitteilungs-Szene stehen
+  Uhr und App-Symbole mit ihren Zählern als Zeile über den Mitteilungen; die
+  Szene „Nachrichten" und der Schlusstext haben kein eigenes Bild und nutzen die
+  ganze Breite neben dem Handy.
+- **Bedienelemente wachsen mit:** In der Beamer-Ansicht sind Pause, Impressum,
+  Ton-Regler und Umschalter in derselben Einheit bemessen wie der Inhalt. In der
+  Handy-Ansicht behalten sie ihre bisherigen Maße.
 - **Höchstens zwei Nachrichten gleichzeitig groß** (einschließlich zwei), bei den
   Mitteilungen höchstens drei; die nächste verdrängt die älteste. Hinweise wie
   „… hat einen Screenshot gemacht" haben eine eigene Zeile und verdrängen keine

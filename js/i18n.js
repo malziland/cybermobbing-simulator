@@ -28,6 +28,10 @@ var TRANSLATIONS = {
     'ui.viewPhoneLong': 'Handy-Ansicht',
     'ui.viewBeamerLong': 'Beamer-Ansicht',
     'ui.beamerHint': 'Beamer: f\u00FCr gro\u00DFe R\u00E4ume \u00B7 Taste B schaltet um',
+    'ui.sound': 'Ton',
+    'ui.soundMute': 'Ton ausschalten',
+    'ui.soundUnmute': 'Ton einschalten',
+    'ui.volume': 'Lautst\u00E4rke',
     'ui.credit':
       'Ein <a href="https://github.com/malziland/cybermobbing-simulator" target="_blank">Open-Source</a>-Bildungsprojekt von malziland',
 
@@ -190,6 +194,10 @@ var TRANSLATIONS = {
     'ui.viewPhoneLong': 'Phone view',
     'ui.viewBeamerLong': 'Projector view',
     'ui.beamerHint': 'Projector: for large rooms \u00B7 press B to switch',
+    'ui.sound': 'Sound',
+    'ui.soundMute': 'Mute sound',
+    'ui.soundUnmute': 'Unmute sound',
+    'ui.volume': 'Volume',
     'ui.credit':
       'An <a href="https://github.com/malziland/cybermobbing-simulator" target="_blank">open-source</a> education project by malziland',
 

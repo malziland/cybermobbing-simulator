@@ -208,6 +208,20 @@ function stageMirror(srcId, dstId) {
 }
 
 /**
+ * Copies only the first number of a phone element's text to the stage, so
+ * counters look the same in every app ("191 likes" becomes "191").
+ * @param {string} srcId - Element ID in the phone
+ * @param {string} dstId - Element ID on the stage
+ */
+function stageMirrorNumber(srcId, dstId) {
+  var src = document.getElementById(srcId);
+  var dst = document.getElementById(dstId);
+  if (!src || !dst) return;
+  var match = /\d[\d.,]*k?/.exec(src.textContent);
+  dst.textContent = match ? match[0] : '0';
+}
+
+/**
  * Shows the stage panel that belongs to the active phone app.
  * @param {string} appId - ID of the active .app element, e.g. 'aIg'
  */
@@ -422,16 +436,18 @@ function stageWatchNodes(id, fn) {
 }
 
 /**
- * Keeps a stage element's text equal to a phone element's text.
- * @param {string} srcId - Element ID in the phone
- * @param {string} dstId - Element ID on the stage
+ * Keeps a stage element in step with the text of a phone element.
+ * @param {string}   srcId  - Element ID in the phone
+ * @param {string}   dstId  - Element ID on the stage
+ * @param {Function} [copy] - stageMirror (default) or stageMirrorNumber
  */
-function stageWatchText(srcId, dstId) {
+function stageWatchText(srcId, dstId, copy) {
   var src = document.getElementById(srcId);
   if (!src) return;
-  stageMirror(srcId, dstId);
+  var fn = copy || stageMirror;
+  fn(srcId, dstId);
   new MutationObserver(function () {
-    stageMirror(srcId, dstId);
+    fn(srcId, dstId);
   }).observe(src, { childList: true, characterData: true, subtree: true });
 }
 
@@ -464,8 +480,11 @@ function stageInit() {
   });
   stageWatchNodes('imC', stageOnIm);
 
+  // Counters in the head row show the bare number, the same way in every app
+  stageWatchText('igLk', 'stIgLk', stageMirrorNumber);
+  stageWatchText('igCc', 'stIgCn', stageMirrorNumber);
+
   [
-    ['igLk', 'stIgLk'],
     ['igCc', 'stIgCc'],
     ['igVw', 'stIgVw'],
     ['tkLk', 'stTkLk'],

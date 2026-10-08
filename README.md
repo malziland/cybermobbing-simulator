@@ -18,6 +18,7 @@ Konzipiert fuer den Einsatz in Schulworkshops: pausierbar, diskutierbar, wirkung
 
 - 5 realistische App-Szenen (WhatsApp, Instagram, TikTok, Homescreen, iMessage)
 - Pausierbar fuer Workshop-Diskussionen
+- Ton-Regler: Ton aus/ein und Lautstaerke waehrend des Laufs (unten links, Taste M)
 - Beamer-Ansicht fuer grosse Raeume: Handy, Bild und Nachrichten nebeneinander in grosser Schrift, jederzeit umschaltbar
 - View-Counter (Firebase Realtime Database)
 - Teilen-Button

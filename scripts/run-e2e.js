@@ -14,8 +14,10 @@
  *      (axe scan with it chosen), toggle with the B key and the in-run
  *      button while the run continues, the phone stays beside the stage,
  *      and after a full run every scene text must have appeared on it.
- *   8. Projector view keeps its proportions in several window sizes and
- *      zoom levels; nothing sticks out of the picture.
+ *   8. Sound control: M key, mute button and volume slider via keyboard.
+ *   9. Projector view keeps its proportions in several window sizes and
+ *      zoom levels; nothing sticks out of the picture, picture and counters
+ *      sit at the same place in every app, controls scale with the stage.
  *
  * Hermetic setup: js/config.js is replaced by js/config.example.js via route
  * interception, and all firebaseio/googleapis requests are blocked, so the
@@ -265,6 +267,16 @@ function missingOnStage(keys) {
     }),
     'simulation resumes'
   );
+  check(
+    await page.evaluate(function () {
+      return (
+        getComputedStyle(document.getElementById('pauseBtn')).fontSize === '14px' &&
+        getComputedStyle(document.querySelector('.sound-mini')).display === 'flex' &&
+        getComputedStyle(document.querySelector('.view-mini')).display === 'flex'
+      );
+    }),
+    'phone view: pause button keeps its size, sound control and view picker are shown'
+  );
 
   console.log('E2E: full run to CTA screen (time-lapse x10)');
   await page.waitForSelector('#aCta:not(.hidden)', { timeout: 40000 });
@@ -370,6 +382,46 @@ function missingOnStage(keys) {
     'button switches back to the stage'
   );
 
+  console.log('E2E: sound control - M key, button and slider');
+  function soundState() {
+    return stagePage.evaluate(function () {
+      var bgm = document.getElementById('bgm');
+      var btn = document.getElementById('soundBtn');
+      return {
+        muted: bgm.muted,
+        volume: bgm.volume,
+        marked: btn.classList.contains('muted'),
+        label: btn.getAttribute('aria-label'),
+        mute: window.t('ui.soundMute'),
+        unmute: window.t('ui.soundUnmute'),
+        slider: document.getElementById('volSlider').value,
+      };
+    });
+  }
+  let sound = await soundState();
+  check(
+    !sound.muted && Math.abs(sound.volume - 0.4) < 0.001 && sound.label === sound.mute,
+    'music starts audible at 40%'
+  );
+  await stagePage.keyboard.press('m');
+  sound = await soundState();
+  check(
+    sound.muted && sound.marked && sound.label === sound.unmute,
+    'M key switches the sound off'
+  );
+  check(await tabTo(stagePage, 'soundBtn', 10), 'sound button reachable via Tab');
+  await stagePage.keyboard.press('Enter');
+  sound = await soundState();
+  check(!sound.muted && !sound.marked, 'sound button switches the sound back on');
+  check(await tabTo(stagePage, 'volSlider', 5), 'volume slider reachable via Tab');
+  await stagePage.keyboard.press('ArrowLeft');
+  await stagePage.keyboard.press('ArrowLeft');
+  sound = await soundState();
+  check(
+    sound.slider === '90' && Math.abs(sound.volume - 0.36) < 0.001,
+    'two steps down on the slider: 90%, music at 0.36 (measured ' + sound.volume + ')'
+  );
+
   console.log('E2E: projector view - full run, every scene text appears on the stage');
   await stagePage.waitForSelector('#aCta:not(.hidden)', { timeout: 40000 });
   const missing = await stagePage.evaluate(missingOnStage, {
@@ -467,7 +519,50 @@ function missingOnStage(keys) {
         }
       }
       var phone = document.getElementById('phone').getBoundingClientRect();
+      function rect(sel) {
+        return document.querySelector(sel).getBoundingClientRect();
+      }
+      // Panels of the other apps are invisible but laid out, so they can be compared
+      var photos = [rect('#stWa .st-photo'), rect('#stIg .st-photo'), rect('#stTk .st-photo')];
+      var samePhotoPlace = photos.every(function (r) {
+        return (
+          Math.abs(r.top - photos[0].top) <= 1 &&
+          Math.abs(r.left - photos[0].left) <= 1 &&
+          Math.abs(r.width - photos[0].width) <= 1
+        );
+      });
+      var igCounts = rect('#stIg .st-counts');
+      var tkCounts = rect('#stTk .st-counts');
+      var controls = [
+        rect('#pauseBtn'),
+        rect('.impr-link'),
+        rect('.view-mini'),
+        rect('.sound-mini'),
+        phone,
+      ];
+      var controlsClear = true;
+      for (var a = 0; a < controls.length; a++) {
+        var c = controls[a];
+        if (c.left < frame.left - 1 || c.right > frame.right + 1 || c.bottom > frame.bottom + 1) {
+          controlsClear = false;
+        }
+        for (var b = a + 1; b < controls.length; b++) {
+          var d = controls[b];
+          if (c.left < d.right && c.right > d.left && c.top < d.bottom && c.bottom > d.top) {
+            controlsClear = false;
+          }
+        }
+      }
       return {
+        samePhotoPlace: samePhotoPlace,
+        sameCounterPlace:
+          Math.abs(igCounts.right - tkCounts.right) <= 1 &&
+          Math.abs(igCounts.top - tkCounts.top) <= 1,
+        pauseRatio:
+          parseFloat(getComputedStyle(document.getElementById('pauseBtn')).fontSize) / frame.width,
+        imprRatio:
+          parseFloat(getComputedStyle(document.querySelector('.impr-link')).fontSize) / frame.width,
+        controlsClear: controlsClear,
         phoneRatio: phone.height / frame.width,
         phoneInside:
           phone.left >= frame.left - 1 &&
@@ -501,6 +596,15 @@ function missingOnStage(keys) {
       label + ': stage fills the window as a 16:9 area'
     );
     check(m.inside && !m.scrollbars, label + ': nothing sticks out, no scrollbars');
+    check(
+      m.samePhotoPlace && m.sameCounterPlace,
+      label + ': picture and counters sit at the same place in WhatsApp, Instagram and TikTok'
+    );
+    check(
+      Math.abs(m.pauseRatio - 0.022) < 0.0005 && Math.abs(m.imprRatio - 0.013) < 0.0005,
+      label + ': pause symbol is 2.2% and legal notice 1.3% of the stage width'
+    );
+    check(m.controlsClear, label + ': controls are inside the picture and do not overlap');
     check(
       Math.abs(m.phoneRatio - 0.49) < 0.005 && m.phoneInside,
       label + ': phone beside the stage is 49% of the stage width high and fully visible'

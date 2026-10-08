@@ -11,7 +11,9 @@ Stand auf dem Zweig `feat/beamer-ansicht`, noch nicht ausgeliefert.
 ### Hinzugefügt
 - **Beamer-Ansicht** für große Räume (`docs/adr/ADR-0007`): zweite Darstellung desselben Ablaufs für alle Szenen, mit dem Handy links, dem Bild der Szene in der Mitte und den neuesten Nachrichten groß rechts. Umschalten jederzeit ohne Sprung im Ablauf. Alle Maße sind Anteile der Bildfläche, Auflösung und Browser-Zoom ändern die Proportionen nicht
 - **Umschalter mit zwei Vorschaubildern** (Handy und Beamer): als Kacheln am Startbildschirm, klein unten rechts während des Laufs; zusätzlich Taste B und Link-Zusatz `?beamer=1`
-- Tests für die Beamer-Ansicht: QUnit-Modul `tests/test-stage.js`; der Ablauftest prüft zusätzlich, dass jeder Szenentext in der Beamer-Ansicht erscheint, und die Proportionen in sechs Fenstergrößen und Zoomstufen
+- **Ton-Regler** während des Laufs: Knopf für Ton aus und ein sowie Schieberegler für die Lautstärke unten links, dazu die Taste M. Er wirkt auf Musik und Geräusche gemeinsam; auf schmalen Bildschirmen erscheint nur der Knopf. Die Einstellung wird nicht gespeichert
+- In der Beamer-Ansicht wachsen Pause, Impressum, Ton-Regler und Umschalter mit dem Bild mit; Bild, Zahlen und Zusatztexte sitzen in jeder App an derselben Stelle
+- Tests für die Beamer-Ansicht: QUnit-Module `tests/test-stage.js` und `tests/test-volume.js`; der Ablauftest prüft zusätzlich, dass jeder Szenentext in der Beamer-Ansicht erscheint, und die Proportionen in sechs Fenstergrößen und Zoomstufen
 
 ### Geändert
 - Der Teilen-Knopf gibt den Link immer ohne den Zusatz `?beamer=1` weiter
