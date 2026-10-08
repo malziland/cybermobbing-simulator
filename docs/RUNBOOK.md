@@ -1,6 +1,6 @@
 # RUNBOOK — Betrieb, Deployment, Rollback
 
-Stand: 2026-07-16
+Stand: 2026-10-08
 
 ## Lokale Vorschau
 
@@ -14,11 +14,21 @@ View-Counter blendet sich nach 5 s aus.
 
 ## Prüfen vor jedem Deploy
 
+Alle fünf müssen mit Rückgabewert 0 enden; gelesen wird der Rückgabewert, nicht
+die Ausgabe:
+
 ```bash
-npm run lint       # ESLint + Prettier-Check
-npm run test       # QUnit-Suite headless (Playwright/Chromium)
-npm run test:e2e   # End-to-End + Accessibility (axe-core)
+npm run lint                        # ESLint + Prettier-Check
+npm run test                        # QUnit-Suite headless (Playwright/Chromium)
+npm run test:e2e                    # End-to-End + Accessibility (axe-core)
+npm audit --audit-level=high        # Abhängigkeiten (auch in scripts/video-export)
+gitleaks git --redact .             # Geheimnisse in der gesamten Historie
 ```
+
+Dieselben Prüfungen laufen als Pflicht-Checks der Pipeline auf jedem Pull
+Request und jedem Push auf `main` (`.github/workflows/ci.yml`). Dort laufen die
+Layout-Prüfungen des Ablauftests mit Linux-Schriften; ein grüner Lauf am Mac
+ersetzt das nicht.
 
 ## Deployment
 
@@ -28,9 +38,23 @@ Nur nach ausdrücklicher Freigabe des Betreibers:
 npm run deploy     # führt automatisch vorher scripts/cache-bust.sh aus
 ```
 
-Release-Ablauf: CHANGELOG-Abschnitt finalisieren → Version in `package.json`
-erhöhen → **annotierten** Tag setzen (`git tag -a vX.Y.Z -m "…"`, ADR-0001) →
-pushen (`git push && git push --tags`) → deployen.
+`scripts/cache-bust.sh` schreibt einen frischen Stempel in `index.html`
+(`?v=…`). Diese Änderung gehört zum ausgelieferten Stand und wird nach dem
+Deploy committet.
+
+Release-Ablauf, in dieser Reihenfolge:
+
+1. Prüfungen oben grün, CHANGELOG-Abschnitt „Unveröffentlicht" fertig.
+2. Zweig hochladen, Pull Request, Pipeline grün, nach `main` zusammenführen.
+3. Von `main` aus deployen (`npm run deploy`).
+4. Beweisen, dass die Live-Seite den Stand zeigt: jede ausgelieferte Datei von
+   https://cybermobbing.web.app abrufen und ihre Prüfsumme mit der lokalen
+   vergleichen (`js/config.js` nur über die Prüfsumme, nie über den Inhalt).
+5. Erst danach die Stempel setzen, in einem Commit: Version in `package.json`
+   und `package-lock.json`, CHANGELOG-Überschrift mit Version und Datum, der
+   Cache-Stempel in `index.html`. Darauf den **annotierten** Tag
+   (`git tag -a vX.Y.Z -m "…"`, ADR-0001), dann Commit und Tag hochladen. Ein
+   Tag vor dem Deploy behauptet eine Auslieferung, die es noch nicht gibt.
 
 ## Rollback
 
@@ -96,15 +120,22 @@ kein Handlungsdruck). Bei Bedarf in der Firebase-Konsole Einträge löschen, die
 
 ## Tastatur-Smoketest (UI-Profil, manuell)
 
-Prozedur (Rahmen-UI gemäß ADR-0005), Dauer ~3 Minuten:
+Prozedur (Rahmen-UI gemäß ADR-0005), Dauer ~4 Minuten, in einem Fenster ab
+901 Pixel Breite:
 
 1. Seite laden, nur Tastatur verwenden.
-2. `Tab` durch den Startbildschirm: Reihenfolge Start → Teilen →
-   Open-Source-Link → Impressum; Fokus muss sichtbar sein.
+2. `Tab` durch den Startbildschirm: Reihenfolge Start → Handy → Beamer →
+   Teilen → Open-Source-Link → Impressum; Fokus muss sichtbar sein.
 3. Impressum mit `Enter` öffnen, mit `Escape` schließen.
 4. Start-Button mit `Enter` auslösen; Simulation startet.
-5. Pause-Button mit `Tab` erreichen, mit `Enter` pausieren und fortsetzen.
-6. Nach Ende (oder mit `?testspeed=10` beschleunigt): CTA-Ansicht — Teilen-,
-   Nochmal-Button und Hilfsangebot-Links per `Tab` erreichbar und auslösbar.
+5. `Tab` durch die Steuerleiste: Pause → Zeitleiste → Ton → Lautstärke →
+   Handy → Beamer → Impressum. Mit `Enter` pausieren und fortsetzen.
+6. Auf der Zeitleiste: Pfeil rechts und links (fünf Sekunden vor und zurück),
+   Bild auf (nächste Szene), Ende (letzte Seite), Pos1 (Anfang).
+7. Impressum in der Leiste mit `Enter` öffnen: Die Simulation pausiert und läuft
+   nach `Escape` weiter.
+8. Nach Ende (oder mit `?testspeed=10` beschleunigt): Seite mit den
+   Hilfsangeboten — Teilen-, Nochmal-Button und Hilfsangebot-Links per `Tab`
+   erreichbar und auslösbar; die Leiste steht weiter unten.
 
 Letztes Ergebnis: siehe docs/VERIFICATION.md (Zeile „Tastatur-Smoketest").

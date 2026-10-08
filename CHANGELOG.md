@@ -6,22 +6,38 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) 
 
 ## [Unveröffentlicht]
 
-Stand auf dem Zweig `feat/beamer-ansicht`, noch nicht ausgeliefert.
+Wird beim Ausliefern zu Version 2.0.0 (Entscheidung des Betreibers: Die Bedienung
+ist neu, deshalb ein voller Versionssprung).
 
 ### Hinzugefügt
 - **Beamer-Ansicht** für große Räume (`docs/adr/ADR-0007`): zweite Darstellung desselben Ablaufs für alle Szenen, mit dem Handy links, dem Bild der Szene in der Mitte und den neuesten Nachrichten groß rechts. Umschalten jederzeit ohne Sprung im Ablauf. Alle Maße sind Anteile der Bildfläche, Auflösung und Browser-Zoom ändern die Proportionen nicht. Bild, Zahlen und Zusatztexte sitzen in jeder App an derselben Stelle
-- **Steuerleiste** (`docs/adr/ADR-0008`): eine Leiste am unteren Rand mit Pause, Zeit und Name der Szene, Zeitleiste, Ton, Wahl der Ansicht und Impressum, in beiden Ansichten gleich aufgebaut
-- **Zeitleiste mit Springen vor und zurück:** Klick auf einen Abschnitt springt an den Anfang der Szene, Ziehen und Pfeiltasten landen frei. Ein Sprung startet die Szenen neu und durchläuft sie stumm bis zur Zielzeit; Handy und Beamer-Ansicht zeigen danach denselben Stand wie ein Durchlauf ohne Sprung
+- **Steuerleiste** (`docs/adr/ADR-0008`): eine Leiste am unteren Rand mit Pause, Name der Szene, Zeitleiste, Ton, Wahl der Ansicht und Impressum, in beiden Ansichten gleich aufgebaut. Sie zeigt keine Zeiten und bleibt auch auf der letzten Seite mit den Hilfsangeboten stehen
+- **Zeitleiste zum Springen und Ziehen, vor und zurück:** Ein Klick landet an der geklickten Stelle, dicht neben einer Marke auf dem Anfang der Szene. Beim Ziehen läuft das Bild in Handy und Beamer-Ansicht sofort mit. Die letzte Seite ist der letzte Abschnitt der Zeitleiste; von dort kommt man an jede Stelle zurück, ohne neu zu starten. Tasten auf der Leiste: Pfeile, Bild auf, Bild ab, Pos1, Ende
 - **Ton:** Knopf für Ton aus und ein sowie Schieberegler für die Lautstärke, dazu die Taste M. Wirkt auf Musik und Geräusche gemeinsam; die Einstellung wird nicht gespeichert
 - **Wahl der Ansicht** über zwei Kacheln mit Vorschaubildern am Startbildschirm, in der Steuerleiste, mit der Taste B und über den Link-Zusatz `?beamer=1`
-- Tests: QUnit-Module `tests/test-stage.js`, `tests/test-volume.js`, `tests/test-controls.js`; der Ablauftest prüft zusätzlich die Beamer-Ansicht, die Sprünge gegen einen Durchlauf ohne Sprung und das Layout in mehreren Fenstergrößen und Zoomstufen
+- Tests: QUnit-Module `tests/test-stage.js`, `tests/test-volume.js`, `tests/test-controls.js`; der Ablauftest prüft zusätzlich die Beamer-Ansicht, Sprünge und Ziehen gegen einen Durchlauf ohne Sprung, die Sichtbarkeit der Einträge, die letzte Seite und das Layout in vielen Fenstergrößen
 
 ### Geändert
-- **Bedienelemente im Lauf:** Pausesymbol, Pausentext „Pausiert – tippe um fortzufahren", der dünne Fortschrittsstrich und das Impressum unten in der Mitte sind in der Steuerleiste aufgegangen. Auf Handys (bis einschließlich 500 Pixel Fensterbreite) zeigt die Leiste Pause, Fortschritt und Ton, das Impressum steht als Zeile darunter
-- **Startbildschirm:** Titelblock und Fußbereich teilen sich die Höhe, statt übereinander zu liegen; in niedrigen Fenstern überlappt nichts mehr. Das Impressum ist größer (mindestens 15 statt 12 CSS-Pixel)
+- **Bedienelemente im Lauf:** Pausesymbol, Pausentext, der dünne Fortschrittsstrich und das Impressum unten in der Mitte sind durch die Steuerleiste ersetzt
+- **Schmale Fenster:** Bis einschließlich 700 Pixel Fensterbreite zeigt die Seite immer die Handy-Ansicht, ohne Kacheln und Umschalter für die Beamer-Ansicht; die Wahl gilt wieder, sobald das Fenster breiter wird. Bis 900 Pixel entfällt in der Handy-Ansicht der Lautstärke-Regler (der Ton-Knopf bleibt). Bis 500 Pixel zeigt die Leiste Pause, Fortschritt und Ton, das Impressum steht als Zeile darunter, und die Zeitleiste ist reine Anzeige
+- **Impressum:** Wird es während des Laufs geöffnet, pausiert die Simulation und läuft beim Schließen weiter (außer sie war schon pausiert). Die Uhrzeit in seiner Statusleiste ist die des Handys in der Simulation, außerhalb des Laufs die echte Uhrzeit; vorher stand dort fest 21:34
+- **Kontaktadresse** ist überall `info@malziland.at`: Impressum und Datenschutz-Kontakt (Deutsch und Englisch), `llms.txt`, `SECURITY.md`, `CONTRIBUTING.md`, Issue-Vorlage
+- **Startbildschirm und letzte Seite:** Der Platz für den Hinweistext unten richtet sich nach dessen wirklicher Höhe. In schmalen Fenstern läuft der Text über bis zu fünf Zeilen und überdeckt nichts mehr. Das Impressum ist größer (mindestens 15 statt 12 CSS-Pixel)
 - Der Teilen-Knopf gibt den Link immer ohne den Zusatz `?beamer=1` weiter
 - Nach dem Start ist der Startbildschirm auch für die Tastatur ausgeblendet (vorher blieben seine Knöpfe unsichtbar anwählbar)
 - Video-Export (`scripts/video-export/`) blendet die neuen Bedienelemente aus
+- Szenenzeiten stehen nur noch an einer Stelle (`CTL_SCENES` in `js/controls.js`); README und Kommentare nannten teils falsche Zeiten
+- Betriebshandbuch: Release-Ablauf über Pull Request, mit Prüfsummen-Vergleich der Live-Seite und dem Tag erst nach dem Deploy
+
+### Behoben
+- **Pause direkt nach dem Start:** Wer in der ersten halben Sekunde pausierte und fortsetzte, startete die Uhr doppelt; sie lief danach mit doppelter Geschwindigkeit und im Pausezustand weiter (bestand schon vor dieser Version)
+
+### Entfernt
+- Die alten Bedienelemente samt ihren Texten und Testhilfen (Pausentext, Fortschrittsstrich)
+- Eine unbenutzte Gestaltungsregel (`.fin-msg`) und eine unbenutzte Funktion (`startMusic()`), beide schon vorher ohne Verwendung
+
+### Sicherheit
+- Entwicklungswerkzeug `brace-expansion` 5.0.7 → 5.0.12 (mehrere Meldungen zu Überlastung, unter anderem GHSA-mh99-v99m-4gvg). Betrifft nur die Werkzeuge; die Seite selbst hat keine Laufzeit-Abhängigkeiten
 
 ## [1.2.1] - 2026-07-16
 

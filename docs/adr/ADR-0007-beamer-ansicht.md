@@ -1,6 +1,6 @@
 # ADR-0007: Beamer-Ansicht als zweite, umschaltbare Darstellung
 
-Status: Vorgeschlagen (in Erprobung auf Zweig `feat/beamer-ansicht`) · Datum: 2026-10-08
+Status: Angenommen · Datum: 2026-10-08 · ausgeliefert mit v2.0.0
 
 ## Kontext
 
@@ -50,8 +50,16 @@ Es gibt eine zweite Darstellung desselben Ablaufs, die **Beamer-Ansicht**:
   der Steuerleiste (ADR-0008), dazu die Taste B und der Link-Zusatz `?beamer=1`.
   Der gewählte Zustand steht nur in der Adresszeile, es kommt kein weiterer
   `localStorage`-Wert hinzu. Der Teilen-Knopf gibt den Link ohne diesen Zusatz
-  weiter. Bis einschließlich 500 CSS-Pixel Fensterbreite zeigt die Leiste keinen
-  Umschalter, außer die Beamer-Ansicht ist bereits gewählt.
+  weiter.
+- **Erst ab 701 CSS-Pixel Fensterbreite** (einschließlich; 700 Pixel hat sie
+  nicht) gibt es die Beamer-Ansicht und ihre Umschalter. Darunter ist die Seite
+  die Handy-Fassung, auch wenn die Beamer-Ansicht gewählt oder im Link
+  angegeben ist: Kacheln und Umschalter fehlen, die Taste B tut nichts. Die Wahl
+  bleibt erhalten und gilt wieder, sobald das Fenster breiter wird. Die Grenze
+  liegt bewusst niedrig, damit alte Beamer (800 × 600, oder 1024 × 768 bei
+  125 % Skalierung) die Beamer-Ansicht behalten. Sie steht an zwei Stellen:
+  als `STAGE_MIN_WIDTH` in `js/stage.js` und als `max-width:700px` in
+  `css/styles.css`; der Ablauftest prüft beide Seiten der Grenze.
 - **Nicht eigens groß gezeigt** wird reine Dekoration der App-Oberflächen:
   Statusleiste, Eingabe- und Navigationsleisten, Uhrzeiten und Lesehäkchen an
   Nachrichten, die Datumsmarke im Chat. Sie sind im Handy links zu sehen.
@@ -89,6 +97,10 @@ sind; das ist hier nicht der Fall.
   Wiedererkennung fehlt.
 - **Ein einzelner Schalter in Pillenform:** verworfen, weil er neben „Simulation
   starten" und „Simulation teilen" wie ein weiterer gleichartiger Knopf wirkt.
+- **Beamer-Ansicht in jedem Fenster anbieten:** zuerst so gebaut, verworfen. Am
+  Handy waren die Bedienelemente dann 10 bis 14 Pixel groß (Audit vom
+  2026-10-08, UX-2026-10-08-01), und im schmalen Fenster blieb für die
+  Zeitleiste kein Platz.
 
 ## Konsequenzen
 
