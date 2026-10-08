@@ -202,6 +202,17 @@ document.addEventListener('DOMContentLoaded', function () {
       togglePause();
       impPausedSim = simPaused;
     }
+    // The legal notice is drawn as a phone too. Its status bar shows the time
+    // of the phone in the simulation, or the real time outside the run.
+    var impTime = document.getElementById('impTime');
+    var simTime = document.getElementById('sbTime');
+    if (impTime) {
+      var now = new Date();
+      impTime.textContent =
+        running && simTime && simTime.textContent
+          ? simTime.textContent
+          : formatTime(now.getHours(), now.getMinutes());
+    }
     impModal.classList.add('show');
   }
   function closeImpressum() {

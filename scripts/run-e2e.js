@@ -351,6 +351,37 @@ function missingOnStage(keys) {
     }),
     'impressum opens on Enter'
   );
+  const impStart = await page.evaluate(function () {
+    var now = new Date();
+    var shown = document.getElementById('impTime').textContent;
+    var parts = shown.split(':');
+    var links = document.querySelectorAll('#impModal a[href^="mailto:"]');
+    var mails = [];
+    for (var i = 0; i < links.length; i++) {
+      mails.push(links[i].getAttribute('href') + '|' + links[i].textContent);
+    }
+    return {
+      shown: shown,
+      // minutes between the shown time and the real one (0 or 1 around a minute change)
+      off: Math.abs(
+        Number(parts[0]) * 60 + Number(parts[1]) - (now.getHours() * 60 + now.getMinutes())
+      ),
+      mails: mails,
+      oldAddress: /malzi\.me/.test(document.documentElement.innerHTML),
+    };
+  });
+  check(
+    /^\d\d:\d\d$/.test(impStart.shown) && (impStart.off <= 1 || impStart.off >= 1439),
+    'legal notice on the start screen shows the real time (' + impStart.shown + ')'
+  );
+  check(
+    impStart.mails.length === 2 &&
+      impStart.mails.every(function (m) {
+        return m === 'mailto:info@malziland.at|info@malziland.at';
+      }) &&
+      !impStart.oldAddress,
+    'legal notice gives info@malziland.at as contact, twice, the old address is gone'
+  );
   await page.keyboard.press('Escape');
   check(
     await page.evaluate(function () {
@@ -445,7 +476,22 @@ function missingOnStage(keys) {
       sec: window.sec,
     };
   }
+  // The phone of the simulation gets a time no real clock shows right now
+  await page.evaluate(function () {
+    var other = (new Date().getHours() + 7) % 24;
+    document.getElementById('sbTime').textContent = String(other).padStart(2, '0') + ':03';
+  });
   await page.click('#impLinkRun');
+  const impClock = await page.evaluate(function () {
+    return {
+      imp: document.getElementById('impTime').textContent,
+      sim: document.getElementById('sbTime').textContent,
+    };
+  });
+  check(
+    impClock.imp === impClock.sim && /:03$/.test(impClock.imp),
+    'during the run the legal notice shows the same time as the phone (' + impClock.imp + ')'
+  );
   const impOpen = await page.evaluate(impState);
   await page.waitForTimeout(300); // three simulated seconds at x10
   const impHeld = await page.evaluate(impState);

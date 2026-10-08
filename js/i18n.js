@@ -63,7 +63,7 @@ var TRANSLATIONS = {
     'imp.privacyHosting':
       'Das Hosting erfolgt \u00FCber Google Firebase (Google Ireland Ltd). Es gelten die <a href="https://firebase.google.com/terms" target="_blank">Firebase-Nutzungsbedingungen</a> und die <a href="https://policies.google.com/privacy" target="_blank">Google-Datenschutzerkl\u00E4rung</a>.',
     'imp.privacyContact':
-      'Bei Fragen zum Datenschutz: <a href="mailto:info@malzi.me">info@malzi.me</a>',
+      'Bei Fragen zum Datenschutz: <a href="mailto:info@malziland.at">info@malziland.at</a>',
 
     // ===== SHARE =====
     'share.title': 'Cybermobbing-Simulation',
@@ -239,7 +239,8 @@ var TRANSLATIONS = {
       'The site stores two purely functional values in browser localStorage: the selected language and a daily marker that prevents the same browser from incrementing the view counter multiple times. Both values stay on your device, contain no personal data and are never transmitted.',
     'imp.privacyHosting':
       'Hosting is provided by Google Firebase (Google Ireland Ltd). The <a href="https://firebase.google.com/terms" target="_blank">Firebase Terms of Service</a> and <a href="https://policies.google.com/privacy" target="_blank">Google Privacy Policy</a> apply.',
-    'imp.privacyContact': 'For privacy questions: <a href="mailto:info@malzi.me">info@malzi.me</a>',
+    'imp.privacyContact':
+      'For privacy questions: <a href="mailto:info@malziland.at">info@malziland.at</a>',
 
     // ===== SHARE =====
     'share.title': 'Cyberbullying Simulation',

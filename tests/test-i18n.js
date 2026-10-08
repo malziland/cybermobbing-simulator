@@ -241,6 +241,17 @@ QUnit.module('i18n', function () {
     }
   );
 
+  QUnit.test('privacy contact gives the same address in both languages', function (assert) {
+    ['de', 'en'].forEach(function (lang) {
+      var text = TRANSLATIONS[lang]['imp.privacyContact'];
+      assert.ok(
+        text.indexOf('<a href="mailto:info@malziland.at">info@malziland.at</a>') !== -1,
+        lang + ': info@malziland.at'
+      );
+      assert.equal(text.indexOf('malzi.me'), -1, lang + ': the old address is gone');
+    });
+  });
+
   QUnit.test('No key value starts or ends with whitespace', function (assert) {
     ['de', 'en'].forEach(function (lang) {
       Object.keys(TRANSLATIONS[lang]).forEach(function (key) {

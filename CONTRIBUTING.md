@@ -77,4 +77,4 @@ Dieses Projekt unterliegt oesterreichischem Recht. Wenn du einen Fork erstellst 
 
 ## Fragen?
 
-Erstelle ein [Issue](../../issues) oder schreib an **info@malzi.me**.
+Erstelle ein [Issue](../../issues) oder schreib an **info@malziland.at**.

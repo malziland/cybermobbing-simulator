@@ -6,7 +6,7 @@ Only the latest version deployed at [cybermobbing.web.app](https://cybermobbing.
 
 ## Reporting a Vulnerability
 
-- **Email**: info@malzi.me
+- **Email**: info@malziland.at
 - **Subject**: `[SECURITY] Cybermobbing Simulation`
 - **Do NOT** create a public GitHub issue for security vulnerabilities.
 - **Expected response time**: Within 72 hours.
