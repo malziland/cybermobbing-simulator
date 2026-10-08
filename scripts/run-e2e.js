@@ -278,6 +278,8 @@ function simSnapshot() {
     help: !document.getElementById('aCta').classList.contains('hidden'),
     scrubbing: window.ctlScrubbing === true && document.body.classList.contains('scrubbing'),
     music: window.bgMusic ? (window.bgMusic.paused ? 'paused' : 'playing') : 'none',
+    musicAt: window.bgMusic ? window.bgMusic.currentTime : -1,
+    musicLen: window.bgMusic ? window.bgMusic.duration : 0,
     counts: {
       wa: document.querySelectorAll('#wC .wm, #wC .wm-photo').length,
       ig: document.querySelectorAll('#igCm .ig-c').length,
@@ -849,6 +851,16 @@ function missingOnStage(keys) {
       'jump to ' + target + ' s: stays paused at that second, no camera flash'
     );
     check(
+      got.musicLen > 0 && Math.abs(got.musicAt - (target % got.musicLen)) < 0.5,
+      'jump to ' +
+        target +
+        ' s: the music jumps along (' +
+        got.musicAt.toFixed(1) +
+        ' s of ' +
+        got.musicLen.toFixed(0) +
+        ')'
+    );
+    check(
       got.phoneEntries > 0 &&
         got.phoneHidden === 0 &&
         got.stageEntries > 0 &&
@@ -974,6 +986,21 @@ function missingOnStage(keys) {
       after.likes === 0,
     'a click into the WhatsApp part goes back there, the later scenes are back at zero'
   );
+  // Only the main button jumps
+  await seekPage.mouse.click(trackX(100), track.y, { button: 'right' });
+  const afterRight = await seekPage.evaluate(simSnapshot);
+  await seekPage.mouse.click(trackX(100), track.y, { button: 'middle' });
+  const afterMiddle = await seekPage.evaluate(simSnapshot);
+  await seekPage.keyboard.press('Escape');
+  check(
+    afterRight.sec === after.sec &&
+      afterMiddle.sec === after.sec &&
+      !afterMiddle.scrubbing &&
+      (await seekPage.evaluate(function () {
+        return window.ctlDragging === false;
+      })),
+    'right and middle click do not jump (stays at ' + afterMiddle.sec.toFixed(1) + ' s)'
+  );
   // Dragging: the picture follows the knob while the button is still held
   await seekPage.mouse.move(trackX(5), track.y);
   await seekPage.mouse.down();
@@ -1019,20 +1046,48 @@ function missingOnStage(keys) {
   );
   // Keyboard on the focused timeline
   await seekPage.focus('#ctlSeek');
-  await seekPage.keyboard.press('ArrowRight');
-  after = await seekPage.evaluate(simSnapshot);
-  const afterArrow = after.sec;
-  await seekPage.keyboard.press('PageUp');
-  after = await seekPage.evaluate(simSnapshot);
-  const afterPage = { sec: after.sec, app: after.app };
-  await seekPage.keyboard.press('Home');
-  after = await seekPage.evaluate(simSnapshot);
+  const keyStart = after.sec;
+  const keySteps = [];
+  for (const key of [
+    'ArrowRight',
+    'ArrowUp',
+    'ArrowLeft',
+    'ArrowDown',
+    'PageUp',
+    'PageDown',
+    'End',
+    'ArrowRight',
+    'Home',
+  ]) {
+    await seekPage.keyboard.press(key);
+    const s = await seekPage.evaluate(simSnapshot);
+    keySteps.push({ key: key, sec: s.sec, app: s.app });
+  }
+  const near = function (value, want) {
+    return Math.abs(value - want) < 0.01;
+  };
   check(
-    Math.abs(afterArrow - 45) < 1.1 &&
-      afterPage.app === 'aTk' &&
-      afterPage.sec === 56 &&
-      after.sec === 0,
-    'keyboard: arrow +5 s, Page Up next scene, Home back to the start'
+    near(keySteps[0].sec, keyStart + 5) &&
+      near(keySteps[1].sec, keyStart + 10) &&
+      near(keySteps[2].sec, keyStart + 5) &&
+      near(keySteps[3].sec, keyStart) &&
+      keySteps[4].sec === 56 &&
+      keySteps[4].app === 'aTk' &&
+      keySteps[5].sec === 28 &&
+      keySteps[5].app === 'aIg' &&
+      keySteps[6].sec === 134 &&
+      keySteps[6].app === 'aCta' &&
+      keySteps[7].sec === 139 &&
+      keySteps[7].app === 'aCta' &&
+      keySteps[8].sec === 0 &&
+      keySteps[8].app === 'aWa',
+    'keyboard: arrows right/up +5 s, left/down -5 s, Page Up next and Page Down previous scene, End the help page, Home the start (' +
+      keySteps
+        .map(function (k) {
+          return k.sec.toFixed(0);
+        })
+        .join(', ') +
+      ')'
   );
   check(
     await seekPage.evaluate(function () {
@@ -1112,6 +1167,31 @@ function missingOnStage(keys) {
   check(
     ranOn && !after.paused && after.phoneNewest === after.stageNewest,
     'after releasing, the run continues from there by itself'
+  );
+  // A jump while it is running: the clock must run on, and only once
+  await seekPage.mouse.click(trackX(30), track.y);
+  const speedA = await seekPage.evaluate(function () {
+    return { sec: window.sec, at: performance.now() };
+  });
+  await seekPage.waitForTimeout(500);
+  const speedB = await seekPage.evaluate(function () {
+    var out = { sec: window.sec, at: performance.now() };
+    window.togglePause();
+    out.paused = window.sec;
+    return out;
+  });
+  await seekPage.waitForTimeout(300);
+  const speedC = await seekPage.evaluate(function () {
+    var sec = window.sec;
+    window.togglePause();
+    return sec;
+  });
+  const rate = ((speedB.sec - speedA.sec) / (speedB.at - speedA.at)) * 100; // 1 = single speed at x10
+  check(
+    Math.abs(speedA.sec - 30) < 0.6 && rate > 0.7 && rate < 1.3 && speedC === speedB.paused,
+    'after a jump while running the clock runs on at single speed (' +
+      rate.toFixed(2) +
+      ') and stands still when paused'
   );
   check(
     musicBefore === 'playing' && hold1.music === 'paused' && after.music === 'playing',
@@ -1677,8 +1757,12 @@ function missingOnStage(keys) {
     [700, 900],
     [570, 1210],
     [501, 800],
+    [500, 800],
     [393, 852],
     [375, 667],
+    // phones held sideways
+    [852, 393],
+    [932, 430],
   ];
   for (const size of phoneViewSizes) {
     const ctx = await browser.newContext({
@@ -1727,6 +1811,7 @@ function missingOnStage(keys) {
         mute: width('#soundBtn') > 0,
         views: width('.ctl-view') > 0,
         knob: width('.ctl-knob') > 0,
+        role: document.getElementById('ctlSeek').getAttribute('role'),
       };
     });
     const wantSlider = size[0] > 900;
@@ -1737,6 +1822,7 @@ function missingOnStage(keys) {
       parts.slider === wantSlider &&
         parts.views === wantViews &&
         parts.knob === wantKnob &&
+        parts.role === (wantKnob ? 'slider' : 'progressbar') &&
         parts.mute &&
         share >= 0.3,
       label +
@@ -1744,11 +1830,85 @@ function missingOnStage(keys) {
         (wantViews ? 'view switch' : 'no view switch') +
         ', ' +
         (wantSlider ? 'volume slider' : 'sound button only') +
+        ', ' +
+        (wantKnob ? 'jumping on' : 'jumping off') +
         ', timeline takes ' +
         Math.round(share * 100) +
         '% of the bar (' +
         Math.round(parts.track) +
         ' px)'
+    );
+    await ctx.close();
+  }
+
+  console.log('E2E: control bar - target sizes where the bar is smallest');
+  for (const probe of [
+    [393, 852, '?beamer=1&testspeed=10', 'phone opened with ?beamer=1'],
+    [800, 600, '?beamer=1&testspeed=10', 'projector view on an 800 x 600 projector'],
+    [701, 640, '?beamer=1&testspeed=10', 'projector view in the narrowest window'],
+    [852, 393, '?testspeed=10', 'phone held sideways'],
+  ]) {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: probe[0], height: probe[1] },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/' + probe[2]);
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+    await p.evaluate(function () {
+      window.togglePause();
+    });
+    await axeScan(p, '#ctlBar', probe[0] + 'x' + probe[1] + ' ' + probe[3] + ': control bar');
+    await ctx.close();
+  }
+
+  console.log('E2E: pause right after the start (real time)');
+  {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1280, height: 720 },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/');
+    await p.click('#startBtn');
+    await p.waitForTimeout(150); // inside the 500 ms start delay
+    await p.evaluate(function () {
+      window.togglePause();
+    });
+    await p.waitForTimeout(150);
+    await p.evaluate(function () {
+      window.togglePause();
+    });
+    await p.waitForTimeout(900); // the start delay has run out by now
+    const c1 = await p.evaluate(function () {
+      return { sec: window.sec, at: performance.now() };
+    });
+    await p.waitForTimeout(1000);
+    const c2 = await p.evaluate(function () {
+      var out = { sec: window.sec, at: performance.now() };
+      window.togglePause();
+      out.paused = window.sec;
+      return out;
+    });
+    await p.waitForTimeout(500);
+    const c3 = await p.evaluate(function () {
+      return window.sec;
+    });
+    const perSecond = ((c2.sec - c1.sec) / (c2.at - c1.at)) * 1000;
+    check(
+      perSecond > 0.8 && perSecond < 1.2 && c3 === c2.paused,
+      'pause and resume inside the start delay: the clock runs once (' +
+        perSecond.toFixed(2) +
+        ' s per second) and stands still when paused'
     );
     await ctx.close();
   }

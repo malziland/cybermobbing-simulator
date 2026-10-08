@@ -109,6 +109,36 @@ QUnit.module(
       if (foreign.close) foreign.close().catch(function () {});
     });
 
+    QUnit.test('every sound ends at the master gain, none goes past it', function (assert) {
+      if (typeof AudioContext === 'undefined' && typeof webkitAudioContext === 'undefined') {
+        assert.ok(true, 'AudioContext not available in this environment -- skipping');
+        return;
+      }
+      initAudio();
+      var past = 0;
+      var toMaster = 0;
+      var origConnect = AudioNode.prototype.connect;
+      AudioNode.prototype.connect = function (dest) {
+        if (dest === ax.destination && this !== axOut) past++;
+        if (dest === axOut) toMaster++;
+        return origConnect.apply(this, arguments);
+      };
+      var origPaused = simPaused;
+      simPaused = false;
+      [sndWa, sndIg, sndTk, sndIm, sndShutter, sndBuzz].forEach(function (snd) {
+        snd();
+      });
+      tone(440, 0, 0.02, 0.01);
+      simPaused = origPaused;
+      AudioNode.prototype.connect = origConnect;
+      assert.equal(past, 0, 'no sound is connected straight to the loudspeaker');
+      assert.ok(
+        toMaster >= 7,
+        'all seven sounds are connected to the master gain (' + toMaster + ')'
+      );
+      if (ax.close) ax.close().catch(function () {});
+    });
+
     QUnit.test('sound control i18n keys exist in both languages', function (assert) {
       ['ui.sound', 'ui.soundMute', 'ui.soundUnmute', 'ui.volume'].forEach(function (k) {
         assert.ok(TRANSLATIONS.de[k], 'de: ' + k);

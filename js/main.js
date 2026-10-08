@@ -104,6 +104,10 @@ function go() {
   // clearable via simTimers like every other scheduled scene step
   simTimeout(function () {
     sec = 0;
+    // A pause and resume during this start delay has already started both
+    // intervals (togglePause); without clearing them the clock would run twice
+    if (typeof tmr !== 'undefined') clearInterval(tmr);
+    if (typeof clockInt !== 'undefined') clearInterval(clockInt);
     tmr = setInterval(tick, 100 / SIM_SPEED);
     startClock();
     p1();

@@ -133,6 +133,23 @@ QUnit.module(
       assert.ok(ran, 'the scene switch at exactly 28 s is executed');
     });
 
+    QUnit.test(
+      'simAdvance() runs a chained step that lands exactly on the target',
+      function (assert) {
+        var ran = false;
+        simPaused = true;
+        // 0.3 - 0.1 is 0.19999999999999998 in floats, a hair less than the 0.2 the
+        // second step waits: without the tolerance the step would be left out
+        simTimeout(function () {
+          simTimeout(function () {
+            ran = true;
+          }, 0.2 * SIM_SPEED);
+        }, 0.1 * SIM_SPEED);
+        simAdvance(0.3);
+        assert.ok(ran, 'the step due at 0.1 + 0.2 = 0.3 ms runs when advancing by 0.3 ms');
+      }
+    );
+
     QUnit.test('timers are not armed while paused or seeking', function (assert) {
       simPaused = true;
       simTimeout(function () {}, 50);
@@ -166,6 +183,61 @@ QUnit.module(
         }, 90);
       }
     );
+
+    QUnit.test('simFreezeTimers() takes the time that has already passed off', function (assert) {
+      var done = assert.async();
+      simTimeout(function () {}, 400 * SIM_SPEED);
+      setTimeout(function () {
+        simFreezeTimers();
+        var left = simTimers[0].remaining;
+        assert.ok(
+          left > 150 && left < 330,
+          'about 100 of 400 ms have passed, ' + left + ' are left'
+        );
+        done();
+      }, 100);
+    });
+
+    QUnit.test('no sound source is created while seeking or paused', function (assert) {
+      if (typeof AudioContext === 'undefined' && typeof webkitAudioContext === 'undefined') {
+        assert.ok(true, 'AudioContext not available in this environment -- skipping');
+        return;
+      }
+      initAudio();
+      var made = 0;
+      var origOsc = ax.createOscillator;
+      var origBuf = ax.createBufferSource;
+      ax.createOscillator = function () {
+        made++;
+        return origOsc.apply(ax, arguments);
+      };
+      ax.createBufferSource = function () {
+        made++;
+        return origBuf.apply(ax, arguments);
+      };
+      var sounds = [sndWa, sndIg, sndTk, sndIm, sndShutter, sndBuzz];
+      function playAll() {
+        made = 0;
+        sounds.forEach(function (snd) {
+          snd();
+        });
+        tone(440, 0, 0.02, 0.01);
+        return made;
+      }
+      var origPaused = simPaused;
+      simPaused = false;
+      simSeeking = false;
+      var normal = playAll();
+      assert.ok(normal >= 7, 'positive control: all seven sounds create a source (' + normal + ')');
+      simSeeking = true;
+      assert.equal(playAll(), 0, 'seeking: not a single source');
+      simSeeking = false;
+      simPaused = true;
+      assert.equal(playAll(), 0, 'paused: not a single source');
+      simPaused = origPaused;
+      ax.createOscillator = origOsc;
+      ax.createBufferSource = origBuf;
+    });
 
     QUnit.test('sounds and the camera flash stay off while seeking', function (assert) {
       document.getElementById('qunit-fixture').innerHTML = '<div id="fl"></div>';
