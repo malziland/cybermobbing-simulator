@@ -183,9 +183,12 @@
 
 <!-- CONTROL BAR: pause, time, timeline, sound, view, legal notice (js/controls.js, ADR-0008) -->
 <div class="ctl-bar" id="ctlBar" role="group" aria-label="Steuerung">
-  <button id="pauseBtn" class="ctl-play hidden" type="button">II</button>
+  <button id="pauseBtn" class="ctl-play hidden" type="button">
+    <svg class="ico-pause" aria-hidden="true" viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="4.5" height="15" rx=".7"/><rect x="14" y="4.5" width="4.5" height="15" rx=".7"/></svg>
+    <svg class="ico-play" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 4.6v14.8a.6.6 0 00.92.5l11.3-7.4a.6.6 0 000-1L8.42 4.1a.6.6 0 00-.92.5z"/></svg>
+  </button>
   <span class="ctl-scene" id="ctlScene"></span>
-  <div class="ctl-seek" id="ctlSeek" role="slider" tabindex="0" aria-label="Zeitleiste" aria-valuemin="0" aria-valuemax="134" aria-valuenow="0">
+  <div class="ctl-seek" id="ctlSeek" role="slider" tabindex="0" aria-label="Zeitleiste" aria-valuemin="0" aria-valuemax="140" aria-valuenow="0">
     <div class="ctl-track" id="ctlTrack"><div class="ctl-fill"></div></div>
     <div class="ctl-knob"></div>
     <span class="ctl-tip" id="ctlTip"></span>

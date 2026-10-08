@@ -20,12 +20,12 @@ var sec = 0;
 
 /**
  * Clock tick, called every 100ms by setInterval. Increments sec by 0.1 and
- * lets the timeline in the control bar follow. Stops itself a few seconds
- * after the end of the run (CTL_TOTAL), when the help page is up.
+ * lets the timeline in the control bar follow. Stops itself at the end of
+ * the timeline (CTL_TOTAL), a few seconds after the help page came up.
  */
 function tick() {
   sec += 0.1;
-  if (sec >= CTL_TOTAL + 5) clearInterval(tmr);
+  if (sec >= CTL_TOTAL) clearInterval(tmr);
   ctlUpdate();
 }
 

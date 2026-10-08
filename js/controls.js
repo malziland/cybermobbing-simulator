@@ -9,7 +9,9 @@
  *   restarts the scenes from zero and runs their steps, silently and without
  *   waiting, up to the target time (simSeek). The result is the state the
  *   simulation has at that second in a normal run, and the projector view
- *   follows by itself because it only mirrors the phone.
+ *   follows by itself because it only mirrors the phone. The help page at
+ *   the end is the last part of the timeline; the bar stays on it, so one
+ *   can go back into the run from there.
  * @requires i18n.js   - t() for labels
  * @requires audio.js  - simTimers, simFreezeTimers(), simAdvance(), simPaused, typStop(), bgMusic
  * @requires timer.js  - sec, tmr, clockInt, clockStart, tick(), startClock()
@@ -17,29 +19,24 @@
  * @requires stage.js  - stageReset()
  * @requires main.js   - mkPhoto(), simStarted (only used at run time)
  * @requires scenes/p1-whatsapp.js - p1()
+ * @requires scenes/p5-finale.js - p6Reset()
  */
 
 // ========== TIMELINE ==========
 
 /**
- * @type {number} Length of the timeline in simulation seconds: the whole run
- * up to the moment the help page replaces the phone (p6 in p5-finale.js).
- * The bar shows no times, only this share. The E2E run checks that the help
- * page appears exactly at this second.
+ * @type {number} Length of the timeline in simulation seconds. It covers the
+ * whole run and a last part for the help page that replaces the phone at the
+ * end (see CTL_SCENES). The bar shows no times, only this share.
  */
-var CTL_TOTAL = 134;
-
-/**
- * @type {number} Last second a jump may land on: one second before the end,
- * so that jumping or dragging never calls up the help page by itself. It
- * follows a second later when the simulation runs on.
- */
-var CTL_SEEK_END = CTL_TOTAL - 1;
+var CTL_TOTAL = 140;
 
 /**
  * Scenes on the timeline: label key, the phone app layer that is active and
  * the second the scene starts at. The start seconds repeat the durations in
  * js/scenes/; the E2E run checks every mark against the real scene switch.
+ * The last entry is the help page (p6 in p5-finale.js): not an app inside the
+ * phone but a page of its own that replaces it.
  * @type {Array<{key: string, app: string, at: number}>}
  */
 var CTL_SCENES = [
@@ -49,6 +46,7 @@ var CTL_SCENES = [
   { key: 'ctl.hs', app: 'aHs', at: 80 },
   { key: 'ctl.im', app: 'aIm', at: 95 },
   { key: 'ctl.fin', app: 'aFn', at: 114 },
+  { key: 'ctl.help', app: 'aCta', at: 134 },
 ];
 
 /** @type {string} Pristine markup of the phone screen, restored by simRestart() */
@@ -66,6 +64,15 @@ var ctlScrubbing = false;
  * Everywhere else a click goes exactly where it was made.
  */
 var CTL_SNAP = 1.5;
+
+/**
+ * Tells whether the help page at the end is showing instead of the phone.
+ * @returns {boolean} True on the help page
+ */
+function ctlEnded() {
+  var cta = document.getElementById('aCta');
+  return !!cta && !cta.classList.contains('hidden');
+}
 
 /**
  * Returns the scene that is running at a given second.
@@ -116,6 +123,8 @@ function simRestart() {
   if (typeof tmr !== 'undefined') clearInterval(tmr);
   if (typeof clockInt !== 'undefined') clearInterval(clockInt);
   typStop();
+  // Coming back from the help page: the phone returns
+  p6Reset();
 
   var screen = document.querySelector('#phone .scr');
   var date = document.getElementById('hsDate');
@@ -146,7 +155,7 @@ function simRestart() {
 }
 
 /**
- * Brings every fade inside the phone and the stage to its end state, so the
+ * Brings every fade inside the phone, the stage and the help page to its end state, so the
  * result of a jump is there at once. Phone entries start invisible and only
  * become visible through their fade-in; without this the phone would stay
  * empty for a moment after every jump. Runs as a microtask, i.e. after the
@@ -155,14 +164,18 @@ function simRestart() {
 function ctlSettle() {
   if (!document.getAnimations) return;
   Promise.resolve().then(function () {
-    var phone = document.getElementById('phone');
-    var stage = document.getElementById('stage');
+    var roots = ['phone', 'stage', 'aCta'].map(function (id) {
+      return document.getElementById(id);
+    });
     // Read a layout value first: only then every new fade exists (Safari)
     void document.body.offsetHeight;
     document.getAnimations().forEach(function (animation) {
       var target = animation.effect && animation.effect.target;
       if (!target) return;
-      if (!(phone && phone.contains(target)) && !(stage && stage.contains(target))) return;
+      var inside = roots.some(function (root) {
+        return !!root && root.contains(target);
+      });
+      if (!inside) return;
       try {
         animation.finish();
       } catch (e) {
@@ -174,17 +187,20 @@ function ctlSettle() {
 
 /**
  * Jumps to a second on the timeline, forwards or backwards. Works while
- * running and while paused (it then stays paused). Does nothing outside the
- * phone phase (start screen, final help screen).
- * @param {number}  t      - Target second, clamped to 0..CTL_SEEK_END
+ * running and while paused (it then stays paused), and also from the help
+ * page back into the run. Does nothing before the simulation was started.
+ * @param {number}  t      - Target second, clamped to 0..CTL_TOTAL
  * @param {boolean} [hold] - True while the knob is being dragged: show the
  *   state of that second but keep the simulation frozen and the music alone
  */
 function simSeek(t, hold) {
-  var phone = document.getElementById('phone');
-  if (!simStarted || !phone || phone.classList.contains('hidden')) return;
+  if (!simStarted) return;
   var n = Number(t);
-  var target = isNaN(n) ? 0 : Math.min(Math.max(n, 0), CTL_SEEK_END);
+  var target = isNaN(n) ? 0 : Math.min(Math.max(n, 0), CTL_TOTAL);
+  // The help page has no pause and nothing left to wait for: a jump into its
+  // part runs it to the end, so it is complete even while paused or dragging
+  var help = CTL_SCENES[CTL_SCENES.length - 1];
+  var until = target >= help.at ? CTL_TOTAL : target;
 
   // Timers created during the restart must not be armed: simAdvance() runs them
   simSeeking = true;
@@ -193,7 +209,7 @@ function simSeek(t, hold) {
   } finally {
     simSeeking = false;
   }
-  simAdvance((target * 1000) / SIM_SPEED);
+  simAdvance((until * 1000) / SIM_SPEED);
 
   sec = target;
   clockStart = Date.now() - sec * 1000;
@@ -226,18 +242,24 @@ function ctlUpdate() {
   var now = Math.min(Math.max(sec, 0), CTL_TOTAL);
   if (!ctlDragging) seek.style.setProperty('--pos', ((now / CTL_TOTAL) * 100).toFixed(2) + '%');
 
+  var ended = ctlEnded();
   var active = document.querySelector('#phone .app.on');
+  var activeId = ended ? 'aCta' : active ? active.id : '';
   var scene = null;
   CTL_SCENES.forEach(function (s) {
-    if (active && s.app === active.id) scene = s;
+    if (s.app === activeId) scene = s;
   });
+  // The help page has no pause button, so it never reads "paused"
+  var paused = simPaused && !ended;
   var sceneEl = document.getElementById('ctlScene');
   if (sceneEl) {
-    sceneEl.textContent = simPaused ? t('ctl.paused') : scene ? t(scene.key) : '';
-    sceneEl.classList.toggle('paused', simPaused);
+    sceneEl.textContent = paused ? t('ctl.paused') : scene ? t(scene.key) : '';
+    sceneEl.classList.toggle('paused', paused);
   }
   var btn = document.getElementById('pauseBtn');
   if (btn) {
+    // Nothing to pause on the help page: the button stays in place, switched off
+    btn.disabled = ended;
     btn.classList.toggle('paused', simPaused);
     btn.setAttribute('aria-label', t(simPaused ? 'ctl.resume' : 'ctl.pause'));
   }
@@ -316,6 +338,8 @@ function ctlInit() {
 
   seek.addEventListener('pointerdown', function (e) {
     if (!ctlSeekAllowed()) return;
+    // Left button, finger or pen only: a right or middle click must not jump
+    if (e.button) return;
     ctlDragging = true;
     moved = false;
     downX = e.clientX;

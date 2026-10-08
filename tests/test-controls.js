@@ -54,15 +54,21 @@ QUnit.module(
       assert.equal(ctlSceneAt(28).app, 'aIg', 'on the mark: Instagram (inclusive)');
       assert.equal(ctlSceneAt(70).app, 'aTk', 'TikTok');
       assert.equal(ctlSceneAt(120).app, 'aFn', 'closing text');
-      assert.equal(ctlSceneAt(CTL_TOTAL).app, 'aFn', 'end: still the closing text');
+      assert.equal(
+        ctlSceneAt(133.9).app,
+        'aFn',
+        'just before the help page: still the closing text'
+      );
+      assert.equal(ctlSceneAt(134).app, 'aCta', 'on the last mark: the help page (inclusive)');
+      assert.equal(ctlSceneAt(CTL_TOTAL).app, 'aCta', 'end: the help page');
     });
 
     QUnit.test(
-      'timeline has six scenes in rising order with labels in both languages',
+      'timeline has seven parts in rising order with labels in both languages',
       function (assert) {
-        assert.equal(CTL_SCENES.length, 6, 'six scenes');
-        assert.strictEqual(CTL_TOTAL, 134, 'timeline covers the whole run up to the help page');
-        assert.strictEqual(CTL_SEEK_END, CTL_TOTAL - 1, 'jumps end one second before that');
+        assert.equal(CTL_SCENES.length, 7, 'six scenes and the help page');
+        assert.equal(CTL_SCENES[6].app, 'aCta', 'the last part is the help page');
+        assert.strictEqual(CTL_TOTAL, 140, 'timeline covers the run and a part for the help page');
         for (var i = 0; i < CTL_SCENES.length; i++) {
           if (i > 0) assert.ok(CTL_SCENES[i].at > CTL_SCENES[i - 1].at, 'start ' + i + ' is later');
           assert.ok(CTL_SCENES[i].at < CTL_TOTAL, 'start ' + i + ' lies on the timeline');
@@ -195,7 +201,7 @@ QUnit.module(
         'scene name from the active app'
       );
       assert.equal(seek.style.getPropertyValue('--pos'), '25.00%', 'fill is a quarter');
-      assert.equal(seek.getAttribute('aria-valuenow'), '33', 'value for assistive technology');
+      assert.equal(seek.getAttribute('aria-valuenow'), '35', 'value for assistive technology');
       assert.equal(
         document.getElementById('pauseBtn').getAttribute('aria-label'),
         t('ctl.pause'),
@@ -222,18 +228,75 @@ QUnit.module(
       assert.equal(seek.style.getPropertyValue('--pos'), '100.00%', 'fill never exceeds the bar');
     });
 
-    QUnit.test('simSeek() does nothing outside the running phone phase', function (assert) {
-      document.getElementById('qunit-fixture').innerHTML = '<div id="phone" class="hidden"></div>';
+    QUnit.test('simSeek() does nothing before the simulation was started', function (assert) {
+      document.getElementById('qunit-fixture').innerHTML = '<div id="phone"></div>';
       var origStarted = simStarted;
-      simStarted = true;
-      sec = 7;
-      simSeek(60);
-      assert.strictEqual(sec, 7, 'phone hidden (start or help screen): no jump');
       simStarted = false;
-      document.getElementById('phone').classList.remove('hidden');
+      sec = 7;
       simSeek(60);
       assert.strictEqual(sec, 7, 'simulation not started: no jump');
       simStarted = origStarted;
+    });
+
+    // ----- the help page is part of the timeline -----
+
+    QUnit.test('p6Reset() takes the help page back, p6() can run again', function (assert) {
+      document.getElementById('qunit-fixture').innerHTML =
+        '<div id="phone"></div><button id="pauseBtn"></button><div class="disclaimer hidden"></div>' +
+        '<div id="aCta" class="hidden"><a id="ctaLogo" class="hidden"></a><div id="ctaLinks"></div>' +
+        '<div id="ctaHelpline"></div><div id="ctaMsg"></div></div>';
+      var origTimers = simTimers;
+      var origPaused = simPaused;
+      simTimers = [];
+      simPaused = true; // timers only wait in the list
+      function state() {
+        return {
+          cta: !document.getElementById('aCta').classList.contains('hidden'),
+          phone: !document.getElementById('phone').classList.contains('hidden'),
+          pause: !document.getElementById('pauseBtn').classList.contains('hidden'),
+          disclaimer: !document.querySelector('.disclaimer').classList.contains('hidden'),
+          links: document.getElementById('ctaLinks').children.length,
+          logo: document.getElementById('ctaLogo').children.length,
+          shown: document.querySelectorAll('#aCta .show').length,
+        };
+      }
+      p6();
+      simAdvance(600); // the fade-in step of the help page
+      var first = state();
+      assert.ok(first.cta && !first.phone && !first.pause && first.disclaimer, 'p6: help page up');
+      assert.ok(first.shown >= 2, 'p6: its texts are shown (' + first.shown + ')');
+
+      p6Reset();
+      var back = state();
+      assert.ok(!back.cta && back.phone && back.pause && !back.disclaimer, 'reset: phone is back');
+      assert.equal(back.links + back.logo + back.shown, 0, 'reset: links, logo and fades are gone');
+
+      p6();
+      simAdvance(600);
+      assert.deepEqual(state(), first, 'a second run of p6 gives the same page, nothing doubled');
+      simTimers = origTimers;
+      simPaused = origPaused;
+    });
+
+    QUnit.test('on the help page the bar names it and never reads paused', function (assert) {
+      document.getElementById('qunit-fixture').innerHTML =
+        '<div id="phone" class="hidden"><div class="app on" id="aFn"></div></div><div id="aCta"></div>' +
+        '<button id="pauseBtn"></button><span id="ctlScene"></span><div id="ctlSeek"></div>';
+      var origPaused = simPaused;
+      sec = 136;
+      simPaused = false;
+      ctlUpdate();
+      var scene = document.getElementById('ctlScene');
+      assert.equal(scene.textContent, t('ctl.help'), 'named after the help page, not the last app');
+      simPaused = true;
+      ctlUpdate();
+      assert.equal(scene.textContent, t('ctl.help'), 'still the help page while paused');
+      assert.notOk(scene.classList.contains('paused'), 'not marked as paused');
+      document.getElementById('aCta').classList.add('hidden');
+      document.getElementById('phone').classList.remove('hidden');
+      ctlUpdate();
+      assert.equal(scene.textContent, t('ctl.paused'), 'back in the run it reads paused again');
+      simPaused = origPaused;
     });
 
     // ----- stage keeps messages whole -----

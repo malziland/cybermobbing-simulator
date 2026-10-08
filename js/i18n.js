@@ -15,8 +15,6 @@ var TRANSLATIONS = {
     'ui.start': 'Simulation starten',
     'ui.share': 'Simulation teilen',
     'ui.replay': 'Nochmal',
-    'ui.pause': 'II',
-    'ui.resume': '\u25B8',
     'ui.impressum': 'Impressum',
     'ui.close': 'Schlie\u00DFen',
     'ui.linkCopied': 'Link kopiert!',
@@ -44,6 +42,7 @@ var TRANSLATIONS = {
     'ctl.hs': 'Mitteilungen',
     'ctl.im': 'Nachrichten',
     'ctl.fin': 'Schluss',
+    'ctl.help': 'Hilfe',
     'ui.credit':
       'Ein <a href="https://github.com/malziland/cybermobbing-simulator" target="_blank">Open-Source</a>-Bildungsprojekt von malziland',
 
@@ -193,8 +192,6 @@ var TRANSLATIONS = {
     'ui.start': 'Start Simulation',
     'ui.share': 'Share Simulation',
     'ui.replay': 'Replay',
-    'ui.pause': 'II',
-    'ui.resume': '\u25B8',
     'ui.impressum': 'Legal Notice',
     'ui.close': 'Close',
     'ui.linkCopied': 'Link copied!',
@@ -222,6 +219,7 @@ var TRANSLATIONS = {
     'ctl.hs': 'Notifications',
     'ctl.im': 'Messages',
     'ctl.fin': 'Ending',
+    'ctl.help': 'Help',
     'ui.credit':
       'An <a href="https://github.com/malziland/cybermobbing-simulator" target="_blank">open-source</a> education project by malziland',
 

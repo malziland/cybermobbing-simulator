@@ -265,7 +265,8 @@ function simSnapshot() {
   return {
     sec: window.sec,
     paused: window.simPaused,
-    app: on ? on.id : null,
+    // The help page replaces the phone; the last app stays marked underneath
+    app: !document.getElementById('aCta').classList.contains('hidden') ? 'aCta' : on ? on.id : null,
     panel: panel ? panel.getAttribute('data-app') : null,
     scene: document.getElementById('ctlScene').textContent,
     phoneEntries: phoneSeen.all,
@@ -375,6 +376,22 @@ function missingOnStage(keys) {
     }),
     'pause: the control bar shows the paused state'
   );
+  function pauseSymbols() {
+    var btn = document.getElementById('pauseBtn');
+    function box(sel) {
+      var el = btn.querySelector(sel);
+      if (getComputedStyle(el).display === 'none') return null;
+      var r = el.getBoundingClientRect();
+      var b = btn.getBoundingClientRect();
+      return {
+        size: r.width,
+        offX: r.left + r.width / 2 - (b.left + b.width / 2),
+        offY: r.top + r.height / 2 - (b.top + b.height / 2),
+      };
+    }
+    return { pause: box('.ico-pause'), play: box('.ico-play'), text: btn.textContent.trim() };
+  }
+  const symPaused = await page.evaluate(pauseSymbols);
   await page.keyboard.press('Enter');
   check(
     await page.evaluate(function () {
@@ -385,6 +402,24 @@ function missingOnStage(keys) {
       );
     }),
     'simulation resumes, the bar shows the scene again'
+  );
+  const symRunning = await page.evaluate(pauseSymbols);
+  check(
+    !!symPaused.play &&
+      !symPaused.pause &&
+      !!symRunning.pause &&
+      !symRunning.play &&
+      symPaused.text === '' &&
+      Math.abs(symPaused.play.size - symRunning.pause.size) < 0.5 &&
+      Math.abs(symPaused.play.offX) < 0.6 &&
+      Math.abs(symPaused.play.offY) < 0.6,
+    'the play symbol is drawn, as large as the pause symbol and centred in the button (' +
+      (symPaused.play ? symPaused.play.size.toFixed(1) : '?') +
+      ' px, off by ' +
+      (symPaused.play
+        ? symPaused.play.offX.toFixed(1) + '/' + symPaused.play.offY.toFixed(1)
+        : '?') +
+      ' px)'
   );
   check(
     await page.evaluate(function () {
@@ -494,9 +529,8 @@ function missingOnStage(keys) {
     { timeout: 15000 }
   );
   await axeScan(page, '#aCta', 'CTA screen');
-  await page.evaluate(function () {
-    document.getElementById('impLinkGlobal').click();
-  });
+  await axeScan(page, '#ctlBar', 'control bar on the help page');
+  await page.click('#impLinkRun');
   check(
     await page.evaluate(function () {
       return (
@@ -724,11 +758,12 @@ function missingOnStage(keys) {
     await stagePage.evaluate(function () {
       return (
         getComputedStyle(document.getElementById('stage')).display === 'none' &&
-        getComputedStyle(document.getElementById('ctlBar')).display === 'none' &&
+        getComputedStyle(document.getElementById('ctlBar')).display !== 'none' &&
+        document.getElementById('pauseBtn').disabled &&
         !document.getElementById('aCta').classList.contains('hidden')
       );
     }),
-    'help screen replaces the stage and the control bar at the end'
+    'help screen replaces the stage at the end, the control bar stays, pause is switched off'
   );
   // Reference for the timeline: when did each chat entry appear in this normal run?
   const reference = await stagePage.evaluate(function () {
@@ -836,12 +871,16 @@ function missingOnStage(keys) {
   const marks = await seekPage.evaluate(function () {
     var out = [];
     window.CTL_SCENES.forEach(function (scene, index) {
+      function showing() {
+        if (!document.getElementById('aCta').classList.contains('hidden')) return 'aCta';
+        return document.querySelector('#phone .app.on').id;
+      }
       window.simSeek(scene.at);
-      var at = document.querySelector('#phone .app.on').id;
+      var at = showing();
       var before = null;
       if (index > 0) {
         window.simSeek(scene.at - 0.5);
-        before = document.querySelector('#phone .app.on').id;
+        before = showing();
       }
       out.push({
         at: scene.at,
@@ -858,7 +897,7 @@ function missingOnStage(keys) {
     marks.every(function (m) {
       return m.atMark === m.app && m.justBefore === m.previous;
     }),
-    'all six scene marks sit exactly on the scene switches (' +
+    'all seven marks sit exactly on the switches, the help page included (' +
       marks
         .map(function (m) {
           return m.at;
@@ -1081,49 +1120,307 @@ function missingOnStage(keys) {
       ')'
   );
 
-  console.log('E2E: timeline - ends where the run ends');
+  console.log('E2E: timeline - the help page is its last part');
   await seekPage.evaluate(function () {
     if (!window.simPaused) window.togglePause();
   });
-  // Dragging beyond the right end must not call up the help page
+  function helpState() {
+    function shown(id) {
+      var el = document.getElementById(id);
+      var o = 1;
+      for (var n = el; n && n.nodeType === 1; n = n.parentNode) {
+        var cs = getComputedStyle(n);
+        if (cs.display === 'none') return 0;
+        o *= parseFloat(cs.opacity);
+      }
+      return o;
+    }
+    var phone = document.getElementById('phone');
+    return {
+      help: shown('aCta') > 0.99,
+      text: shown('ctaMsg'),
+      phone: !phone.classList.contains('hidden'),
+      pauseBtn: getComputedStyle(document.getElementById('pauseBtn')).display !== 'none',
+      bar: getComputedStyle(document.getElementById('ctlBar')).display !== 'none',
+      scene: document.getElementById('ctlScene').textContent,
+      wantScene: window.t('ctl.help'),
+      links: document.getElementById('ctaLinks').children.length,
+      logos: document.getElementById('ctaLogo').children.length,
+      pos: parseFloat(document.getElementById('ctlSeek').style.getPropertyValue('--pos')),
+      sec: window.sec,
+      paused: window.simPaused,
+      app: document.querySelector('#phone .app.on')
+        ? document.querySelector('#phone .app.on').id
+        : '',
+    };
+  }
+  // Dragging into the last part shows the help page while the button is still held ...
   await seekPage.mouse.move(trackX(110), track.y);
   await seekPage.mouse.down();
-  await seekPage.mouse.move(trackX(track.total) + 40, track.y, { steps: 6 });
+  await seekPage.mouse.move(trackX(137), track.y, { steps: 6 });
   await settle(seekPage);
-  const atEnd = await seekPage.evaluate(simSnapshot);
+  const heldHelp = await seekPage.evaluate(helpState);
+  // ... and dragging back brings the run back
+  await seekPage.mouse.move(trackX(100), track.y, { steps: 6 });
+  await settle(seekPage);
+  const heldBack = await seekPage.evaluate(helpState);
+  const heldBackSnap = await seekPage.evaluate(simSnapshot);
   await seekPage.mouse.up();
   await settle(seekPage);
+  check(
+    heldHelp.help &&
+      !heldHelp.phone &&
+      heldHelp.bar &&
+      heldHelp.scene === heldHelp.wantScene &&
+      heldHelp.text > 0.99 &&
+      heldHelp.links > 0,
+    'dragging into the last part shows the help page, complete, and the bar stays (' +
+      heldHelp.scene +
+      ', text opacity ' +
+      heldHelp.text.toFixed(2) +
+      ', ' +
+      heldHelp.links +
+      ' links)'
+  );
+  check(
+    !heldBack.help &&
+      heldBack.phone &&
+      heldBack.pauseBtn &&
+      heldBack.app === 'aIm' &&
+      heldBack.links === 0 &&
+      heldBackSnap.phoneEntries > 0 &&
+      heldBackSnap.phoneHidden === 0 &&
+      heldBackSnap.stageHidden === 0,
+    'dragging back from the help page brings the run back, phone and stage filled (100 s)'
+  );
+  // Without a jump: the run reaches the help page, the bar fills up and stays
+  await seekPage.evaluate(function () {
+    window.simSeek(131);
+    window.togglePause();
+  });
+  await seekPage.waitForSelector('#aCta:not(.hidden)', { timeout: 5000 });
+  await seekPage.waitForFunction(
+    function () {
+      return (
+        window.sec >= window.CTL_TOTAL &&
+        parseFloat(getComputedStyle(document.getElementById('ctaMsg')).opacity) > 0.99
+      );
+    },
+    { timeout: 6000 }
+  );
+  const ended = await seekPage.evaluate(helpState);
+  await seekPage.waitForTimeout(300);
+  const endedLater = await seekPage.evaluate(helpState);
+  check(
+    ended.help &&
+      ended.bar &&
+      ended.pos === 100 &&
+      endedLater.sec === ended.sec &&
+      ended.text > 0.99 &&
+      ended.links === heldHelp.links &&
+      ended.logos === heldHelp.logos,
+    'at the end the bar is full and the clock stops; links and logo are there once (' +
+      ended.links +
+      ' links, ' +
+      ended.logos +
+      ' logo)'
+  );
+  // One click goes back into the run, no restart needed
+  await seekPage.mouse.click(trackX(70), track.y);
+  const backRunning = await seekPage.evaluate(helpState);
+  const backRan = await seekPage
+    .waitForFunction(
+      function () {
+        return window.sec > 72;
+      },
+      { timeout: 3000 }
+    )
+    .then(
+      function () {
+        return true;
+      },
+      function () {
+        return false;
+      }
+    );
   after = await seekPage.evaluate(simSnapshot);
   check(
-    atEnd.app === 'aFn' &&
-      !atEnd.help &&
-      atEnd.sec === track.total - 1 &&
-      !after.help &&
-      after.sec === track.total - 1,
-    'dragging to the very end stops one second before it (' +
-      after.sec +
-      ' s), the help page is not called up'
+    !backRunning.help &&
+      backRunning.phone &&
+      backRunning.pauseBtn &&
+      backRunning.app === 'aTk' &&
+      Math.abs(backRunning.sec - 70) < 0.6 &&
+      backRan &&
+      !after.paused &&
+      after.music === 'playing' &&
+      after.phoneNewest === after.stageNewest,
+    'from the help page one click goes back into the run (70 s, TikTok) and it runs on'
   );
-  const ending = await seekPage.evaluate(function () {
-    var cta = document.getElementById('aCta');
-    function up() {
-      return !cta.classList.contains('hidden');
-    }
-    var out = { total: window.CTL_TOTAL };
-    window.simAdvance(900 / window.SIM_SPEED); // 0.1 s before the end
-    out.justBefore = up();
-    window.simAdvance(200 / window.SIM_SPEED); // 0.1 s after the end
-    out.justAfter = up();
-    return out;
+  // Paused: a jump onto the help page still shows it complete, and the way back is paused
+  await seekPage.evaluate(function () {
+    window.togglePause();
+    window.simSeek(window.CTL_SCENES[6].at);
   });
+  await seekPage.waitForTimeout(80);
+  const pausedHelp = await seekPage.evaluate(helpState);
+  await seekPage.mouse.click(trackX(20), track.y);
+  const pausedBack = await seekPage.evaluate(helpState);
   check(
-    !ending.justBefore && ending.justAfter,
-    'the timeline ends exactly where the help page takes over (not yet at ' +
-      (ending.total - 0.1) +
-      ' s, there at ' +
-      (ending.total + 0.1) +
-      ' s)'
+    pausedHelp.help &&
+      pausedHelp.text > 0.99 &&
+      pausedHelp.scene === pausedHelp.wantScene &&
+      pausedBack.phone &&
+      pausedBack.paused &&
+      pausedBack.pauseBtn &&
+      Math.abs(pausedBack.sec - 20) < 0.6,
+    'paused: the help page is complete and reads "' +
+      pausedHelp.scene +
+      '", the way back stays paused with the pause button there'
   );
+  await seekPage.close();
+
+  console.log('E2E: help page - the bar does not move when the run ends');
+  for (const size of [
+    [1280, 720, '?beamer=1'],
+    [1024, 768, '?beamer=1'],
+    [1024, 768, ''],
+    [640, 700, ''],
+  ]) {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: size[0], height: size[1] },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto(
+      'http://127.0.0.1:' + server.port + '/' + (size[2] ? size[2] + '&' : '?') + 'testspeed=10'
+    );
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+    const boxes = await p.evaluate(function () {
+      function box(id) {
+        var r = document.getElementById(id).getBoundingClientRect();
+        return [r.left, r.top, r.width, r.height];
+      }
+      window.togglePause();
+      window.simSeek(120);
+      var before = { bar: box('ctlBar'), track: box('ctlTrack') };
+      window.simSeek(window.CTL_TOTAL);
+      window.stageSync();
+      var after = { bar: box('ctlBar'), track: box('ctlTrack') };
+      var worst = 0;
+      ['bar', 'track'].forEach(function (k) {
+        for (var i = 0; i < 4; i++) worst = Math.max(worst, Math.abs(before[k][i] - after[k][i]));
+      });
+      return { worst: worst, help: !document.getElementById('aCta').classList.contains('hidden') };
+    });
+    check(
+      boxes.help && boxes.worst < 0.5,
+      size[0] +
+        'x' +
+        size[1] +
+        (size[2] ? ' projector view' : ' phone view') +
+        ': bar and timeline stand exactly where they stood during the run (moved ' +
+        boxes.worst.toFixed(1) +
+        ' px)'
+    );
+    await ctx.close();
+  }
+
+  console.log('E2E: help page - bar, disclaimer and buttons do not overlap');
+  const helpSizes = [
+    [1280, 720],
+    [1280, 600],
+    [1024, 768],
+    [820, 1180],
+    [640, 700],
+    [560, 1210],
+    [393, 852],
+    [375, 667],
+  ];
+  for (const size of helpSizes) {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: size[0], height: size[1] },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000 });
+    await p.evaluate(function () {
+      window.simSeek(window.CTL_TOTAL);
+    });
+    await p.waitForTimeout(250);
+    const hits = await p.evaluate(function () {
+      function rect(sel) {
+        var el = document.querySelector(sel);
+        if (!el || getComputedStyle(el).display === 'none') return null;
+        var r = el.getBoundingClientRect();
+        return r.width && r.height ? r : null;
+      }
+      var names = [
+        '#ctaLogo',
+        '#ctaLinks',
+        '#ctaHelpline',
+        '#ctaMsg',
+        '.fin-actions',
+        '.disclaimer',
+        '#ctlBar',
+        '.impr-link-bar',
+      ];
+      var list = names
+        .map(function (n) {
+          return { name: n, r: rect(n) };
+        })
+        .filter(function (x) {
+          return x.r;
+        });
+      var out = [];
+      if (!rect('#ctlBar')) out.push('bar missing');
+      if (!rect('.disclaimer')) out.push('disclaimer missing');
+      for (var a = 0; a < list.length; a++) {
+        var c = list[a].r;
+        if (
+          c.top < -1 ||
+          c.bottom > window.innerHeight + 1 ||
+          c.left < -1 ||
+          c.right > window.innerWidth + 1
+        ) {
+          out.push(list[a].name + ' outside');
+        }
+        for (var b = a + 1; b < list.length; b++) {
+          var d = list[b].r;
+          if (
+            c.left < d.right &&
+            c.right > d.left &&
+            c.top < d.bottom - 0.5 &&
+            c.bottom - 0.5 > d.top
+          ) {
+            out.push(list[a].name + ' / ' + list[b].name);
+          }
+        }
+      }
+      return out;
+    });
+    check(
+      hits.length === 0,
+      size[0] +
+        'x' +
+        size[1] +
+        ': help page with the bar has no overlaps' +
+        (hits.length ? ' - ' + hits.join(', ') : '')
+    );
+    await ctx.close();
+  }
+
+  console.log('E2E: timeline - on a phone it only shows the progress');
   await seekPage.close();
 
   console.log('E2E: timeline - on a phone it only shows the progress');
@@ -1253,6 +1550,12 @@ function missingOnStage(keys) {
     [393, 852],
     [375, 667],
     [375, 553],
+    // In between the disclaimer wraps onto up to five lines
+    [530, 900],
+    [560, 1210],
+    [640, 700],
+    [701, 640],
+    [820, 1180],
   ];
   for (const size of startSizes) {
     const ctx = await browser.newContext({

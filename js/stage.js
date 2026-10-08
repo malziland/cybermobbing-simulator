@@ -122,6 +122,9 @@ function stageSync() {
   var changed = document.body.classList.contains('stage-live') !== live;
   document.body.classList.toggle('beamer', on);
   document.body.classList.toggle('sim-running', running);
+  // The help page at the end: the control bar stays on it (css/styles.css)
+  var cta = document.getElementById('aCta');
+  document.body.classList.toggle('sim-ended', !!cta && !cta.classList.contains('hidden'));
   document.body.classList.toggle('stage-live', live);
   var buttons = document.querySelectorAll('[data-view]');
   for (var i = 0; i < buttons.length; i++) {

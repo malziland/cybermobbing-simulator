@@ -64,13 +64,13 @@ QUnit.module(
       sec = 120;
       tick();
       var at120 = pos();
-      assert.ok(at120 > 85 && at120 < 95, 'after 120 s the timeline is not full yet: ' + at120);
+      assert.ok(at120 > 80 && at120 < 95, 'after 120 s the timeline is not full yet: ' + at120);
       sec = 130;
       tick();
       assert.ok(pos() > at120 && pos() < 100, 'ten seconds later it has moved on: ' + pos());
       sec = CTL_TOTAL - 0.1;
       tick();
-      assert.equal(pos(), 100, 'full when the help page takes over');
+      assert.equal(pos(), 100, 'full at the end of the timeline');
     });
 
     QUnit.test('tick() keeps counting until the run is over, then stops itself', function (assert) {
@@ -86,7 +86,7 @@ QUnit.module(
       setTimeout(function () {
         assert.ok(fired > 0, 'two seconds before the end the clock still runs (' + fired + ')');
         // A few seconds after the end it stops
-        sec = CTL_TOTAL + 5;
+        sec = CTL_TOTAL - 0.05;
         tick();
         var atStop = fired;
         setTimeout(function () {

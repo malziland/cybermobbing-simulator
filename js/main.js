@@ -95,7 +95,6 @@ function go() {
   var disc = document.querySelector('.disclaimer');
   if (disc) disc.classList.add('hidden');
   document.getElementById('pauseBtn').classList.remove('hidden');
-  document.getElementById('pauseBtn').textContent = t('ui.pause');
   document.getElementById('phone').classList.remove('hidden');
   mkPhoto(document.getElementById('igPh'));
   mkPhoto(document.getElementById('tkBg'));
@@ -227,6 +226,18 @@ document.addEventListener('DOMContentLoaded', function () {
   var footerShareBtn = document.getElementById('footerShareBtn');
   if (startShareBtn) startShareBtn.addEventListener('click', shareSimulation);
   if (footerShareBtn) footerShareBtn.addEventListener('click', shareSimulation);
+
+  // The disclaimer at the bottom wraps onto up to five lines in narrow windows.
+  // Start screen and help page keep exactly its measured height free
+  // (--disc-h in css/styles.css), so nothing slides underneath it.
+  var discEl = document.querySelector('.disclaimer');
+  function discRoom() {
+    var h = discEl ? discEl.offsetHeight : 0;
+    if (h > 0) document.documentElement.style.setProperty('--disc-h', h + 'px');
+  }
+  discRoom();
+  window.addEventListener('resize', discRoom);
+  if (discEl && typeof ResizeObserver !== 'undefined') new ResizeObserver(discRoom).observe(discEl);
 
   // Replay button
   var replayBtn = document.getElementById('footerReplayBtn');

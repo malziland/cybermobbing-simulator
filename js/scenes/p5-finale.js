@@ -121,3 +121,33 @@ function p6() {
     document.getElementById('ctaMsg').classList.add('show');
   }, 500);
 }
+
+/**
+ * Takes the help page back, so that a jump on the timeline can return into
+ * the run (simRestart() in controls.js). Counterpart of p6(): whatever p6()
+ * changes outside the phone screen has to be undone here.
+ */
+function p6Reset() {
+  var cta = document.getElementById('aCta');
+  if (cta) cta.classList.add('hidden');
+  var phone = document.getElementById('phone');
+  if (phone) phone.classList.remove('hidden');
+  var pauseBtn = document.getElementById('pauseBtn');
+  if (pauseBtn) pauseBtn.classList.remove('hidden');
+  var disc = document.querySelector('.disclaimer');
+  if (disc) disc.classList.add('hidden');
+
+  // p6() fills these two anew every time it runs
+  var logoEl = document.getElementById('ctaLogo');
+  if (logoEl) {
+    logoEl.textContent = '';
+    logoEl.classList.add('hidden');
+  }
+  var linksEl = document.getElementById('ctaLinks');
+  if (linksEl) linksEl.textContent = '';
+
+  ['ctaLogo', 'ctaLinks', 'ctaHelpline', 'ctaMsg'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('show');
+  });
+}
