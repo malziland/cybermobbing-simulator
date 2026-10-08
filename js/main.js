@@ -8,6 +8,7 @@
  * @requires helpers.js        - mkPhoto-internal helpers (setLayer), toast()
  * @requires timer.js          - sec, tmr, tick(), startClock()
  * @requires firebase-counter.js - incrementCounters() (optional, checked with typeof)
+ * @requires stage.js          - projector view: stageInit(), stageSet(), stageToggle(), stageUrl()
  * @requires scenes/p1-whatsapp.js - p1() scene entry
  */
 
@@ -119,7 +120,8 @@ function go() {
  * and shows a confirmation toast.
  */
 function shareSimulation() {
-  var url = window.location.href;
+  // Never pass on the projector switch: a shared link should open the phone view
+  var url = stageUrl(window.location.href, false);
   var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   if (isMobile && navigator.share) {
@@ -166,6 +168,7 @@ function shareSimulation() {
  *   - Share buttons -> shareSimulation()
  *   - Replay button -> page reload
  *   - Pause button + overlay -> togglePause()
+ *   - Projector view pickers (start screen, in-run) and B key -> stageSet() / stageToggle()
  *   - Impressum modal (open/close/backdrop/Escape)
  *   - Applies i18n translations to the initial DOM
  */
@@ -217,6 +220,32 @@ document.addEventListener('DOMContentLoaded', function () {
     replayBtn.addEventListener('click', function () {
       window.location.reload();
     });
+
+  // Projector view (ADR-0007): the two view pickers (start screen and in-run),
+  // the B key and the link suffix ?beamer=1. The choice is kept in the address
+  // bar only. Every picker button carries data-view="phone" or "beamer".
+  stageInit();
+  stageSet(stageFromUrl(window.location.search));
+  var viewLabels = { phone: t('ui.viewPhoneLong'), beamer: t('ui.viewBeamerLong') };
+  var viewGroups = document.querySelectorAll('.view-pick, .view-mini');
+  for (var g = 0; g < viewGroups.length; g++) {
+    viewGroups[g].setAttribute('aria-label', t('ui.viewLabel'));
+  }
+  var viewButtons = document.querySelectorAll('[data-view]');
+  for (var v = 0; v < viewButtons.length; v++) {
+    viewButtons[v].setAttribute('aria-label', viewLabels[viewButtons[v].getAttribute('data-view')]);
+    viewButtons[v].addEventListener('click', function () {
+      stageSet(this.getAttribute('data-view') === 'beamer');
+      stageRemember();
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'b' && e.key !== 'B') return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (impModal && impModal.classList.contains('show')) return;
+    stageToggle();
+    stageRemember();
+  });
 
   // Pause
   var pauseBtn = document.getElementById('pauseBtn');

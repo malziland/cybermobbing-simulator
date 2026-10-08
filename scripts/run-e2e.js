@@ -10,6 +10,12 @@
  *   4. First scene (WhatsApp) activates; pause/resume works via keyboard.
  *   5. Final CTA screen appears; axe-core scan of the CTA screen.
  *   6. CTA buttons are keyboard-reachable; share shows the toast.
+ *   7. Projector view (ADR-0007): choose it on the start screen via keyboard
+ *      (axe scan with it chosen), toggle with the B key and the in-run
+ *      button while the run continues, the phone stays beside the stage,
+ *      and after a full run every scene text must have appeared on it.
+ *   8. Projector view keeps its proportions in several window sizes and
+ *      zoom levels; nothing sticks out of the picture.
  *
  * Hermetic setup: js/config.js is replaced by js/config.example.js via route
  * interception, and all firebaseio/googleapis requests are blocked, so the
@@ -62,6 +68,141 @@ async function axeScan(page, includeSelector, label) {
   });
 }
 
+/** Placeholder config instead of the real one, no Firebase traffic. */
+async function makeHermetic(context) {
+  const exampleConfig = fs.readFileSync(path.join(ROOT, 'js', 'config.example.js'), 'utf8');
+  await context.route('**/js/config.js*', function (route) {
+    route.fulfill({ contentType: 'text/javascript; charset=utf-8', body: exampleConfig });
+  });
+  await context.route(
+    function (url) {
+      return /firebaseio\.com|googleapis\.com/.test(url.href);
+    },
+    function (route) {
+      route.abort();
+    }
+  );
+}
+
+/**
+ * What is actually on screen right now. In the projector view the phone
+ * stays visible at the left edge of the stage; `phoneBeside` says whether it
+ * sits completely inside the stage, left of the large content.
+ */
+function visibleView(page) {
+  return page.evaluate(function () {
+    var phone = document.getElementById('phone').getBoundingClientRect();
+    var frame = document.querySelector('.st-frame').getBoundingClientRect();
+    var stageShown = getComputedStyle(document.getElementById('stage')).display !== 'none';
+    var col = document.querySelector('#stage .st-scene.on .st-col');
+    var colLeft = col ? col.getBoundingClientRect().left : Infinity;
+    return {
+      stage: stageShown,
+      phone: getComputedStyle(document.getElementById('phone')).visibility === 'visible',
+      phoneBeside:
+        stageShown &&
+        phone.left >= frame.left - 1 &&
+        phone.top >= frame.top - 1 &&
+        phone.bottom <= frame.bottom + 1 &&
+        phone.right <= colLeft,
+      phoneCentered: Math.abs(phone.left + phone.width / 2 - window.innerWidth / 2) < 2,
+      beamerPressed: document.getElementById('runBeamerBtn').getAttribute('aria-pressed'),
+      phonePressed: document.getElementById('runPhoneBtn').getAttribute('aria-pressed'),
+    };
+  });
+}
+
+// Scene texts that must show up large in the projector view during a full run
+const STAGE_ITEM_KEYS = [
+  'wa.marco1',
+  'wa.sara1',
+  'wa.tim1',
+  'wa.leon1',
+  'wa.sara2',
+  'wa.marco2',
+  'ig.sara',
+  'ig.tim',
+  'ig.leon',
+  'ig.tom1',
+  'ig.marco',
+  'ig.lukas',
+  'ig.tom2',
+  'ig.hype',
+  'tk.lukas',
+  'tk.sara',
+  'tk.noah',
+  'tk.anon',
+  'tk.tom',
+  'tk.aggro',
+  'tk.marco',
+  'tk.troll',
+  'tk.stickerLabel',
+  'hs.n1',
+  'hs.n2',
+  'hs.n3',
+  'hs.n4',
+  'hs.n5',
+  'hs.n6',
+  'hs.n7',
+  'hs.n8',
+  'im.mama',
+  'im.tom',
+];
+const STAGE_NOTICE_KEYS = [
+  'wa.tomLeaves',
+  'wa.toastScreenshot',
+  'wa.toastEditing',
+  'wa.toastPosted',
+  'ig.toastScreenshot',
+  'ig.toastReaction',
+  'ig.toastTiktok',
+  'tk.toastReport',
+  'tk.toastVideos',
+];
+
+/** Records everything that ever appears on the stage (test side only). */
+function installStageRecorder() {
+  window.__seen = { items: {}, notices: {}, sticker: false, typingWa: false, typingIm: false };
+  new MutationObserver(function () {
+    var i;
+    var items = document.querySelectorAll('#stage .st-item');
+    for (i = 0; i < items.length; i++) window.__seen.items[items[i].textContent] = true;
+    var notices = document.querySelectorAll('#stNote, #stWaSys, #stTkRpt');
+    for (i = 0; i < notices.length; i++) window.__seen.notices[notices[i].textContent] = true;
+    if (document.querySelector('#stWaList .st-sticker img')) window.__seen.sticker = true;
+    if (document.querySelector('#stWaList .st-typing')) window.__seen.typingWa = true;
+    if (document.querySelector('#stImList .st-typing')) window.__seen.typingIm = true;
+  }).observe(document.getElementById('stage'), {
+    subtree: true,
+    childList: true,
+    characterData: true,
+  });
+}
+
+/** Returns the scene keys whose text never appeared on the stage. */
+function missingOnStage(keys) {
+  function plain(html) {
+    var d = document.createElement('div');
+    d.innerHTML = html;
+    return d.textContent;
+  }
+  var seenItems = Object.keys(window.__seen.items);
+  var seenNotices = Object.keys(window.__seen.notices);
+  function has(list, text) {
+    return list.some(function (s) {
+      return s.indexOf(text) !== -1;
+    });
+  }
+  return {
+    items: keys.items.filter(function (k) {
+      return !has(seenItems, plain(window.t(k)));
+    }),
+    notices: keys.notices.filter(function (k) {
+      return !has(seenNotices, plain(window.t(k)));
+    }),
+  };
+}
+
 (async function main() {
   const server = await createStaticServer(ROOT);
   const browser = await chromium.launch();
@@ -74,18 +215,7 @@ async function axeScan(page, includeSelector, label) {
   });
 
   // Hermetic: placeholder config instead of the real one, no Firebase traffic
-  const exampleConfig = fs.readFileSync(path.join(ROOT, 'js', 'config.example.js'), 'utf8');
-  await page.route('**/js/config.js*', function (route) {
-    route.fulfill({ contentType: 'text/javascript; charset=utf-8', body: exampleConfig });
-  });
-  await page.route(
-    function (url) {
-      return /firebaseio\.com|googleapis\.com/.test(url.href);
-    },
-    function (route) {
-      route.abort();
-    }
-  );
+  await makeHermetic(context);
 
   console.log('E2E: start screen');
   await page.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
@@ -164,6 +294,219 @@ async function axeScan(page, includeSelector, label) {
     'share shows confirmation toast'
   );
   check(await tabTo(page, 'footerReplayBtn', 5), 'replay button reachable via Tab');
+
+  // ---------- Projector view (ADR-0007) ----------
+  console.log('E2E: projector view - switch on the start screen via keyboard');
+  const stagePage = await context.newPage();
+  stagePage.on('pageerror', function (err) {
+    pageErrors.push(String(err));
+  });
+  await stagePage.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+  await stagePage.waitForSelector('#startBtn');
+  check(
+    await stagePage.evaluate(function () {
+      return (
+        !document.body.classList.contains('beamer') &&
+        getComputedStyle(document.getElementById('stage')).display === 'none'
+      );
+    }),
+    'phone view is the default, stage hidden'
+  );
+  check(await tabTo(stagePage, 'viewBeamerBtn', 10), 'projector option reachable via Tab');
+  await stagePage.keyboard.press('Enter');
+  check(
+    await stagePage.evaluate(function () {
+      return (
+        document.body.classList.contains('beamer') &&
+        document.getElementById('viewBeamerBtn').getAttribute('aria-pressed') === 'true' &&
+        document.getElementById('viewPhoneBtn').getAttribute('aria-pressed') === 'false' &&
+        /[?&]beamer=1(&|$)/.test(window.location.search)
+      );
+    }),
+    'Enter chooses the projector view and keeps it in the address bar'
+  );
+  check(
+    await stagePage.evaluate(function () {
+      var ok = true;
+      var buttons = document.querySelectorAll('[data-view]');
+      for (var i = 0; i < buttons.length; i++) {
+        if (!buttons[i].getAttribute('aria-label')) ok = false;
+      }
+      return ok && buttons.length === 4;
+    }),
+    'all four view buttons carry an accessible name'
+  );
+  await axeScan(stagePage, '#start', 'start screen with projector switch on');
+
+  console.log('E2E: projector view - run, toggle with B key and button');
+  await stagePage.evaluate(installStageRecorder);
+  check(await tabTo(stagePage, 'startBtn', 10), 'start button reachable via Tab');
+  await stagePage.keyboard.press('Enter');
+  // the phone is invisible in the projector view: wait for the scene class, not visibility
+  await stagePage.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+  let view = await visibleView(stagePage);
+  check(view.stage && view.phone && view.phoneBeside, 'stage is shown with the phone beside it');
+
+  const timersBefore = await stagePage.evaluate(function () {
+    return window.simTimers.length;
+  });
+  await stagePage.keyboard.press('b');
+  view = await visibleView(stagePage);
+  check(
+    !view.stage && view.phone && view.phoneCentered && view.phonePressed === 'true',
+    'B key switches to the phone view (phone back in the centre)'
+  );
+  check(
+    await stagePage.evaluate(function (n) {
+      return window.simTimers.length === n && window.simPaused === false;
+    }, timersBefore),
+    'switching does not touch the running timers'
+  );
+  check(await tabTo(stagePage, 'runBeamerBtn', 10), 'in-run projector button reachable via Tab');
+  await stagePage.keyboard.press('Enter');
+  view = await visibleView(stagePage);
+  check(
+    view.stage && view.phoneBeside && view.beamerPressed === 'true',
+    'button switches back to the stage'
+  );
+
+  console.log('E2E: projector view - full run, every scene text appears on the stage');
+  await stagePage.waitForSelector('#aCta:not(.hidden)', { timeout: 40000 });
+  const missing = await stagePage.evaluate(missingOnStage, {
+    items: STAGE_ITEM_KEYS,
+    notices: STAGE_NOTICE_KEYS,
+  });
+  check(
+    missing.items.length === 0,
+    'all ' +
+      STAGE_ITEM_KEYS.length +
+      ' messages appeared on the stage' +
+      (missing.items.length ? ' - missing: ' + missing.items.join(', ') : '')
+  );
+  check(
+    missing.notices.length === 0,
+    'all ' +
+      STAGE_NOTICE_KEYS.length +
+      ' notices appeared on the stage' +
+      (missing.notices.length ? ' - missing: ' + missing.notices.join(', ') : '')
+  );
+  const extras = await stagePage.evaluate(function () {
+    return {
+      sticker: window.__seen.sticker,
+      typingWa: window.__seen.typingWa,
+      typingIm: window.__seen.typingIm,
+      photoLayers: document.querySelectorAll('#stTkPh .e3.on').length,
+      finale: document.querySelectorAll('#stFn .st-fl.show').length,
+      likes: parseInt(document.getElementById('stIgLk').textContent, 10),
+      tkCounters: ['stTkLk', 'stTkCm', 'stTkSh'].every(function (id) {
+        return document.getElementById(id).textContent !== '0';
+      }),
+      badge: document.getElementById('stXW').textContent !== '23',
+      clock: /^\d\d:\d\d$/.test(document.getElementById('stHsClock').textContent),
+    };
+  });
+  check(extras.sticker, 'WhatsApp sticker appeared on the stage');
+  check(extras.typingWa && extras.typingIm, 'typing indicators appeared (WhatsApp and Messages)');
+  check(extras.photoLayers === 5, 'stage photo carries all scribble layers at the end');
+  check(extras.finale === 5, 'all five finale lines were revealed on the stage');
+  check(extras.likes > 100 && extras.tkCounters && extras.badge, 'counters ran along on the stage');
+  check(extras.clock, 'homescreen clock mirrored');
+  check(
+    await stagePage.evaluate(function () {
+      return (
+        getComputedStyle(document.getElementById('stage')).display === 'none' &&
+        !document.getElementById('aCta').classList.contains('hidden')
+      );
+    }),
+    'help screen replaces the stage at the end'
+  );
+  await stagePage.close();
+
+  console.log('E2E: projector view - same proportions in every window size and zoom');
+  // [width, height, deviceScaleFactor]: classic 4:3, 16:10, Full HD, 4K,
+  // and Full HD at browser zoom 200% / 50%
+  const sizes = [
+    [1024, 768, 1],
+    [1280, 800, 1],
+    [1920, 1080, 1],
+    [3840, 2160, 1],
+    [960, 540, 2],
+    [3840, 2160, 0.5],
+  ];
+  for (const size of sizes) {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: size[0], height: size[1] },
+      deviceScaleFactor: size[2],
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10&beamer=1');
+    await p.click('#startBtn');
+    await p.waitForSelector('#stWaList .st-item', { timeout: 5000 });
+    await p.waitForTimeout(500); // let the entry animation finish
+    const m = await p.evaluate(function () {
+      var frame = document.querySelector('.st-frame').getBoundingClientRect();
+      var text = document.querySelector('#stWaList .st-text');
+      var inside = true;
+      var els = document.querySelectorAll(
+        '#stage .st-scene.on .st-item:not(.out), #stage .st-scene.on .st-photo, #stage .st-scene.on .st-head'
+      );
+      for (var i = 0; i < els.length; i++) {
+        var r = els[i].getBoundingClientRect();
+        if (
+          r.left < frame.left - 1 ||
+          r.right > frame.right + 1 ||
+          r.top < frame.top - 1 ||
+          r.bottom > frame.bottom + 1
+        ) {
+          inside = false;
+        }
+      }
+      var phone = document.getElementById('phone').getBoundingClientRect();
+      return {
+        phoneRatio: phone.height / frame.width,
+        phoneInside:
+          phone.left >= frame.left - 1 &&
+          phone.top >= frame.top - 1 &&
+          phone.right <= frame.right + 1 &&
+          phone.bottom <= frame.bottom + 1,
+        ratio: parseFloat(getComputedStyle(text).fontSize) / frame.width,
+        expectedWidth: Math.min(window.innerWidth, (window.innerHeight * 16) / 9),
+        width: frame.width,
+        frameInWindow:
+          frame.left >= -1 &&
+          frame.top >= -1 &&
+          frame.right <= window.innerWidth + 1 &&
+          frame.bottom <= window.innerHeight + 1,
+        inside: inside,
+        scrollbars:
+          document.documentElement.scrollWidth > window.innerWidth ||
+          document.documentElement.scrollHeight > window.innerHeight,
+      };
+    });
+    const label = size[0] + 'x' + size[1] + ' @' + size[2];
+    check(
+      Math.abs(m.ratio - 0.035) < 0.00035,
+      label +
+        ': message size is 3.5% of the stage width (measured ' +
+        (m.ratio * 100).toFixed(3) +
+        '%)'
+    );
+    check(
+      Math.abs(m.width - m.expectedWidth) <= 1 && m.frameInWindow,
+      label + ': stage fills the window as a 16:9 area'
+    );
+    check(m.inside && !m.scrollbars, label + ': nothing sticks out, no scrollbars');
+    check(
+      Math.abs(m.phoneRatio - 0.49) < 0.005 && m.phoneInside,
+      label + ': phone beside the stage is 49% of the stage width high and fully visible'
+    );
+    await ctx.close();
+  }
 
   await browser.close();
   server.close();

@@ -86,6 +86,18 @@
   <h1 data-i18n-html="ui.titleHtml">Wie Cybermobbing<br><em>viral geht</em></h1>
   <p class="sub1" data-i18n="ui.subtitle">120-Sekunden-Simulation</p>
   <button id="startBtn"><span aria-hidden="true">&#9654;&#xFE0E;</span> <span data-i18n="ui.start">Simulation starten</span></button>
+  <!-- View picker: two miniature previews instead of one more pill button (ADR-0007) -->
+  <div class="view-pick" role="group" aria-label="Ansicht">
+    <button type="button" class="view-opt" id="viewPhoneBtn" data-view="phone" aria-pressed="true">
+      <span class="view-ico view-ico-phone" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="view-name" data-i18n="ui.viewPhone">Handy</span>
+    </button>
+    <button type="button" class="view-opt" id="viewBeamerBtn" data-view="beamer" aria-pressed="false">
+      <span class="view-ico view-ico-beamer" aria-hidden="true"><em></em><b></b><i></i><i></i></span>
+      <span class="view-name" data-i18n="ui.viewBeamer">Beamer</span>
+    </button>
+  </div>
+  <p class="beamer-hint" data-i18n="ui.beamerHint">Beamer: f&uuml;r gro&szlig;e R&auml;ume &middot; Taste B schaltet um</p>
   <div class="start-footer">
     <button class="start-share" id="startShareBtn">
       <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -171,6 +183,10 @@
 
 <!-- PAUSE -->
 <button id="pauseBtn" class="pause-btn hidden">II</button>
+<div class="view-mini" role="group" aria-label="Ansicht">
+  <button type="button" class="view-mini-opt" id="runPhoneBtn" data-view="phone" aria-pressed="true"><span class="view-ico view-ico-phone" aria-hidden="true"><i></i><i></i><i></i></span></button>
+  <button type="button" class="view-mini-opt" id="runBeamerBtn" data-view="beamer" aria-pressed="false"><span class="view-ico view-ico-beamer" aria-hidden="true"><em></em><b></b><i></i><i></i></span></button>
+</div>
 <div id="pauseOverlay" class="pause-overlay hidden">
   <div class="pause-text" data-i18n="ui.paused">Pausiert &mdash; tippe um fortzufahren</div>
 </div>
@@ -311,6 +327,101 @@
   </div>
 </div>
 
+<!-- PROJECTOR VIEW: large mirror of the phone scenes, filled by js/stage.js (ADR-0007).
+     The phone itself stays visible at the left edge; the stage keeps that strip free. -->
+<div class="stage" id="stage">
+  <div class="st-frame">
+
+    <!-- WHATSAPP -->
+    <div class="st-scene st-wa" id="stWa" data-app="aWa">
+      <div class="st-head">
+        <div class="st-av st-av-wa">3B</div>
+        <div class="st-title" data-i18n="wa.groupName">Klasse 3B &#127979;</div>
+        <div class="st-sub" data-i18n="wa.groupMembers">Marco, Sara, Tim, Tom +19</div>
+      </div>
+      <div class="st-media" id="stWaMedia"><div class="st-photo st-photo-wa"><div id="stWaPh"></div></div></div>
+      <div class="st-col">
+        <div class="st-list" id="stWaList"></div>
+        <div class="st-sys" id="stWaSys"></div>
+      </div>
+    </div>
+
+    <!-- INSTAGRAM -->
+    <div class="st-scene st-ig" id="stIg" data-app="aIg">
+      <div class="st-head">
+        <div class="st-av st-av-ig"><i></i></div>
+        <div class="st-title">sara.xoxo</div>
+        <div class="st-likes"><span class="st-heart" id="stIgHeart" aria-hidden="true">&#9829;</span><span id="stIgLk" data-i18n="ig.likesZero">0 &bdquo;Gef&auml;llt mir&ldquo;-Angaben</span></div>
+      </div>
+      <div class="st-media on">
+        <div class="st-photo st-photo-ig"><div id="stIgPh"></div></div>
+        <div class="st-meta"><div id="stIgVw"></div><div id="stIgCc"></div></div>
+      </div>
+      <div class="st-col"><div class="st-list" id="stIgList"></div></div>
+    </div>
+
+    <!-- TIKTOK -->
+    <div class="st-scene st-tk" id="stTk" data-app="aTk">
+      <div class="st-head">
+        <div class="st-title">@lukas.der.echte</div>
+        <div class="st-sub" data-i18n-html="tk.botDesc">I can't &#128128;&#128128; <span class="tag">#school</span> <span class="tag">#exposed</span> <span class="tag">#fy</span></div>
+      </div>
+      <div class="st-media on">
+        <div class="st-tk-label" data-i18n="tk.label">Reaktionsvideo &middot; @marco_2012</div>
+        <div class="st-photo st-photo-tk"><div id="stTkPh"></div></div>
+        <div class="st-tk-side">
+          <div class="st-cnt"><svg aria-hidden="true" viewBox="0 0 24 24" fill="#fff"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span id="stTkLk">0</span></div>
+          <div class="st-cnt"><svg aria-hidden="true" viewBox="0 0 24 24" fill="#fff"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span id="stTkCm">0</span></div>
+          <div class="st-cnt"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="stTkSh">0</span></div>
+        </div>
+      </div>
+      <div class="st-col">
+        <div class="st-list" id="stTkList"></div>
+        <div class="st-sys" id="stTkRpt"></div>
+      </div>
+    </div>
+
+    <!-- HOMESCREEN -->
+    <div class="st-scene st-hs" id="stHs" data-app="aHs">
+      <div class="st-hs-top">
+        <div class="st-hs-time"><div class="st-clock" id="stHsClock"></div><div class="st-date" id="stHsDate"></div></div>
+        <div class="st-dock">
+          <div class="st-app"><img src="assets/icons/whatsapp.png" alt=""><div class="st-bdg" id="stXW">23</div><div class="st-app-nm">WhatsApp</div></div>
+          <div class="st-app"><img src="assets/icons/instagram.png" alt=""><div class="st-bdg" id="stXI">186</div><div class="st-app-nm">Instagram</div></div>
+          <div class="st-app"><img src="assets/icons/tiktok.png" alt=""><div class="st-bdg" id="stXT">4.2k</div><div class="st-app-nm">TikTok</div></div>
+          <div class="st-app"><img src="assets/icons/messages.png" alt=""><div class="st-bdg" id="stXN">47</div><div class="st-app-nm" data-i18n="ui.messages">Nachrichten</div></div>
+          <div class="st-app"><img src="assets/icons/snapchat.png" alt=""><div class="st-bdg" id="stXS">12</div><div class="st-app-nm">Snapchat</div></div>
+        </div>
+      </div>
+      <div class="st-col st-col-full"><div class="st-list" id="stHsList"></div></div>
+    </div>
+
+    <!-- MESSAGES (Tom -> Mama) -->
+    <div class="st-scene st-im" id="stIm" data-app="aIm">
+      <div class="st-head">
+        <div class="st-title" data-i18n="im.contactName">Mama &#10084;&#65039;</div>
+        <div class="st-sub" data-i18n="im.label">iMessage</div>
+      </div>
+      <div class="st-col st-col-full"><div class="st-list" id="stImList"></div></div>
+    </div>
+
+    <!-- FINAL: dramatic text -->
+    <div class="st-scene st-fn" id="stFn" data-app="aFn">
+      <div class="st-fl" id="stFA" data-i18n="fin.line1">Das waren 120 Sekunden.</div>
+      <div class="st-fn-gap"></div>
+      <div class="st-fl" id="stFB" data-i18n="fin.line2">F&uuml;r Tom geht das seit 3 Wochen.</div>
+      <div class="st-fl" id="stFC" data-i18n="fin.line3">Jeden Tag.</div>
+      <div class="st-fl" id="stFC2" data-i18n="fin.line4">Auch nachts.</div>
+      <div class="st-fn-gap"></div>
+      <div class="st-fl" id="stFE" data-i18n-html="fin.line5">Alle haben es gesehen<br>und morgen in der Schule<br>geht es weiter.</div>
+    </div>
+
+    <!-- Notices ("... hat einen Screenshot gemacht") get their own row -->
+    <div class="st-note" id="stNote"></div>
+
+  </div>
+</div>
+
 <!-- CTA: fullscreen call to action (outside phone frame) -->
 <!-- Logo, slogan and link are loaded from helplineConfig in config.js -->
 <div class="cta-screen hidden" id="aCta">
@@ -355,6 +466,7 @@
 <script src="js/scenes/p4-homescreen.js?v=1784223914"></script>
 <script src="js/scenes/p4b-messages.js?v=1784223914"></script>
 <script src="js/scenes/p5-finale.js?v=1784223914"></script>
+<script src="js/stage.js?v=1784223914"></script>
 <script src="js/config.js?v=1784223914"></script>
 <script src="js/firebase-counter.js?v=1784223914"></script>
 <script src="js/main.js?v=1784223914"></script>

@@ -37,6 +37,11 @@ bash setup.sh          # lädt App-Icons (einmalig, nicht im Repo)
 - Zeitsteuerung der Szenen ausschließlich über `simTimeout()` (audio.js),
   nie natives `setTimeout` — sonst bricht die Pause-Funktion.
 - `?testspeed=N` (1–60) beschleunigt die Simulation für Tests; Standard 1.
+- Beamer-Ansicht (ADR-0007): Das Handy bleibt die einzige Quelle. `js/stage.js`
+  liest nur mit; Szenen rufen die Beamer-Ansicht nie direkt auf. Neue
+  Szeneninhalte brauchen einen Eintrag in `js/stage.js` und in der Schlüsselliste
+  des Ablauftests (`scripts/run-e2e.js`). Maße der Beamer-Ansicht nur in der
+  Einheit `--u`, nie in festen Pixeln.
 
 ## Wo was steht
 

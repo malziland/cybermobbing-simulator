@@ -18,10 +18,26 @@ Konzipiert fuer den Einsatz in Schulworkshops: pausierbar, diskutierbar, wirkung
 
 - 5 realistische App-Szenen (WhatsApp, Instagram, TikTok, Homescreen, iMessage)
 - Pausierbar fuer Workshop-Diskussionen
+- Beamer-Ansicht fuer grosse Raeume: Handy, Bild und Nachrichten nebeneinander in grosser Schrift, jederzeit umschaltbar
 - View-Counter (Firebase Realtime Database)
 - Teilen-Button
 - Mehrsprachig (i18n: Deutsch + Englisch)
 - Kein Build-Step noetig
+
+## Beamer-Ansicht
+
+Fuer Beamer und grosse Raeume gibt es eine zweite Darstellung desselben Ablaufs:
+links das Handy, in der Mitte das Bild der Szene, rechts die jeweils neuesten
+Nachrichten in grosser Schrift. Hintergrund und Abwaegungen stehen in
+`docs/adr/ADR-0007`.
+
+- **Einschalten:** am Startbildschirm die Kachel „Beamer", der Link-Zusatz
+  `?beamer=1`, oder waehrend des Laufs die Taste B bzw. die zwei Symbole unten
+  rechts.
+- **Umschalten ohne Sprung:** Beide Ansichten zeigen denselben Lauf.
+- **Vollbild verwenden:** Die Ansicht passt sich jedem Fenster an (Aufloesung
+  und Browser-Zoom aendern die Proportionen nicht), ein kleines Fenster ergibt
+  aber ein kleines Bild.
 
 ## Live Demo
 
@@ -44,6 +60,7 @@ js/
   audio.js             — Sound-Engine + pausierbares Timer-System
   helpers.js           — Avatar-System + UI-Helfer
   timer.js             — Fortschrittsbalken + Uhr
+  stage.js             — Beamer-Ansicht (liest im Handy mit, zeigt gross an)
   config.js            — Firebase-Konfiguration (nicht im Repo)
   firebase-counter.js  — View-Counter + Tageslimit
   main.js              — Entry Point + Share
