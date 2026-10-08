@@ -6,9 +6,12 @@
  * @requires audio.js   - simTimeout()
  * @requires helpers.js  - sw()
  * @requires i18n.js     - text content is in the HTML, not injected here
+ *
+ * When each scene starts is listed once, in CTL_SCENES (js/controls.js); the
+ * E2E run checks that list against the timers of the scenes.
  */
 
-// ===== P5: DRAMATIC TEXT (112-130s) =====
+// ===== P5: DRAMATIC TEXT =====
 
 /**
  * Runs the dramatic text sequence. Each statement fades in after a deliberate

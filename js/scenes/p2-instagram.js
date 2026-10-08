@@ -1,6 +1,6 @@
 /**
  * @file p2-instagram.js
- * @description Scene 2: Instagram post with comments (28-56s).
+ * @description Scene 2: Instagram post with comments.
  *   The edited photo is posted on Instagram. A like counter escalates rapidly
  *   via a fast interval, comments from multiple characters pile on, and Tom
  *   makes two desperate attempts to defend himself. Ends with a screenshot

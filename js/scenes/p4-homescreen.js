@@ -1,6 +1,6 @@
 /**
  * @file p4-homescreen.js
- * @description Scene 4: Phone homescreen notification flood (78-93s).
+ * @description Scene 4: Phone homescreen notification flood.
  *   Shows Tom's phone from his perspective: notification badges on all apps
  *   escalate rapidly, and push notifications stack up from every platform.
  *   The overwhelming volume of notifications visualizes how inescapable
@@ -10,7 +10,7 @@
  * @requires i18n.js     - t() for notification text
  */
 
-// ===== P4: HOMESCREEN (78-93s) =====
+// ===== P4: HOMESCREEN =====
 
 /**
  * Runs the homescreen notification flood scene. Two intervals run in parallel:

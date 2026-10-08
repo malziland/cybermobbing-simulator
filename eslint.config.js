@@ -38,7 +38,6 @@ const appGlobals = {
   typStart: 'writable',
   typStop: 'writable',
   bgMusic: 'writable',
-  startMusic: 'writable',
   simPaused: 'writable',
   simTimers: 'writable',
   simTimerIdCounter: 'writable',

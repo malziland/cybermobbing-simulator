@@ -1,15 +1,15 @@
 /**
  * @file p1-whatsapp.js
- * @description Scene 1: WhatsApp group chat (0-28s).
+ * @description Scene 1: WhatsApp group chat.
  *   The group mocks Tom's photo. Marco posts the image, others pile on,
- *   Leon screenshots it, and Tom silently leaves the group. The photo
+ *   Sara screenshots it, and Tom silently leaves the group. The photo
  *   is then edited (Layer 2) and forwarded to Instagram.
  * @requires audio.js   - simTimeout(), sndWa(), sndShutter(), flash()
  * @requires helpers.js  - waType(), mkPhoto(), setLayer(), sw(), toast()
  * @requires i18n.js     - t() for all message text
  */
 
-// ===== P1: WHATSAPP (0-28s) =====
+// ===== P1: WHATSAPP =====
 // Character speech patterns:
 // Marco: aggressiv, alles klein, "alter/ey", kurz
 // Sara: CAPS-mix, viele Emojis, dehnt Buchstaben, Ausrufezeichen

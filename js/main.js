@@ -80,8 +80,8 @@ function mkPhoto(el, h) {
  * Simulation initialization sequence. Called when the user clicks the start button.
  * Resets pause state and timers, increments the Firebase view counter (if available),
  * hides the start screen, shows the phone UI, builds the photo overlays for
- * Instagram and TikTok scenes, then after a brief delay starts the progress bar,
- * phone clock, and the first scene (p1 WhatsApp).
+ * Instagram and TikTok scenes, then after a brief delay starts the clock,
+ * the phone clock, and the first scene (p1 WhatsApp).
  */
 var simStarted = false;
 function go() {

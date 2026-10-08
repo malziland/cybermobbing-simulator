@@ -250,20 +250,8 @@ function typStop() {
 
 // ========== BACKGROUND MUSIC ==========
 
-/** @type {HTMLAudioElement|null} Reference to the <audio id="bgm"> element */
-var bgMusic;
-
-/**
- * Starts the background music track at the current volume (40% at full
- * master volume). Silently catches play() rejections (e.g. if autoplay is blocked).
- */
-function startMusic() {
-  bgMusic = document.getElementById('bgm');
-  if (bgMusic) {
-    applyVolume();
-    bgMusic.play().catch(function () {});
-  }
-}
+/** @type {HTMLAudioElement|null} The <audio id="bgm"> element; main.js sets it once the page has loaded */
+var bgMusic = null;
 
 // ========== PAUSABLE TIMEOUT SYSTEM ==========
 //
@@ -285,8 +273,8 @@ var simSeeking = false;
 
 /**
  * @type {number} Test-only time-lapse factor, set via URL parameter
- * `?testspeed=N` (integer 1-60). All simTimeout delays and the progress-bar
- * tick interval are divided by it, so N=10 runs the 120s simulation in ~12s.
+ * `?testspeed=N` (integer 1-60). All simTimeout delays and the clock tick
+ * interval are divided by it, so N=10 runs the simulation ten times as fast.
  * Defaults to 1 (real time); invalid or out-of-range values fall back to 1,
  * so production behavior is unchanged unless the parameter is given explicitly.
  * Used by the E2E tests (scripts/run-e2e.js), see docs/adr/ADR-0006.
@@ -398,7 +386,7 @@ function simAdvance(ms) {
  *   1. simTimers  -- clear native timeouts, snapshot remaining time
  *   2. bgMusic    -- pause/resume the <audio> element
  *   3. clockInt   -- stop/restart the phone clock display interval
- *   4. tmr        -- stop/restart the progress bar tick interval
+ *   4. tmr        -- stop/restart the clock tick interval
  *   5. UI         -- update the control bar: symbol, label, scene name (ctlUpdate)
  *
  * On resume, clockStart is recalculated so the phone clock picks up where

@@ -59,10 +59,10 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
 .start-credit a:hover{color:#fe2c55}
 
 /* ===== CONTROL BAR (ADR-0008) =====
-   One bar for everything that used to be five separate pieces: pause, time,
-   timeline with scene marks, sound, view picker, legal notice. Same order,
-   same symbols and same sizes in phone view and projector view; red marks
-   what is chosen or active and nothing else. Filled by js/controls.js. */
+   One bar: pause, name of the scene, timeline with scene marks, sound, view
+   picker, legal notice. Same order, same symbols and same sizes in phone view
+   and projector view; red marks what is chosen or active and nothing else.
+   It shows no times. Filled by js/controls.js. */
 .ctl-bar{
   display:none;position:fixed;left:var(--bar-side);right:var(--bar-side);bottom:var(--bar-bottom);height:var(--bar-h);z-index:8500;
   align-items:center;gap:calc(var(--bar-h)*.3);padding:0 calc(var(--bar-h)*.34) 0 calc(var(--bar-h)*.16);
@@ -299,11 +299,6 @@ body.sim-running .toast{bottom:calc(var(--bar-bottom) + var(--bar-h) + 10px)}
 @keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* ===== FINALE ELEMENTS ===== */
-
-.fin-msg{
-  font-size:13px;color:#8e8e8e;text-align:center;
-  line-height:1.5;font-weight:400;
-}
 
 /* CTA screen: fullscreen call to action (outside phone frame) */
 .cta-screen{
@@ -789,7 +784,6 @@ body.stage-live,body.beamer.sim-ended{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(v
   .start-share{padding:4px 10px!important;font-size:10px!important}
   .start-views{margin-bottom:15px}
   .disclaimer{font-size:.55rem;padding:2px 16px}
-  .fin-msg{font-size:11px}
   .footer-share{padding:8px 14px;font-size:11px}
   .footer-replay{padding:8px 14px;font-size:11px}
   .hs-notifs{top:180px;bottom:100px}

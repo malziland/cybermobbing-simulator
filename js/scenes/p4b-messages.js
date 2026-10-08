@@ -1,6 +1,6 @@
 /**
  * @file p4b-messages.js
- * @description Scene 4b: iMessage conversation -- Tom writes to his mother (93-112s).
+ * @description Scene 4b: iMessage conversation -- Tom writes to his mother.
  *   The emotional core of the simulation. Tom's mother sends a normal "Gute Nacht"
  *   message. Tom tries to respond but hesitates: the typing indicator appears,
  *   disappears (he deletes what he wrote), reappears (he tries again), and finally
@@ -12,7 +12,7 @@
  * @requires i18n.js     - t() for message text
  */
 
-// ===== P4b: MESSAGES - Tom writes to Mama (93-112s) =====
+// ===== P4b: MESSAGES - Tom writes to Mama =====
 
 /**
  * Runs the iMessage scene showing Tom's emotional hesitation.

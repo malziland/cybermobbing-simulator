@@ -2,7 +2,7 @@
  * @file timer.js
  * @description Simulation clock and simulated phone clock display.
  *   Counts the elapsed simulation seconds (the control bar in controls.js
- *   shows them as time and timeline) and drives the phone status-bar clock,
+ *   shows them as its timeline) and drives the phone status-bar clock,
  *   which uses the user's real local time.
  *   Both are paused/resumed via togglePause() in audio.js.
  * @requires audio.js - simPaused flag, togglePause() manages tmr and clockInt

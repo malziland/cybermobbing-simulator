@@ -87,7 +87,7 @@ var TRANSLATIONS = {
     'limit.availableIn': 'Wieder verf\u00FCgbar in:',
     'limit.note': 'Cybermobbing h\u00F6rt leider nicht auf,<br>nur weil man wegschaut.',
 
-    // ===== WHATSAPP (P1: 0-28s) =====
+    // ===== WHATSAPP (P1) =====
     'wa.groupName': 'Klasse 3B \uD83C\uDFEB',
     'wa.groupMembers': 'Marco, Sara, Tim, Tom +19',
     'wa.inputPlaceholder': 'Nachricht',
@@ -103,7 +103,7 @@ var TRANSLATIONS = {
     'wa.toastEditing': '\u270F\uFE0F Sara bearbeitet das Foto...',
     'wa.toastPosted': '\uD83D\uDCE4 Sara hat es auf Instagram gepostet',
 
-    // ===== INSTAGRAM (P2: 28-56s) =====
+    // ===== INSTAGRAM (P2) =====
     'ig.likesZero': '0 \u201EGef\u00E4llt mir\u201C-Angaben',
     'ig.likesCount': '{count} \u201EGef\u00E4llt mir\u201C-Angaben',
     'ig.commentsCount': 'Alle {count} Kommentare ansehen',
@@ -121,7 +121,7 @@ var TRANSLATIONS = {
     'ig.toastReaction': '\uD83C\uDFAC lukas.der.echte macht ein Reaktionsvideo...',
     'ig.toastTiktok': '\uD83D\uDCE4 Neues TikTok-Video mit deinem Foto ver\u00F6ffentlicht',
 
-    // ===== TIKTOK (P3: 56-78s) =====
+    // ===== TIKTOK (P3) =====
     'tk.label': 'Reaktionsvideo \u00B7 @marco_2012',
     'tk.commentsHeader': 'Kommentare',
     'tk.navStart': 'Start',
@@ -142,7 +142,7 @@ var TRANSLATIONS = {
     'tk.toastReport': '\u23F3 Deine Meldung wird gepr\u00FCft',
     'tk.toastVideos': '\uD83D\uDCF8 3 weitere Videos mit deinem Foto erstellt',
 
-    // ===== HOMESCREEN (P4: 78-93s) =====
+    // ===== HOMESCREEN (P4) =====
     'hs.n1': '<strong>Marco</strong>: \u201Ealter wenn ich den morgen seh \uD83D\uDE02\u201C',
     'hs.n2': '<strong>+38 Likes</strong> auf das Foto von dir',
     'hs.n3': '<strong>hype.page</strong> hat deinen vollen Namen gepostet',
@@ -153,14 +153,14 @@ var TRANSLATIONS = {
     'hs.n7': '<strong>Neuer Kommentar</strong>: \u201El\u00F6sch dich einfach \uD83D\uDC80\u201C',
     'hs.n8': '<strong>aggro.44</strong> hat ein Meme aus deinem Foto gemacht',
 
-    // ===== MESSAGES (P4b: 93-112s) =====
+    // ===== MESSAGES (P4b) =====
     'im.mama': 'Tom, Schatz? Alles ok bei dir? \u2764\uFE0F',
     'im.tom': 'Mama, ich halt das nicht mehr aus.',
     'im.contactName': 'Mama \u2764\uFE0F',
     'im.label': 'iMessage',
     'im.back': 'Zur\u00FCck',
 
-    // ===== FINALE (P5: 112-120s) =====
+    // ===== FINALE (P5) =====
     'fin.line1': 'Das waren 120 Sekunden.',
     'fin.line2': 'F\u00FCr Tom geht das seit 3 Wochen.',
     'fin.line3': 'Jeden Tag.',

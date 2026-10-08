@@ -103,7 +103,7 @@ function ctlSnap(t) {
 /**
  * Jumping is offered on wide windows only. Up to and including 500 CSS
  * pixels of width (the same limit the phone styles use) the timeline just
- * shows the progress, so the 120 seconds cannot be skipped on a phone.
+ * shows the progress, so the run cannot be skipped on a phone.
  * @returns {boolean} True if the timeline may be used to jump
  */
 function ctlSeekAllowed() {

@@ -389,6 +389,27 @@ function missingOnStage(keys) {
     }),
     'impressum closes on Escape'
   );
+  /** Presses Tab `count` times from `startId` and names every stop. */
+  async function tabOrder(p, startId, count) {
+    await p.focus('#' + startId);
+    const stops = [startId];
+    for (let i = 0; i < count; i++) {
+      await p.keyboard.press('Tab');
+      stops.push(
+        await p.evaluate(function () {
+          var el = document.activeElement;
+          return el.id || el.tagName.toLowerCase() + ':' + el.textContent.trim();
+        })
+      );
+    }
+    return stops;
+  }
+  const startStops = await tabOrder(page, 'startBtn', 5);
+  check(
+    startStops.join(' | ') ===
+      'startBtn | viewPhoneBtn | viewBeamerBtn | startShareBtn | a:Open-Source | impLinkGlobal',
+    'Tab runs through the start screen in reading order (' + startStops.join(', ') + ')'
+  );
 
   console.log('E2E: start simulation via keyboard');
   check(await tabTo(page, 'startBtn', 10), 'start button reachable via Tab');
@@ -465,6 +486,13 @@ function missingOnStage(keys) {
       );
     }),
     'phone view: control bar with sound and view picker is shown, the old controls are gone'
+  );
+
+  const barStops = await tabOrder(page, 'pauseBtn', 6);
+  check(
+    barStops.join(' | ') ===
+      'pauseBtn | ctlSeek | soundBtn | volSlider | runPhoneBtn | runBeamerBtn | impLinkRun',
+    'Tab runs through the control bar in reading order (' + barStops.join(', ') + ')'
   );
 
   console.log('E2E: legal notice pauses the run');
