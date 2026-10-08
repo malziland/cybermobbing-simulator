@@ -4,10 +4,11 @@ Alle relevanten Änderungen an diesem Projekt werden hier dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) und folgt [Semantic Versioning](https://semver.org/lang/de/).
 
-## [Unveröffentlicht]
+## [2.0.0] - 2026-10-09
 
-Wird beim Ausliefern zu Version 2.0.0 (Entscheidung des Betreibers: Die Bedienung
-ist neu, deshalb ein voller Versionssprung).
+Neue Bedienung: Beamer-Ansicht und Steuerleiste mit Zeitleiste. Die Versionsnummer
+hat der Betreiber festgelegt. Ausgeliefert am 2026-10-09; Nachweise in
+`docs/VERIFICATION.md`, Abschnitt „Auslieferung von v2.0.0".
 
 ### Hinzugefügt
 - **Beamer-Ansicht** für große Räume (`docs/adr/ADR-0007`): zweite Darstellung desselben Ablaufs für alle Szenen, mit dem Handy links, dem Bild der Szene in der Mitte und den neuesten Nachrichten groß rechts. Umschalten jederzeit ohne Sprung im Ablauf. Alle Maße sind Anteile der Bildfläche, Auflösung und Browser-Zoom ändern die Proportionen nicht. Bild, Zahlen und Zusatztexte sitzen in jeder App an derselben Stelle

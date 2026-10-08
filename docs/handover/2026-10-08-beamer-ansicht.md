@@ -2,7 +2,10 @@
 
 Datum: 2026-10-09 · Abläufe: `/aendern` (FEATURE, danach AUDIT-REMEDIATION),
 `/release` · Stufe SCHWER (öffentlich erreichbare Fläche, Auslieferkette)
-Zweig: `feat/beamer-ansicht` · Vergleichsanker: `5364d4b` (`main`, v1.2.1)
+Zweig: `feat/beamer-ansicht`, zusammengeführt nach `main` (Pull Request Nr. 7) ·
+Vergleichsanker: `5364d4b` (v1.2.1) · **Ausgeliefert am 2026-10-09 um 01:45 Uhr
+als v2.0.0**; Beweise in `docs/VERIFICATION.md`, Abschnitt „Auslieferung von
+v2.0.0".
 
 Die Zahlen aller Läufe stehen an genau einer Stelle: `docs/VERIFICATION.md`.
 Diese Übergabe nennt die Prüfungen beim Namen und verweist dorthin.

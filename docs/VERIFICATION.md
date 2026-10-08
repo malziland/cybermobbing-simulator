@@ -70,7 +70,34 @@ lagen im Arbeitsordner der Sitzung und sind nicht Teil des Repositorys.
 
 ## Auslieferung von v2.0.0
 
-Wird beim Ausliefern gefüllt (Pipeline, Deploy, Vergleich mit der Live-Seite).
+Ausgelieferter Stand: Merge-Commit `7a51a61` auf `main` (Inhalt gleich `a4a90ff`,
+`git diff --stat` leer), dazu der Cache-Stempel `?v=1791503108` in `index.html`.
+
+| Schritt | Befehl | Ergebnis | Zeit (CEST) |
+|---|---|---|---|
+| Zweig hochgeladen | `git push -u origin feat/beamer-ansicht`; nachgemessen mit `git ls-remote origin refs/heads/feat/beamer-ansicht` | Rückgabewert 0; auf GitHub `a4a90ff` wie lokal | 2026-10-09 01:41 |
+| Pipeline auf dem Pull Request Nr. 7 | `gh pr checks 7` | `lint-and-test: pass`, `secret-scan: pass`, `dependency-audit: pass` (Lauf 37860809100, Kopf `a4a90ff`). Erster Lauf des Ablauftests mit Linux-Schriften | 01:44 |
+| Zusammengeführt | `gh pr merge 7 --merge`; nachgemessen mit `git merge-base --is-ancestor a4a90ff origin/main` | „MERGED", Merge-Commit `7a51a61`, enthält `a4a90ff` | 01:44 |
+| Sperre vor dem Deploy | läuft als `hosting.predeploy`, im Protokoll des Deploys | „deploy-files: 33 files, all part of the page; all 25 files the page loads are among them", „hosting: Finished running predeploy script." | 01:45 |
+| Deploy | `npm run deploy` von `main` | Rückgabewert 0; „found 33 files in .", „release complete", „Deploy complete!". Die Regeln der Datenbank wurden mit ausgeliefert, sie sind gegenüber v1.2.1 unverändert (`git diff --stat v1.2.1 HEAD -- database.rules.json` leer) | 01:45 |
+| Live-Seite zeigt diesen Stand | `bash scripts/verify-live.sh` | Rückgabewert 0, Fehlerausgabe leer; „live site serves this state (33 of 33 files identical, 21 of 21 tooling files not reachable)"; Cache-Stempel live und lokal `?v=1791503108`. Vor dem Deploy: Rückgabewert 1 (Zeile weiter oben) | 01:45 |
+| Versteckte Ordner nicht mehr abrufbar | `curl -s -o /dev/null -w '%{http_code}'` je Pfad | `/.git/HEAD`, `/.git/config`, `/.git/index`, `/.git/logs/HEAD`, `/.git/refs/heads/main`, `/.claude/settings.local.json`, `/.github/workflows/ci.yml`: je 404 (um 00:02 Uhr je 200). `/`, `/index.html`, `/js/controls.js`, `/js/stage.js`, `/css/styles.css`, `/assets/bgm.mp3`, `/robots.txt`, `/llms.txt`: je 200 | 01:45 |
+| Die Seite läuft | Wegwerfskript: Live-Seite im Testbrowser mit `?beamer=1`, Start, Sprung auf 70 s, letzte Seite, zurück | Rückgabewert 0, neun Prüfungen „ok", 0 Seitenfehler. Dasselbe Skript vor dem Deploy: Rückgabewert 2, drei „FAIL" und Abbruch („simSeek is not a function") | 01:46 |
+| Kopfzeilen | `curl -s -D - -o /dev/null https://cybermobbing.web.app/` | „HTTP/2 200", „cache-control: no-store, must-revalidate", CSP und „x-frame-options: DENY" wie in `firebase.json` | 01:45 |
+| Musikdatei abschnittsweise ladbar | `curl -H "Range: bytes=1000-1999" …/assets/bgm.mp3` | „HTTP/2 206", „content-range: bytes 1000-1999/1824429" | 01:46 |
+
+Fehlgriff bei der Probe „Die Seite läuft": Das Skript sperrte nur gewöhnliche
+Abrufe zur Datenbank, nicht die Dauerverbindung, über die der Zähler schreibt.
+Es startete die Simulation zweimal auf der Live-Seite (einmal vor, einmal nach
+dem Deploy). Nachgemessen um 01:46 Uhr: `/views` steht bei 350, demselben Wert
+wie auf den Bildschirmfotos des Betreibers vom Abend; gezählt wurde also nicht.
+Eine solche Probe braucht eine Sperre der Dauerverbindung
+(`routeWebSocket` in Playwright) oder die Beispiel-Konfiguration.
+
+Rückweg: `docs/RUNBOOK.md`, Abschnitt „Rollback". Für diesen Release gilt Weg 2
+(Code-Rollback) oder ein Vorwärts-Fix; Weg 1 (Konsole) stellt bei den Releases
+vor v2.0.0 `.git/` wieder ins Netz. Gezogen wird der Rückweg, wenn der
+Startknopf auf der Live-Seite nichts tut oder die Seite Fehler wirft.
 
 ## Ältere Nachweise (Stand 2026-07-16, seither nicht neu gemessen)
 
