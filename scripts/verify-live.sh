@@ -17,13 +17,20 @@ cd "$ROOT" || exit 2
 
 sum() { shasum -a 256 | cut -d' ' -f1; }
 
+# What the page consists of (firebase.json decides what is deployed)
 FILES=$(
   {
     echo index.html
-    find css js assets -type f ! -name '.*'
-    for f in llms.txt robots.txt sitemap.xml; do [ -f "$f" ] && echo "$f"; done
+    find css js assets -type f ! -name '.*' ! -name 'config.example.js'
+    for f in favicon.svg llms.txt robots.txt sitemap.xml LICENSE; do [ -f "$f" ] && echo "$f"; done
   } | sort
 )
+
+# What must not be reachable: documentation, tests and tooling stay in the repository
+HIDDEN="docs/RUNBOOK.md docs/adr/ADR-0001-projekt-einordnung.md tests/test-runner.html
+scripts/run-e2e.js scripts/verify-live.sh README.md CHANGELOG.md AGENTS.md SECURITY.md
+package.json package-lock.json eslint.config.js setup.sh firebase.json database.rules.json
+js/config.example.js"
 
 total=0
 bad=0
@@ -49,6 +56,24 @@ done <<EOF_FILES
 $FILES
 EOF_FILES
 
+hidden_total=0
+for f in $HIDDEN; do
+  hidden_total=$((hidden_total + 1))
+  code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/$f")
+  if [ "$code" = "404" ]; then
+    echo "hidden    $f"
+  else
+    echo "EXPOSED   $f (HTTP $code)"
+    bad=$((bad + 1))
+  fi
+done
+# The 404 above must mean "not deployed", not "this host answers 404 to everything"
+code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/robots.txt")
+if [ "$code" != "200" ]; then
+  echo "RESULT: $BASE/robots.txt answers HTTP $code -- the check itself failed"
+  exit 2
+fi
+
 stamp=$(curl -s "$BASE/index.html" | grep -o '?v=[0-9]*' | sort -u | tr '\n' ' ')
 echo "live cache stamp: ${stamp:-none found}"
 echo "local cache stamp: $(grep -o '?v=[0-9]*' index.html | sort -u | tr '\n' ' ')"
@@ -58,8 +83,8 @@ if [ "$total" -eq 0 ]; then
   exit 2
 fi
 if [ "$bad" -eq 0 ]; then
-  echo "RESULT: live site serves this state ($total of $total files identical)"
+  echo "RESULT: live site serves this state ($total of $total files identical, $hidden_total of $hidden_total tooling files not reachable)"
   exit 0
 fi
-echo "RESULT: live site differs ($bad of $total files)"
+echo "RESULT: live site differs ($bad problem(s) in $total files and $hidden_total hidden paths)"
 exit 1

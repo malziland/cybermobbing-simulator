@@ -38,6 +38,7 @@ ist neu, deshalb ein voller Versionssprung).
 - Eine unbenutzte Gestaltungsregel (`.fin-msg`) und eine unbenutzte Funktion (`startMusic()`), beide schon vorher ohne Verwendung
 
 ### Sicherheit
+- **Die Live-Seite liefert nur noch die Seite selbst aus.** Doku, Tests, Skripte und Werkzeugdateien waren bisher über die Live-Adresse abrufbar (zum Beispiel `/docs/RUNBOOK.md`, `/tests/test-runner.html`, `/package.json`). Geheim war davon nichts, das Repository ist öffentlich; es gehört aber nicht auf die Seite. `scripts/verify-live.sh` prüft das nach jedem Deploy mit
 - Entwicklungswerkzeug `brace-expansion` 5.0.7 → 5.0.12 (mehrere Meldungen zu Überlastung, unter anderem GHSA-mh99-v99m-4gvg). Betrifft nur die Werkzeuge; die Seite selbst hat keine Laufzeit-Abhängigkeiten
 
 ## [1.2.1] - 2026-07-16

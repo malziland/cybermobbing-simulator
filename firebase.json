@@ -9,7 +9,15 @@
       "database.rules.json",
       "**/.*",
       "**/node_modules/**",
-      "scripts/video-export/**"
+      "docs/**",
+      "tests/**",
+      "scripts/**",
+      "**/*.md",
+      "package.json",
+      "package-lock.json",
+      "eslint.config.js",
+      "setup.sh",
+      "js/config.example.js"
     ],
     "headers": [
       {

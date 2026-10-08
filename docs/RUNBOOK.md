@@ -42,6 +42,16 @@ npm run deploy     # führt automatisch vorher scripts/cache-bust.sh aus
 (`?v=…`). Diese Änderung gehört zum ausgelieferten Stand und wird nach dem
 Deploy committet.
 
+**Was ausgeliefert wird:** nur die Seite selbst, also `index.html`, `css/`,
+`js/`, `assets/`, `favicon.svg`, `llms.txt`, `robots.txt`, `sitemap.xml` und
+`LICENSE`. Doku, Tests, Skripte und Werkzeugdateien bleiben im Repository; die
+Liste `hosting.ignore` in `firebase.json` schließt sie aus (Entscheidung vom
+2026-10-08; bis v1.2.1 waren sie über die Live-Adresse abrufbar, etwa
+`/docs/RUNBOOK.md` und `/tests/test-runner.html`). Wer eine neue Datei anlegt,
+die die Seite braucht und die nicht unter `css/`, `js/` oder `assets/` liegt,
+trägt sie in `scripts/verify-live.sh` ein; wer eine neue Werkzeugdatei im
+Wurzelverzeichnis anlegt, trägt sie in `hosting.ignore` ein.
+
 Release-Ablauf, in dieser Reihenfolge:
 
 1. Prüfungen oben grün, CHANGELOG-Abschnitt „Unveröffentlicht" fertig.
@@ -50,9 +60,11 @@ Release-Ablauf, in dieser Reihenfolge:
 4. Beweisen, dass die Live-Seite den Stand zeigt: `bash scripts/verify-live.sh`.
    Das Skript ruft jede Datei der Seite von https://cybermobbing.web.app ab und
    vergleicht ihre Prüfsumme mit der lokalen (`js/config.js` nur über die
-   Prüfsumme, nie über den Inhalt). Nach dem Deploy muss es mit Rückgabewert 0
-   enden. Unmittelbar vor dem Deploy muss es mit 1 enden, weil live noch der
-   vorige Stand liegt; das ist der Beleg, dass die Prüfung anschlagen kann.
+   Prüfsumme, nie über den Inhalt). Es prüft auch, dass Doku, Tests und
+   Werkzeugdateien nicht abrufbar sind. Nach dem Deploy muss es mit
+   Rückgabewert 0 enden. Unmittelbar vor dem Deploy muss es mit 1 enden, weil
+   live noch der vorige Stand liegt; das ist der Beleg, dass die Prüfung
+   anschlagen kann.
 5. Erst danach die Stempel setzen, in einem Commit: Version in `package.json`
    und `package-lock.json`, CHANGELOG-Überschrift mit Version und Datum, der
    Cache-Stempel in `index.html`. Darauf den **annotierten** Tag
