@@ -27,9 +27,10 @@ ist neu, deshalb ein voller Versionssprung).
 - Nach dem Start ist der Startbildschirm auch für die Tastatur ausgeblendet (vorher blieben seine Knöpfe unsichtbar anwählbar)
 - Video-Export (`scripts/video-export/`) blendet die neuen Bedienelemente aus
 - Szenenzeiten stehen nur noch an einer Stelle (`CTL_SCENES` in `js/controls.js`); README und Kommentare nannten teils falsche Zeiten
-- Betriebshandbuch: Release-Ablauf über Pull Request, mit Prüfsummen-Vergleich der Live-Seite und dem Tag erst nach dem Deploy
+- Betriebshandbuch: Release-Ablauf über Pull Request, mit Prüfsummen-Vergleich der Live-Seite (`scripts/verify-live.sh`) und dem Tag erst nach dem Deploy
 
 ### Behoben
+- **Hinweise zu kurz sichtbar:** Folgten zwei Hinweise dicht aufeinander, blendete der Ausblend-Zeitgeber des ersten den zweiten mit aus. „… hat es auf Instagram gepostet" und zwei weitere standen nur eine halbe Sekunde, auch in der Beamer-Ansicht. Jetzt steht jeder Hinweis seine volle Zeit oder bis ihn der nächste ablöst, mindestens anderthalb Sekunden (bestand schon vor dieser Version)
 - **Pause direkt nach dem Start:** Wer in der ersten halben Sekunde pausierte und fortsetzte, startete die Uhr doppelt; sie lief danach mit doppelter Geschwindigkeit und im Pausezustand weiter (bestand schon vor dieser Version)
 
 ### Entfernt

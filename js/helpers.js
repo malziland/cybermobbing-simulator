@@ -82,16 +82,24 @@ function flash() {
   f.classList.add('go');
 }
 
+/** @type {number} Counts the toasts shown, so each hide timer knows whether it is still the newest */
+var toastSeq = 0;
+
 /**
- * Shows a brief notification toast at the top of the phone screen.
+ * Shows a brief notification toast at the top of the phone screen. It stays
+ * for its own duration: if a second toast follows before the first has run
+ * out, the timer of the first one must not hide the second.
  * @param {string} txt     - Message text to display
  * @param {number} [dur=2500] - Duration in ms before auto-hiding
  */
 function toast(txt, dur) {
   var t = document.getElementById('toast');
+  var mine = ++toastSeq;
   t.textContent = txt;
   t.classList.add('show');
   simTimeout(function () {
+    // A later toast has taken over the element; its own timer hides it
+    if (mine !== toastSeq) return;
     t.classList.remove('show');
   }, dur || 2500);
 }

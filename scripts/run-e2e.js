@@ -1352,15 +1352,29 @@ function missingOnStage(keys) {
     window.simSeek(131);
     window.togglePause();
   });
-  await seekPage.waitForSelector('#aCta:not(.hidden)', { timeout: 5000 });
-  await seekPage.waitForFunction(
-    function () {
-      return (
-        window.sec >= window.CTL_TOTAL &&
-        parseFloat(getComputedStyle(document.getElementById('ctaMsg')).opacity) > 0.99
-      );
-    },
-    { timeout: 6000 }
+  // A run that never gets there must show up as a failed check, not as an aborted script
+  const reachedEnd = await seekPage
+    .waitForFunction(
+      function () {
+        return (
+          !document.getElementById('aCta').classList.contains('hidden') &&
+          window.sec >= window.CTL_TOTAL &&
+          parseFloat(getComputedStyle(document.getElementById('ctaMsg')).opacity) > 0.99
+        );
+      },
+      { timeout: 8000 }
+    )
+    .then(
+      function () {
+        return true;
+      },
+      function () {
+        return false;
+      }
+    );
+  check(
+    reachedEnd,
+    'without a jump the run reaches the help page and the clock reaches the end of the timeline'
   );
   const ended = await seekPage.evaluate(helpState);
   await seekPage.waitForTimeout(300);

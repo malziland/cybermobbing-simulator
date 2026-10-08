@@ -47,9 +47,12 @@ Release-Ablauf, in dieser Reihenfolge:
 1. Prüfungen oben grün, CHANGELOG-Abschnitt „Unveröffentlicht" fertig.
 2. Zweig hochladen, Pull Request, Pipeline grün, nach `main` zusammenführen.
 3. Von `main` aus deployen (`npm run deploy`).
-4. Beweisen, dass die Live-Seite den Stand zeigt: jede ausgelieferte Datei von
-   https://cybermobbing.web.app abrufen und ihre Prüfsumme mit der lokalen
-   vergleichen (`js/config.js` nur über die Prüfsumme, nie über den Inhalt).
+4. Beweisen, dass die Live-Seite den Stand zeigt: `bash scripts/verify-live.sh`.
+   Das Skript ruft jede Datei der Seite von https://cybermobbing.web.app ab und
+   vergleicht ihre Prüfsumme mit der lokalen (`js/config.js` nur über die
+   Prüfsumme, nie über den Inhalt). Nach dem Deploy muss es mit Rückgabewert 0
+   enden. Unmittelbar vor dem Deploy muss es mit 1 enden, weil live noch der
+   vorige Stand liegt; das ist der Beleg, dass die Prüfung anschlagen kann.
 5. Erst danach die Stempel setzen, in einem Commit: Version in `package.json`
    und `package-lock.json`, CHANGELOG-Überschrift mit Version und Datum, der
    Cache-Stempel in `index.html`. Darauf den **annotierten** Tag

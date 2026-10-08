@@ -49,6 +49,7 @@ const appGlobals = {
   sw: 'writable',
   flash: 'writable',
   toast: 'writable',
+  toastSeq: 'writable',
   addMsg: 'writable',
   waType: 'writable',
   setLayer: 'writable',
