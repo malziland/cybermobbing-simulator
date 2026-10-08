@@ -12,13 +12,14 @@ ESLint 10.7.0 · Playwright 1.61.1 · gitleaks 8.30.1 · firebase-tools 15.32.0.
 
 | Anforderung | Befehl | Ergebnis | Stand |
 |---|---|---|---|
-| Lint | `npm run lint` | Rückgabewert 0 | `136e795`, 2026-10-09 00:54 |
-| Unit-Tests (QUnit, headless) | `npm run test` | Rückgabewert 0, „QUnit: 2227/2227 assertions passed, 0 failed" | `136e795`, 2026-10-09 00:54 |
-| Unit-Tests in zufälliger Reihenfolge, ganze Suite und jedes der neun Module allein | Testseite mit `?seed=true` und `&module=…` (Wegwerfskript) | zehn Läufe, je 0 fehlgeschlagen; Summe der Module 2227 | `5aee659`, 2026-10-09 00:41 (Tests und Produktcode bis `136e795` unverändert, nur der Ablauftest kam dazu) |
-| Ablauftest mit Barrierefreiheit (axe-core, WCAG 2.x A/AA), hermetisch ohne die echte Datenbank | `npm run test:e2e` | Rückgabewert 0, „E2E: all checks passed", 266 Zeilen „ok", 0 Zeilen „FAIL" | `136e795`, 2026-10-09 00:55 |
-| Abhängigkeiten | `npm audit --audit-level=high` im Wurzelverzeichnis und in `scripts/video-export` | je Rückgabewert 0, „found 0 vulnerabilities" | `136e795`, 2026-10-09 00:57 |
-| Geheimnisse in der Historie | `gitleaks git --redact .` | Rückgabewert 0, „69 commits scanned", „no leaks found". Gegenprobe mit zwei erfundenen Schlüsseln im echten Format: Rückgabewert 1, „leaks found: 2" | `136e795`, 2026-10-09 00:57 |
-| Ausgeliefert wird nur die Seite (Sperre vor dem Deploy) | `node scripts/deploy-files.js` | Rückgabewert 0, „deploy-files: 33 files, all part of the page". Gegenprobe mit der Ausschlussliste von `85ee8b4`: Rückgabewert 1, „133 file(s) that do not belong to the page … (of 166 files)" | `136e795`, 2026-10-09 00:57 |
+| Lint | `npm run lint` | Rückgabewert 0 | `c79f02d`, 2026-10-09 01:37 |
+| Unit-Tests (QUnit, headless) | `npm run test` | Rückgabewert 0, „QUnit: 2229/2229 assertions passed, 0 failed" | `c79f02d`, 2026-10-09 01:38 |
+| Unit-Tests in zufälliger Reihenfolge, ganze Suite und jedes der neun Module allein | Testseite mit `?seed=true` und `&module=…` (Wegwerfskript) | zehn Läufe, je 0 fehlgeschlagen; ganze Suite 2229/2229 | `c79f02d`, 2026-10-09 01:39 |
+| Ablauftest mit Barrierefreiheit (axe-core, WCAG 2.x A/AA), hermetisch ohne die echte Datenbank | `npm run test:e2e` | Rückgabewert 0, „E2E: all checks passed", 268 Zeilen „ok", 0 Zeilen „FAIL" | `c79f02d`, 2026-10-09 01:38 |
+| Abhängigkeiten | `npm audit --audit-level=high` im Wurzelverzeichnis und in `scripts/video-export` | je Rückgabewert 0, „found 0 vulnerabilities" | `c79f02d`, 2026-10-09 01:39 |
+| Geheimnisse in der Historie | `gitleaks git --redact .` | Rückgabewert 0, „74 commits scanned", „no leaks found". Gegenprobe mit zwei erfundenen Schlüsseln im echten Format: Rückgabewert 1, „leaks found: 2" | `c79f02d`, 2026-10-09 01:40 |
+| Ausgeliefert wird nur die Seite (Sperre vor dem Deploy) | `node scripts/deploy-files.js` | Rückgabewert 0, „deploy-files: 33 files, all part of the page; all 25 files the page loads are among them". Gegenproben: mit der Ausschlussliste von `85ee8b4` Rückgabewert 1, „133 file(s) that do not belong to the page … (of 166 files)"; fünf Köder in einer Kopie (Sicherungskopie `js/config.js.bak`, Verknüpfung nach außen, fehlendes Icon, fehlendes Skript, neuer Ordner) je Rückgabewert 1 | `c79f02d`, 2026-10-09 01:40 |
+| Live-Seite vor dem Deploy (Beleg, dass die Prüfung anschlagen kann) | `bash scripts/verify-live.sh` | Rückgabewert 1, „live site differs (35 problem(s) in 33 files and 21 hidden paths)"; darunter `.git/HEAD`, `.git/config`, `.git/index`, `.claude/settings.local.json`, `.github/workflows/ci.yml` je „EXPOSED … (HTTP 200)". Probe mit einem Prüfsummen-Werkzeug, das nichts liefert: Rückgabewert 2 | Live-Seite v1.2.1 gegen `c79f02d`, 2026-10-09 01:40 |
 | Pipeline | GitHub Actions, Workflow `ci`, auf dem Pull Request | siehe Abschnitt „Auslieferung von v2.0.0" | — |
 
 ## Gegenproben
@@ -34,6 +35,8 @@ werden.
 | 3 | `5aee659`, 2026-10-09 | die 4 aus Runde 2 nach geschärften und neuen Prüfungen, dazu 1 neue | 4 gemeldet, 1 nicht (letzte Seite reicht unter den Hinweistext) |
 | einzeln | `136e795`, 2026-10-09 | die 1 aus Runde 3 nach neuer Prüfung | gemeldet: „page reaches 125 px under the disclaimer" |
 | einzeln | `2ad6ab2`, 2026-10-08 | Schutzzeile des Hinweis-Zeitgebers | QUnit rot, zwei Zusicherungen |
+| 4 | `c79f02d` (Arbeitsstand davor), 2026-10-09 | 3: Impressum öffnet am Ende, Start vor dem Zähler-Skript wird nicht nachgezählt, Ruhezustand zählt als Laufzeit | alle 3 gemeldet: „scrolled 834 of 834 px", „0 writes", QUnit 1 fehlgeschlagen |
+| früher am 2026-10-08 | Zwischenstände bis `152c990` | 13, danach 2 wiederholt | 11 gemeldet, 2 nicht (gehaltene Taste, Platzprüfung); beide Prüfungen geschärft, danach gemeldet |
 
 Die Kopien der nicht gemeldeten Proben sind verworfen; die Protokolle der Runden
 lagen im Arbeitsordner der Sitzung und sind nicht Teil des Repositorys.
@@ -53,13 +56,15 @@ lagen im Arbeitsordner der Sitzung und sind nicht Teil des Repositorys.
 |---|---|---|---|
 | KURZ | `1c498c1`, 2026-10-08 | elf Befunde (vier P2, sieben P3), kein P0 oder P1 | `docs/audit/2026-10-08-kurz-1c498c1.md` mit Nachtrag |
 | TIEF | `7c49271`, 2026-10-08 | ein P1 (versteckte Ordner auf der Live-Seite, Bestand), zwei P2, elf P3 | `docs/audit/2026-10-08-tief-7c49271.md` mit Nachtrag |
-| Nachprüfung der Behebungen | `498c1b3`, 2026-10-09 | siehe Nachtrag im tiefen Bericht, Abschnitt „Abnahme" | `docs/audit/2026-10-09-nachpruefung-498c1b3.md` |
+| Nachprüfung der Behebungen | `498c1b3`, 2026-10-09 | Auslieferung geschlossen, Behebungen bestätigt, ein neuer Fehler (Impressum öffnete am Ende), behoben in `c79f02d`; Einzelheiten im Nachtrag des tiefen Berichts, Abschnitt „Abnahme" | `docs/audit/2026-10-09-nachpruefung-498c1b3.md` |
 
 ## Nicht belegt
 
 - Lesbarkeit im echten Saal, Klang, Windows-Schulrechner.
 - Echtes Safari und Firefox (gemessen sind die Testbrowser von Playwright).
-- Loslassen der Maus außerhalb des Fensters an einem echten Gerät.
+- Loslassen der Maus außerhalb des Fensters und Ruhezustand an einem echten Gerät.
+- Die Behebungen in `c79f02d` nach der Nachprüfung: nur vom Autor geprüft
+  (Prüfungen und Gegenproben oben), nicht fremd abgenommen.
 - Video-Export (`scripts/video-export`): angepasst, nicht ausgeführt, weil
   `ffmpeg` auf dem Rechner nicht startet.
 

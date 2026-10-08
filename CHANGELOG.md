@@ -25,15 +25,15 @@ ist neu, deshalb ein voller Versionssprung).
 - **Startbildschirm und letzte Seite:** Der Platz für den Hinweistext unten richtet sich nach dessen wirklicher Höhe. In schmalen Fenstern läuft der Text über bis zu fünf Zeilen und überdeckt nichts mehr. Das Impressum ist größer (mindestens 15 statt 12 CSS-Pixel)
 - Der Teilen-Knopf gibt den Link immer ohne den Zusatz `?beamer=1` weiter
 - Nach dem Start ist der Startbildschirm auch für die Tastatur ausgeblendet (vorher blieben seine Knöpfe unsichtbar anwählbar)
-- **Barrierefreiheit des Rahmens:** Das Impressum übernimmt beim Öffnen den Tastaturfokus und gibt ihn beim Schließen zurück; dahinter ist nichts bedienbar. Schließen-Knopf und Links im Impressum erfüllen die Kontrastprüfung, die Seite nennt Screenreadern ihre Sprache (auch in der englischen Fassung), die Links der letzten Seite sind 24 Pixel hoch
+- **Barrierefreiheit des Rahmens:** Das Impressum übernimmt beim Öffnen den Tastaturfokus und gibt ihn beim Schließen zurück; dahinter ist nichts bedienbar. Schließen-Knopf, Untertitel und Links im Impressum erfüllen die Kontrastprüfung, die Seite nennt Screenreadern ihre Sprache (auch in der englischen Fassung), die Links der letzten Seite sind 24 Pixel hoch
 - In niedrigen Fenstern (quer gehaltenes Handy) lassen sich Startbildschirm und letzte Seite rollen, statt dass der Hinweistext Teile überdeckt
-- Die Uhr der Leiste läuft nach der echten Zeit statt nach gezählten Takten; in Firefox und Safari ging sie sonst bis zu sechs Prozent nach
+- Die Uhr der Leiste läuft nach der echten Zeit statt nach gezählten Takten; in Firefox und Safari ging sie sonst bis zu sechs Prozent nach. Ein Ruhezustand des Rechners zählt nicht als Laufzeit
 - Video-Export (`scripts/video-export/`) blendet die neuen Bedienelemente aus
 - Szenenzeiten stehen nur noch an einer Stelle (`CTL_SCENES` in `js/controls.js`); README und Kommentare nannten teils falsche Zeiten
 - Betriebshandbuch: Release-Ablauf über Pull Request, mit Prüfsummen-Vergleich der Live-Seite (`scripts/verify-live.sh`) und dem Tag erst nach dem Deploy
 
 ### Behoben
-- **Start hing am fremden Skript des Zählers:** War der Host des Firebase-SDK im Netz gesperrt oder antwortete er nicht, oder fehlte `js/config.js`, blieb „Simulation starten" ohne Wirkung. Das SDK lädt jetzt als Letztes; die Simulation startet auch ohne Zähler (bestand schon vor dieser Version)
+- **Start hing am fremden Skript des Zählers:** War der Host des Firebase-SDK im Netz gesperrt oder antwortete er nicht, oder fehlte `js/config.js`, blieb „Simulation starten" ohne Wirkung. Das SDK lädt jetzt als Letztes; die Simulation startet auch ohne Zähler. Wer startet, bevor der Zähler geladen ist, wird nachgezählt (bestand schon vor dieser Version)
 - **Hinweise zu kurz sichtbar:** Folgten zwei Hinweise dicht aufeinander, blendete der Ausblend-Zeitgeber des ersten den zweiten mit aus. „… hat es auf Instagram gepostet" und zwei weitere standen nur eine halbe Sekunde, auch in der Beamer-Ansicht. Jetzt steht jeder Hinweis seine volle Zeit oder bis ihn der nächste ablöst, mindestens anderthalb Sekunden (bestand schon vor dieser Version)
 - **Pause direkt nach dem Start:** Wer in der ersten halben Sekunde pausierte und fortsetzte, startete die Uhr doppelt; sie lief danach mit doppelter Geschwindigkeit und im Pausezustand weiter (bestand schon vor dieser Version)
 

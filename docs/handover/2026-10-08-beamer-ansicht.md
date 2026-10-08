@@ -46,8 +46,11 @@ unverändert, die zuständige Prüfung muss rot werden):
 - Runde 1, 32 Rückbauten am Stand `b54d710`: alle 32 von den Tests gemeldet, 31
   an der erwarteten Prüfung, einer (Uhr stoppt zu früh) an zwei anderen.
 - Runde 2, 25 Rückbauten am Stand `48de3d7`, darunter die zehn folgenreichen
-  Stellen, die das tiefe Audit als unbemerkt gemeldet hatte: Ergebnis in
-  `docs/VERIFICATION.md`.
+  Stellen, die das tiefe Audit als unbemerkt gemeldet hatte: 21 gemeldet, vier
+  nicht. Für die vier kamen Prüfungen dazu (Runde 3), für eine weitere danach
+  noch eine; am Ende ist jede dieser Stellen von einer Prüfung gedeckt.
+- Nach der Nachprüfung: drei Rückbauten der letzten Behebungen und fünf Köder
+  für die Sperre vor dem Deploy. Ergebnisse je Runde: `docs/VERIFICATION.md`.
 - Einzeln: Hinweis-Zeitgeber (QUnit rot, zwei Zusicherungen), Sperre vor dem
   Deploy (mit der alten Ausschlussliste Rückgabewert 1, 133 von 166 Dateien
   gehören nicht zur Seite), Suche nach Schlüsseln (erfundene Schlüssel im echten
@@ -69,8 +72,8 @@ jedem Befund den Stand und den Nachweis nennt:
   Live-Seite, Bestand seit 2026-07-16), zwei P2, elf P3.
 
 Kurzfassung des Standes: Der P1-Befund und beide P2-Befunde sind behoben. Offen
-bleiben zwei Punkte als Entscheidung (Abschnitt 6, Punkte 2 und 3) und ein
-Restpunkt, der nicht prüfbar war (Abschnitt 6, Punkt 6).
+bleiben drei Punkte als Entscheidung (Abschnitt 6, Punkte 2, 3 und 6) und ein
+Restpunkt, der nicht prüfbar war (Abschnitt 6, Punkt 7).
 
 ## 4. Entscheidungen, die ich getroffen habe
 
@@ -89,7 +92,8 @@ nachlesen und ändern kann.
 | Kontaktadresse auch in `llms.txt`, `SECURITY.md`, `CONTRIBUTING.md` und der Issue-Vorlage umgestellt | Der Auftrag nannte das Impressum; derselbe Fakt stand an sechs Stellen | je eine Zeile |
 | Ausgeliefert wird nur die Seite; Doku, Tests und Skripte nicht mehr | Bis v1.2.1 war das ganze Projektverzeichnis abrufbar, samt `.git/` | `hosting.ignore`, `scripts/deploy-files.js` |
 | Das Firebase-SDK lädt als Letztes; die Seite wartet beim Start nicht mehr darauf | Altfehler: In einem Netz, das den Host sperrt oder hängen lässt, tat „Simulation starten" nichts | Reihenfolge der Skripte in `index.html`, `initPage()` in `js/main.js` |
-| Uhr der Leiste nach echter Zeit | Sie ging in Firefox und WebKit 4 bis 6 % nach | `tick()` in `js/timer.js` |
+| Uhr der Leiste nach echter Zeit; eine Lücke von mehr als fünf Sekunden (Ruhezustand) zählt nicht mit | Sie ging in Firefox und WebKit 4 bis 6 % nach | `tick()` in `js/timer.js` |
+| Wer startet, bevor das Zähler-Skript geladen ist, wird nachgezählt | Sonst ginge dieser Aufruf dem Zähler verloren (Fenster von 80 bis 207 ms, gemessen in der Nachprüfung) | letzte Zeile in `js/firebase-counter.js` |
 | Startbildschirm und letzte Seite enden oberhalb des Hinweistexts und lassen sich in niedrigen Fenstern rollen | Am quer gehaltenen Handy lief der Inhalt unter dem Hinweistext durch | `css/styles.css`, `#start` und `.cta-screen` |
 | Impressum übernimmt den Tastaturfokus; dahinter ist nichts bedienbar | Befund des tiefen Audits zur Barrierefreiheit | `openImpressum()` in `js/main.js` |
 | Unbenutztes entfernt: `.fin-msg`, `startMusic()` | Auftrag „ohne Altlasten"; beide schon am Anker ohne Verwendung | — |
@@ -136,9 +140,14 @@ nachlesen und ändern kann.
 5. **Entscheidung: die drei Zweige von Dependabot.** Empfehlung: nach diesem
    Release einzeln ansehen und übernehmen. Ohne Entscheidung veralten die
    Werkzeuge weiter.
-6. **Jetzt nicht prüfbar: Lesbarkeit im Saal, Klang, Windows, echtes Safari und
-   Firefox, Loslassen der Maus außerhalb des Fensters.** Gemessen ist in den
-   Testbrowsern ohne Bildschirm. Prüfbar am ersten Einsatzort.
+6. **Entscheidung: letzte Seite in Fenstern um 960 × 540.** Mit Logo und zwei
+   Links passt sie dort nicht mehr ganz über Hinweistext und Leiste; „Nochmal"
+   ist erst nach dem Rollen ganz zu sehen (ab 1024 × 600 wie zuvor). Empfehlung:
+   Abstände der letzten Seite in niedrigen Fenstern verkleinern, als eigene
+   kleine Änderung mit Bildern zur Ansicht. Ohne Entscheidung bleibt es rollbar.
+7. **Jetzt nicht prüfbar: Lesbarkeit im Saal, Klang, Windows, echtes Safari und
+   Firefox, Loslassen der Maus außerhalb des Fensters, Ruhezustand.** Gemessen
+   ist in den Testbrowsern ohne Bildschirm. Prüfbar am ersten Einsatzort.
 
 ## 7. Eingang für das nächste Audit
 
@@ -149,7 +158,7 @@ nachlesen und ändern kann.
   jedem Push grün war; die Sperre `scripts/deploy-files.js` hängt an einer
   inneren Funktion der Firebase-CLI (`lib/listFiles.js`) und endet mit
   Rückgabewert 2, falls die sich ändert.
-- Nicht gemessen und deshalb zuerst: echte Geräte (Abschnitt 6, Punkt 6).
+- Nicht gemessen und deshalb zuerst: echte Geräte (Abschnitt 6, Punkt 7).
 
 ## 8. Abnahme
 
@@ -157,8 +166,12 @@ nachlesen und ändern kann.
 - `1c498c1`: Audit KURZ durch eine Instanz, die den Code nicht geschrieben hat.
 - `7c49271`: Audit TIEF, ebenso; dabei wurden die Behebungen des Kurz-Audits
   nachgemessen (acht behoben, zwei teilbehoben, eine als Entscheidung offen).
-- Behebungen nach `7c49271`: Nachprüfung durch eine weitere Instanz, Ergebnis im
-  Nachtrag des tiefen Berichts.
+- Behebungen nach `7c49271`: Nachprüfung durch eine weitere Instanz an `498c1b3`
+  (`docs/audit/2026-10-09-nachpruefung-498c1b3.md`). Ergebnis: Auslieferung
+  geschlossen, Behebungen bestätigt, eine Änderung vor der Auslieferung verlangt
+  (Impressum öffnete am Ende). Diese und fünf weitere Punkte der Nachprüfung
+  sind danach umgesetzt und **selbst abgenommen**; Einzelheiten im Nachtrag des
+  tiefen Berichts, Abschnitt „Abnahme".
 - Diese Übergabe und `docs/VERIFICATION.md`: selbst abgenommen. Ihre
   Vollständigkeit gilt als unbestätigt, bis ein späterer Lauf sie prüft.
 
@@ -174,5 +187,11 @@ nachlesen und ändern kann.
   Beispiel-Schlüssel von AWS).
 - Fehlerklasse ohne Regel: Ein Testserver, der weniger kann als der echte (keine
   Teilabrufe), lässt eine Prüfung grundlos rot werden oder grundlos grün.
+- Fehlerklasse ohne Regel (aus der Nachprüfung): Eine Behebung für die Tastatur
+  verändert, was die Maus sieht. Der Fokus auf dem letzten Knopf eines rollbaren
+  Dialogs rollte den Text ans Ende; gemessen hatte ich nur, wo der Fokus liegt,
+  und vom Bild nur das Ende angesehen.
+- Fehlerklasse ohne Regel (aus der Nachprüfung): Ein Vergleich über ein Werkzeug,
+  dessen leere Ausgabe auf beiden Seiten gleich ist, meldet Gleichheit.
 - Aufwand ohne Ertrag: keiner. Das tiefe Audit hat den wichtigsten Befund des
-  Abends geliefert.
+  Abends geliefert, die Nachprüfung den Fehler im Impressum.
