@@ -270,12 +270,11 @@ function missingOnStage(keys) {
   check(
     await page.evaluate(function () {
       return (
-        getComputedStyle(document.getElementById('pauseBtn')).fontSize === '14px' &&
         getComputedStyle(document.querySelector('.sound-mini')).display === 'flex' &&
         getComputedStyle(document.querySelector('.view-mini')).display === 'flex'
       );
     }),
-    'phone view: pause button keeps its size, sound control and view picker are shown'
+    'phone view: sound control and view picker are shown'
   );
 
   console.log('E2E: full run to CTA screen (time-lapse x10)');
@@ -473,6 +472,86 @@ function missingOnStage(keys) {
     'help screen replaces the stage at the end'
   );
   await stagePage.close();
+
+  console.log('E2E: phone view - pause symbol and legal notice are large enough and clear');
+  // [width, height]: laptop, Full HD, two phone sizes
+  const phoneViewSizes = [
+    [1280, 720],
+    [1920, 1080],
+    [393, 852],
+    [375, 667],
+  ];
+  for (const size of phoneViewSizes) {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: size[0], height: size[1] },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+    await p.waitForSelector('#startBtn');
+    const startScreen = await p.evaluate(function () {
+      var impr = document.querySelector('.impr-link').getBoundingClientRect();
+      var disc = document.querySelector('.disclaimer').getBoundingClientRect();
+      return { clear: disc.bottom <= impr.top + 1 && impr.bottom <= window.innerHeight };
+    });
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000 });
+    await p.evaluate(function () {
+      window.togglePause();
+    });
+    const m = await p.evaluate(function () {
+      function rect(sel) {
+        return document.querySelector(sel).getBoundingClientRect();
+      }
+      function shown(sel) {
+        return getComputedStyle(document.querySelector(sel)).display !== 'none';
+      }
+      var unit = Math.min(window.innerWidth / 100, window.innerHeight / 56.25);
+      var items = [rect('#pauseBtn'), rect('.impr-link'), rect('.pause-text'), rect('#phone')];
+      if (shown('.sound-mini')) items.push(rect('.sound-mini'));
+      if (shown('.view-mini')) items.push(rect('.view-mini'));
+      var clear = true;
+      for (var a = 0; a < items.length; a++) {
+        var c = items[a];
+        if (c.left < -1 || c.right > window.innerWidth + 1 || c.bottom > window.innerHeight + 1) {
+          clear = false;
+        }
+        for (var b = a + 1; b < items.length; b++) {
+          var d = items[b];
+          if (c.left < d.right && c.right > d.left && c.top < d.bottom && c.bottom > d.top) {
+            clear = false;
+          }
+        }
+      }
+      return {
+        pause: parseFloat(getComputedStyle(document.getElementById('pauseBtn')).fontSize),
+        impr: parseFloat(getComputedStyle(document.querySelector('.impr-link')).fontSize),
+        wantPause: Math.max(22, unit * 2),
+        wantImpr: Math.max(15, unit * 1.2),
+        clear: clear,
+      };
+    });
+    const label = size[0] + 'x' + size[1];
+    check(
+      Math.abs(m.pause - m.wantPause) < 0.5 && Math.abs(m.impr - m.wantImpr) < 0.5,
+      label +
+        ': pause symbol ' +
+        m.pause.toFixed(1) +
+        'px, legal notice ' +
+        m.impr.toFixed(1) +
+        'px (at least 22px / 15px)'
+    );
+    check(
+      m.clear,
+      label + ': paused - pause symbol, pause text, legal notice, controls and phone do not overlap'
+    );
+    check(startScreen.clear, label + ': start screen - disclaimer does not cover the legal notice');
+    await ctx.close();
+  }
 
   console.log('E2E: projector view - same proportions in every window size and zoom');
   // [width, height, deviceScaleFactor]: classic 4:3, 16:10, Full HD, 4K,

@@ -34,9 +34,11 @@ Es gibt eine zweite Darstellung desselben Ablaufs, die **Beamer-Ansicht**:
   Uhr und App-Symbole mit ihren Zählern als Zeile über den Mitteilungen; die
   Szene „Nachrichten" und der Schlusstext haben kein eigenes Bild und nutzen die
   ganze Breite neben dem Handy.
-- **Bedienelemente wachsen mit:** In der Beamer-Ansicht sind Pause, Impressum,
-  Ton-Regler und Umschalter in derselben Einheit bemessen wie der Inhalt. In der
-  Handy-Ansicht behalten sie ihre bisherigen Maße.
+- **Bedienelemente wachsen mit:** Pausesymbol und Impressum wachsen in beiden
+  Ansichten mit dem Fenster und unterschreiten nie eine Größe, die am Handy
+  taugt (22 und 15 CSS-Pixel). In der Beamer-Ansicht sind sie wie Ton-Regler
+  und Umschalter in der Einheit der Bildfläche bemessen und an ihr ausgerichtet.
+  Der Text „Pausiert …" steht rechts neben dem Pausesymbol.
 - **Höchstens zwei Nachrichten gleichzeitig groß** (einschließlich zwei), bei den
   Mitteilungen höchstens drei; die nächste verdrängt die älteste. Hinweise wie
   „… hat einen Screenshot gemacht" haben eine eigene Zeile und verdrängen keine
