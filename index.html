@@ -181,25 +181,37 @@
   </div>
 </div>
 
-<!-- PAUSE -->
-<button id="pauseBtn" class="pause-btn hidden">II</button>
-<!-- Sound control, bottom left: the counterpart of the view picker on the right -->
-<div class="sound-mini" role="group" aria-label="Ton">
-  <button type="button" class="sound-btn" id="soundBtn" aria-label="Ton ausschalten">
-    <svg class="ico-on" aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>
-    <svg class="ico-off" aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>
-  </button>
-  <input type="range" class="vol-slider" id="volSlider" min="0" max="100" step="5" value="100" aria-label="Lautst&auml;rke">
+<!-- CONTROL BAR: pause, time, timeline, sound, view, legal notice (js/controls.js, ADR-0008) -->
+<div class="ctl-bar" id="ctlBar" role="group" aria-label="Steuerung">
+  <button id="pauseBtn" class="ctl-play hidden" type="button">II</button>
+  <div class="ctl-time"><span class="ctl-now" id="ctlNow">0:00</span><span class="ctl-scene" id="ctlScene"></span></div>
+  <div class="ctl-seek" id="ctlSeek" role="slider" tabindex="0" aria-label="Zeitleiste" aria-valuemin="0" aria-valuemax="120" aria-valuenow="0">
+    <div class="ctl-track" id="ctlTrack"><div class="ctl-fill"></div></div>
+    <div class="ctl-knob"></div>
+    <span class="ctl-tip" id="ctlTip"></span>
+  </div>
+  <span class="ctl-end" id="ctlEnd">2:00</span>
+  <i class="ctl-sep"></i>
+  <div class="ctl-sound" role="group" aria-label="Ton">
+    <button type="button" id="soundBtn" aria-label="Ton ausschalten">
+      <svg class="ico-on" aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>
+      <svg class="ico-off" aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>
+    </button>
+    <input type="range" id="volSlider" min="0" max="100" step="5" value="100" aria-label="Lautst&auml;rke">
+  </div>
+  <i class="ctl-sep"></i>
+  <div class="ctl-view" role="group" aria-label="Ansicht">
+    <button type="button" id="runPhoneBtn" data-view="phone" aria-pressed="true"><span class="view-ico view-ico-phone" aria-hidden="true"><i></i><i></i><i></i></span></button>
+    <button type="button" id="runBeamerBtn" data-view="beamer" aria-pressed="false"><span class="view-ico view-ico-beamer" aria-hidden="true"><em></em><b></b><i></i><i></i></span></button>
+  </div>
+  <i class="ctl-sep"></i>
+  <span class="ctl-impr" id="impLinkRun" tabindex="0" role="button" data-i18n="ui.impressum">Impressum</span>
 </div>
-<div class="view-mini" role="group" aria-label="Ansicht">
-  <button type="button" class="view-mini-opt" id="runPhoneBtn" data-view="phone" aria-pressed="true"><span class="view-ico view-ico-phone" aria-hidden="true"><i></i><i></i><i></i></span></button>
-  <button type="button" class="view-mini-opt" id="runBeamerBtn" data-view="beamer" aria-pressed="false"><span class="view-ico view-ico-beamer" aria-hidden="true"><em></em><b></b><i></i><i></i></span></button>
-</div>
+<!-- Old pause text and progress line: hidden, kept until the bar is approved (audio.js and timer.js still write to them) -->
 <div id="pauseOverlay" class="pause-overlay hidden">
   <div class="pause-text" data-i18n="ui.paused">Pausiert &mdash; tippe um fortzufahren</div>
 </div>
 
-<!-- TIMER BAR -->
 <div class="tbar"><div class="fill" id="tf"></div><div class="lbl" id="tl"></div></div>
 <div class="flash" id="fl"></div>
 <div class="toast" id="toast"></div>
@@ -480,6 +492,7 @@
 <script src="js/scenes/p4b-messages.js?v=1784223914"></script>
 <script src="js/scenes/p5-finale.js?v=1784223914"></script>
 <script src="js/stage.js?v=1784223914"></script>
+<script src="js/controls.js?v=1784223914"></script>
 <script src="js/config.js?v=1784223914"></script>
 <script src="js/firebase-counter.js?v=1784223914"></script>
 <script src="js/main.js?v=1784223914"></script>

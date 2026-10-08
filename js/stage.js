@@ -96,14 +96,34 @@ function stageFit() {
 function stageSync() {
   var phone = document.getElementById('phone');
   var running = !!phone && !phone.classList.contains('hidden');
+  var live = stageWanted && running;
+  var changed = document.body.classList.contains('stage-live') !== live;
   document.body.classList.toggle('beamer', stageWanted);
-  document.body.classList.toggle('stage-live', stageWanted && running);
+  document.body.classList.toggle('sim-running', running);
+  document.body.classList.toggle('stage-live', live);
   var buttons = document.querySelectorAll('[data-view]');
   for (var i = 0; i < buttons.length; i++) {
     var isBeamer = buttons[i].getAttribute('data-view') === 'beamer';
     buttons[i].setAttribute('aria-pressed', isBeamer === stageWanted ? 'true' : 'false');
   }
   stageFit();
+  if (changed) {
+    // The phone has a different height in the two views: keep its chats at the newest message
+    stageScrollPhone();
+    stageFitLists();
+  }
+}
+
+/**
+ * Scrolls the phone's chat containers to their newest entry. Needed whenever
+ * the phone changes its height (switching views, resizing the window),
+ * because the scenes only scroll when they add something.
+ */
+function stageScrollPhone() {
+  ['wC', 'igB', 'tkCl', 'imC'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.scrollTop = el.scrollHeight;
+  });
 }
 
 /**
@@ -177,6 +197,40 @@ function stagePush(list, item, max) {
   list.insertBefore(item, list.querySelector('.st-typing'));
   items = list.querySelectorAll('.st-item');
   for (i = 0; i < items.length - max; i++) items[i].classList.add('out');
+  // The entry animation lets the item grow; only afterwards its height is known
+  item.addEventListener('animationend', function () {
+    stageFitList(list);
+  });
+}
+
+/**
+ * Makes sure the live items fit into their list. With a wider fallback font
+ * (other operating systems) a message can need one more line; instead of
+ * cutting the older message off at the top, the older one is pushed out.
+ * The newest item always stays. Does nothing while the stage is not shown.
+ * @param {Element} list - Stage list (.st-list)
+ */
+function stageFitList(list) {
+  if (!list || !list.clientHeight) return;
+  var needed = 0;
+  var live = [];
+  for (var i = 0; i < list.children.length; i++) {
+    var child = list.children[i];
+    if (child.classList.contains('out')) continue;
+    needed += child.offsetHeight + (parseFloat(getComputedStyle(child).marginTop) || 0);
+    if (child.classList.contains('st-item')) live.push(child);
+  }
+  while (live.length > 1 && needed > list.clientHeight + 1) {
+    var oldest = live.shift();
+    needed -= oldest.offsetHeight + (parseFloat(getComputedStyle(oldest).marginTop) || 0);
+    oldest.classList.add('out');
+  }
+}
+
+/** Checks every stage list, e.g. after the stage became visible or changed its size. */
+function stageFitLists() {
+  var lists = document.querySelectorAll('#stage .st-list');
+  for (var i = 0; i < lists.length; i++) stageFitList(lists[i]);
 }
 
 /**
@@ -418,6 +472,28 @@ function stageOnApp() {
 // ========== WIRING ==========
 
 /**
+ * @type {MutationObserver[]} Observers on elements inside the phone screen.
+ * A jump on the timeline rebuilds the phone screen, so stageReset()
+ * disconnects them and wires new ones.
+ */
+var stageObservers = [];
+
+/** @type {string} Pristine markup of the stage frame, restored by stageReset() */
+var stageInitialFrame = '';
+
+/**
+ * Observes an element and remembers the observer for stageReset().
+ * @param {Element}  el      - Element to observe
+ * @param {Object}   options - MutationObserver options
+ * @param {Function} fn      - Callback
+ */
+function stageObserve(el, options, fn) {
+  var observer = new MutationObserver(fn);
+  observer.observe(el, options);
+  stageObservers.push(observer);
+}
+
+/**
  * Calls `fn(node, added)` for every node added to or removed from the
  * element, in the order the changes happened.
  * @param {string}   id - Element ID to watch
@@ -426,13 +502,13 @@ function stageOnApp() {
 function stageWatchNodes(id, fn) {
   var el = document.getElementById(id);
   if (!el) return;
-  new MutationObserver(function (records) {
+  stageObserve(el, { childList: true }, function (records) {
     records.forEach(function (r) {
       var i;
       for (i = 0; i < r.removedNodes.length; i++) fn(r.removedNodes[i], false);
       for (i = 0; i < r.addedNodes.length; i++) fn(r.addedNodes[i], true);
     });
-  }).observe(el, { childList: true });
+  });
 }
 
 /**
@@ -446,19 +522,16 @@ function stageWatchText(srcId, dstId, copy) {
   if (!src) return;
   var fn = copy || stageMirror;
   fn(srcId, dstId);
-  new MutationObserver(function () {
+  stageObserve(src, { childList: true, characterData: true, subtree: true }, function () {
     fn(srcId, dstId);
-  }).observe(src, { childList: true, characterData: true, subtree: true });
+  });
 }
 
 /**
- * Builds the stage photos and connects every phone element the stage
- * mirrors. Called once after the DOM is ready (main.js). Does nothing if
- * the page has no stage.
+ * Builds the stage photos and connects every element of the phone screen
+ * the stage mirrors. Runs at start and again after every stageReset().
  */
-function stageInit() {
-  if (!document.getElementById('stage') || typeof MutationObserver === 'undefined') return;
-
+function stageWireScenes() {
   // Same layered photo as in the phone; setLayer() switches all copies at once
   ['stWaPh', 'stIgPh', 'stTkPh'].forEach(function (id) {
     var el = document.getElementById(id);
@@ -504,13 +577,50 @@ function stageInit() {
   var classChange = { attributes: true, attributeFilter: ['class'] };
 
   var heart = document.getElementById('igH');
-  if (heart) {
-    new MutationObserver(stageOnHeart).observe(heart, {
-      attributes: true,
-      attributeFilter: ['fill'],
-    });
+  if (heart) stageObserve(heart, { attributes: true, attributeFilter: ['fill'] }, stageOnHeart);
+
+  var finale = document.getElementById('aFn');
+  if (finale) {
+    stageObserve(
+      finale,
+      { attributes: true, attributeFilter: ['class'], subtree: true },
+      stageOnFinale
+    );
   }
 
+  var apps = document.querySelectorAll('#phone .app');
+  for (var i = 0; i < apps.length; i++) stageObserve(apps[i], classChange, stageOnApp);
+}
+
+/**
+ * Puts the stage back into its initial state and wires it to the (rebuilt)
+ * phone screen. Called by simRestart() in controls.js before the scenes run
+ * again, so the stage sees everything they do from the first moment.
+ */
+function stageReset() {
+  stageObservers.forEach(function (observer) {
+    observer.disconnect();
+  });
+  stageObservers = [];
+  var frame = document.querySelector('#stage .st-frame');
+  if (frame && stageInitialFrame) frame.innerHTML = stageInitialFrame;
+  stageWireScenes();
+  stageOnToast();
+}
+
+/**
+ * Sets up the stage once after the DOM is ready (main.js). Does nothing if
+ * the page has no stage.
+ */
+function stageInit() {
+  if (!document.getElementById('stage') || typeof MutationObserver === 'undefined') return;
+
+  var frame = document.querySelector('#stage .st-frame');
+  stageInitialFrame = frame ? frame.innerHTML : '';
+  stageObservers = [];
+  stageWireScenes();
+
+  // These two elements live outside the phone screen and survive a restart
   var toastEl = document.getElementById('toast');
   if (toastEl) {
     new MutationObserver(stageOnToast).observe(toastEl, {
@@ -522,24 +632,19 @@ function stageInit() {
     });
   }
 
-  var finale = document.getElementById('aFn');
-  if (finale) {
-    new MutationObserver(stageOnFinale).observe(finale, {
+  // Start and end of the phone phase decide whether the stage is visible
+  var phone = document.getElementById('phone');
+  if (phone) {
+    new MutationObserver(stageSync).observe(phone, {
       attributes: true,
       attributeFilter: ['class'],
-      subtree: true,
     });
   }
 
-  var apps = document.querySelectorAll('#phone .app');
-  for (var i = 0; i < apps.length; i++) {
-    new MutationObserver(stageOnApp).observe(apps[i], classChange);
-  }
-
-  // Start and end of the phone phase decide whether the stage is visible
-  var phone = document.getElementById('phone');
-  if (phone) new MutationObserver(stageSync).observe(phone, classChange);
-
   // The phone beside the stage is scaled by script, so follow window changes
-  window.addEventListener('resize', stageFit);
+  window.addEventListener('resize', function () {
+    stageFit();
+    stageScrollPhone();
+    stageFitLists();
+  });
 }

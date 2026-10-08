@@ -128,8 +128,16 @@ html, body { margin: 0 !important; padding: 0 !important; background: #000 !impo
   border-radius: 0 !important;
   box-shadow: none !important;
 }
+/* Der Startbildschirm verteilt seinen Platz seit der Beamer-Ansicht selbst
+   (Titelblock oben, Fußbereich unten). Ohne Fußbereich muss der Titelblock
+   hier wieder mittig stehen. */
+#start { justify-content: center !important; padding: 0 !important; }
+#start h1 { margin-top: 0 !important; }
 /* UI-Elemente ausblenden, die für das Workshop-Backup nicht gebraucht werden */
 #startBtn,
+#start .view-pick,
+#start .beamer-hint,
+.ctl-bar,
 #start .start-footer,
 .fin-actions,
 .cta-links,

@@ -103,13 +103,42 @@ QUnit.module(
       );
     });
 
-    QUnit.test('shareSimulation() never shares the projector parameter', function (assert) {
-      assert.equal(
-        stageUrl('https://cybermobbing.web.app/?beamer=1&lang=en', false),
-        'https://cybermobbing.web.app/?lang=en',
-        'share URL is built without beamer=1'
-      );
-    });
+    QUnit.test(
+      'shareSimulation() passes the link on without the projector switch',
+      function (assert) {
+        var origUrl = window.location.href;
+        var origUA = Object.getOwnPropertyDescriptor(navigator, 'userAgent');
+        var origShare = navigator.share;
+        var shared = null;
+        navigator.share = function (data) {
+          shared = data;
+          return Promise.resolve();
+        };
+        try {
+          // Put the switch into the address bar, as choosing the projector view does
+          history.replaceState(null, '', stageUrl(origUrl, true));
+          Object.defineProperty(navigator, 'userAgent', {
+            get: function () {
+              return 'Mozilla/5.0 (iPhone; CPU OS 16_0)';
+            },
+            configurable: true,
+          });
+          assert.ok(/[?&]beamer=1/.test(window.location.href), 'address bar carries beamer=1');
+          shareSimulation();
+          assert.ok(shared && shared.url, 'shareSimulation() handed a link to the share sheet');
+          assert.ok(
+            shared && !/beamer/.test(shared.url),
+            'the shared link has no projector switch'
+          );
+        } finally {
+          if (origUA) Object.defineProperty(navigator, 'userAgent', origUA);
+          else delete navigator.userAgent;
+          if (origShare) navigator.share = origShare;
+          else delete navigator.share;
+          history.replaceState(null, '', origUrl);
+        }
+      }
+    );
 
     QUnit.test('stageSet() sets the body class and marks the chosen view', function (assert) {
       stageSet(true);

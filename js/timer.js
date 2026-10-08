@@ -29,6 +29,7 @@ function tick() {
     document.getElementById('tl').textContent = Math.floor(sec) + 's / 120s';
   }
   if (sec >= 130) clearInterval(tmr);
+  if (typeof ctlUpdate === 'function') ctlUpdate();
 }
 
 /** @type {number} Wall-clock timestamp when the clock was started/resumed (ms) */

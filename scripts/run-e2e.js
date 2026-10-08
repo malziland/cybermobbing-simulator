@@ -11,13 +11,17 @@
  *   5. Final CTA screen appears; axe-core scan of the CTA screen.
  *   6. CTA buttons are keyboard-reachable; share shows the toast.
  *   7. Projector view (ADR-0007): choose it on the start screen via keyboard
- *      (axe scan with it chosen), toggle with the B key and the in-run
- *      button while the run continues, the phone stays beside the stage,
- *      and after a full run every scene text must have appeared on it.
+ *      (axe scan with it chosen), toggle with the B key and the control bar
+ *      while the run continues, the phone stays beside the stage, and after
+ *      a full run every scene text must have appeared on the stage.
  *   8. Sound control: M key, mute button and volume slider via keyboard.
- *   9. Projector view keeps its proportions in several window sizes and
- *      zoom levels; nothing sticks out of the picture, picture and counters
- *      sit at the same place in every app, controls scale with the stage.
+ *   9. Timeline (ADR-0008): clicking a scene, dragging and the keyboard jump
+ *      forwards and backwards; after a jump the phone shows exactly what a
+ *      normal run shows at that second, the stage shows the same newest
+ *      message, and a paused run stays paused.
+ *  10. Layout: the control bar is the same in both views, nothing overlaps
+ *      or sticks out in several window sizes and zoom levels, the start
+ *      screen has no overlaps, and wider fallback fonts do not cut messages.
  *
  * Hermetic setup: js/config.js is replaced by js/config.example.js via route
  * interception, and all firebaseio/googleapis requests are blocked, so the
@@ -87,20 +91,24 @@ async function makeHermetic(context) {
 }
 
 /**
- * What is actually on screen right now. In the projector view the phone
- * stays visible at the left edge of the stage; `phoneBeside` says whether it
- * sits completely inside the stage, left of the large content.
+ * What is actually on screen right now. `phone` is true only if the phone is
+ * the top-most element at its own centre (so a phone hidden behind the stage
+ * does not count). In the projector view the phone stays visible at the left
+ * edge; `phoneBeside` says whether it sits completely inside the stage, left
+ * of the large content.
  */
 function visibleView(page) {
   return page.evaluate(function () {
-    var phone = document.getElementById('phone').getBoundingClientRect();
+    var phoneEl = document.getElementById('phone');
+    var phone = phoneEl.getBoundingClientRect();
     var frame = document.querySelector('.st-frame').getBoundingClientRect();
     var stageShown = getComputedStyle(document.getElementById('stage')).display !== 'none';
     var col = document.querySelector('#stage .st-scene.on .st-col');
     var colLeft = col ? col.getBoundingClientRect().left : Infinity;
+    var top = document.elementFromPoint(phone.left + phone.width / 2, phone.top + phone.height / 2);
     return {
       stage: stageShown,
-      phone: getComputedStyle(document.getElementById('phone')).visibility === 'visible',
+      phone: !!top && phoneEl.contains(top),
       phoneBeside:
         stageShown &&
         phone.left >= frame.left - 1 &&
@@ -179,6 +187,63 @@ function installStageRecorder() {
     childList: true,
     characterData: true,
   });
+}
+
+/**
+ * Records, during a normal run, the simulation second at which every chat
+ * entry appears in the phone (test side only). Reference for the timeline.
+ */
+function installPhoneRecorder() {
+  window.__phoneLog = [];
+  var kinds = { wm: 'wa', 'wm-photo': 'wa', 'ig-c': 'ig', tc: 'tk', 'hs-n': 'hs', 'im-bub': 'im' };
+  new MutationObserver(function (records) {
+    records.forEach(function (r) {
+      for (var i = 0; i < r.addedNodes.length; i++) {
+        var n = r.addedNodes[i];
+        if (!n.classList) continue;
+        for (var cls in kinds) {
+          if (n.classList.contains(cls))
+            window.__phoneLog.push({ t: window.sec, kind: kinds[cls] });
+        }
+      }
+    });
+  }).observe(document.querySelector('#phone .scr'), { subtree: true, childList: true });
+}
+
+/** Snapshot of what the phone and the stage show right now. */
+function simSnapshot() {
+  function clean(el) {
+    var c = el.cloneNode(true);
+    var drop = c.querySelectorAll('.meta,.who,.ig-av-inline,b,.av-circle,.nm,.st-name');
+    for (var i = 0; i < drop.length; i++) drop[i].parentNode.removeChild(drop[i]);
+    return c.textContent.replace(/\s+/g, ' ').trim();
+  }
+  var on = document.querySelector('#phone .app.on');
+  var panel = document.querySelector('#stage .st-scene.on');
+  var phoneItems = document.querySelectorAll(
+    '#phone .app.on .wm, #phone .app.on .wm-photo .cap, #phone .app.on .ig-c, #phone .app.on .tc .tx, #phone .app.on .im-bub'
+  );
+  var stageItems = document.querySelectorAll('#stage .st-scene.on .st-item:not(.out) .st-text');
+  return {
+    sec: window.sec,
+    paused: window.simPaused,
+    app: on ? on.id : null,
+    panel: panel ? panel.getAttribute('data-app') : null,
+    scene: document.getElementById('ctlScene').textContent,
+    now: document.getElementById('ctlNow').textContent,
+    counts: {
+      wa: document.querySelectorAll('#wC .wm, #wC .wm-photo').length,
+      ig: document.querySelectorAll('#igCm .ig-c').length,
+      tk: document.querySelectorAll('#tkCl .tc').length,
+      hs: window.__hsSeen === undefined ? null : window.__hsSeen,
+      im: document.querySelectorAll('#imC .im-bub').length,
+    },
+    phoneNewest: phoneItems.length ? clean(phoneItems[phoneItems.length - 1]) : '',
+    stageNewest: stageItems.length ? clean(stageItems[stageItems.length - 1]) : '',
+    likes: parseInt(document.getElementById('igLk').textContent, 10),
+    flashing: document.getElementById('fl').classList.contains('go'),
+    timers: window.simTimers.length,
+  };
 }
 
 /** Returns the scene keys whose text never appeared on the stage. */
@@ -270,12 +335,32 @@ function missingOnStage(keys) {
   check(
     await page.evaluate(function () {
       return (
-        getComputedStyle(document.querySelector('.sound-mini')).display === 'flex' &&
-        getComputedStyle(document.querySelector('.view-mini')).display === 'flex'
+        getComputedStyle(document.getElementById('ctlBar')).display === 'flex' &&
+        getComputedStyle(document.querySelector('.ctl-sound')).display !== 'none' &&
+        getComputedStyle(document.querySelector('.ctl-view')).display !== 'none' &&
+        getComputedStyle(document.querySelector('.pause-overlay')).display === 'none' &&
+        getComputedStyle(document.querySelector('.tbar')).display === 'none'
       );
     }),
-    'phone view: sound control and view picker are shown'
+    'phone view: control bar with sound and view picker is shown, old controls are not'
   );
+  // The start screen fades out for 0.8 s and is then taken out for the keyboard too
+  const startHidden = await page
+    .waitForFunction(
+      function () {
+        return getComputedStyle(document.getElementById('start')).visibility === 'hidden';
+      },
+      { timeout: 3000 }
+    )
+    .then(
+      function () {
+        return true;
+      },
+      function () {
+        return false;
+      }
+    );
+  check(startHidden, 'start screen is hidden for the keyboard once the simulation runs');
 
   console.log('E2E: full run to CTA screen (time-lapse x10)');
   await page.waitForSelector('#aCta:not(.hidden)', { timeout: 40000 });
@@ -349,14 +434,39 @@ function missingOnStage(keys) {
   );
   await axeScan(stagePage, '#start', 'start screen with projector switch on');
 
-  console.log('E2E: projector view - run, toggle with B key and button');
+  // The B key must not act while the legal notice is open
+  await stagePage.evaluate(function () {
+    document.getElementById('impLinkGlobal').click();
+  });
+  await stagePage.keyboard.press('b');
+  check(
+    await stagePage.evaluate(function () {
+      return (
+        document.getElementById('impModal').classList.contains('show') &&
+        document.body.classList.contains('beamer')
+      );
+    }),
+    'B key does nothing while the legal notice is open'
+  );
+  await stagePage.keyboard.press('Escape');
+
+  console.log('E2E: projector view - run, toggle with B key and control bar');
   await stagePage.evaluate(installStageRecorder);
+  await stagePage.evaluate(installPhoneRecorder);
   check(await tabTo(stagePage, 'startBtn', 10), 'start button reachable via Tab');
   await stagePage.keyboard.press('Enter');
-  // the phone is invisible in the projector view: wait for the scene class, not visibility
   await stagePage.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
   let view = await visibleView(stagePage);
   check(view.stage && view.phone && view.phoneBeside, 'stage is shown with the phone beside it');
+  check(
+    await stagePage.evaluate(function () {
+      return (
+        parseFloat(getComputedStyle(document.getElementById('phone')).height) ===
+        window.STAGE_PHONE_PX
+      );
+    }),
+    'pixel height of the phone in the stylesheet matches STAGE_PHONE_PX in stage.js'
+  );
 
   const timersBefore = await stagePage.evaluate(function () {
     return window.simTimers.length;
@@ -368,16 +478,36 @@ function missingOnStage(keys) {
     'B key switches to the phone view (phone back in the centre)'
   );
   check(
+    await stagePage.evaluate(function () {
+      return !/[?&]beamer=1(&|$)/.test(window.location.search);
+    }),
+    'B key takes the projector switch out of the address bar again'
+  );
+  check(
     await stagePage.evaluate(function (n) {
       return window.simTimers.length === n && window.simPaused === false;
     }, timersBefore),
     'switching does not touch the running timers'
   );
-  check(await tabTo(stagePage, 'runBeamerBtn', 10), 'in-run projector button reachable via Tab');
+  // Holding the key down sends repeats; they must not toggle back and forth
+  await stagePage.keyboard.down('b');
+  await stagePage.keyboard.down('b');
+  await stagePage.keyboard.down('b');
+  await stagePage.keyboard.up('b');
+  view = await visibleView(stagePage);
+  check(
+    view.stage && view.beamerPressed === 'true',
+    'holding the B key toggles once, not on every repeat'
+  );
+  await stagePage.keyboard.press('b');
+  check(
+    await tabTo(stagePage, 'runBeamerBtn', 12),
+    'projector button in the bar reachable via Tab'
+  );
   await stagePage.keyboard.press('Enter');
   view = await visibleView(stagePage);
   check(
-    view.stage && view.phoneBeside && view.beamerPressed === 'true',
+    view.stage && view.phone && view.phoneBeside && view.beamerPressed === 'true',
     'button switches back to the stage'
   );
 
@@ -408,7 +538,7 @@ function missingOnStage(keys) {
     sound.muted && sound.marked && sound.label === sound.unmute,
     'M key switches the sound off'
   );
-  check(await tabTo(stagePage, 'soundBtn', 10), 'sound button reachable via Tab');
+  check(await tabTo(stagePage, 'soundBtn', 12), 'sound button reachable via Tab');
   await stagePage.keyboard.press('Enter');
   sound = await soundState();
   check(!sound.muted && !sound.marked, 'sound button switches the sound back on');
@@ -466,18 +596,420 @@ function missingOnStage(keys) {
     await stagePage.evaluate(function () {
       return (
         getComputedStyle(document.getElementById('stage')).display === 'none' &&
+        getComputedStyle(document.getElementById('ctlBar')).display === 'none' &&
         !document.getElementById('aCta').classList.contains('hidden')
       );
     }),
-    'help screen replaces the stage at the end'
+    'help screen replaces the stage and the control bar at the end'
   );
+  // Reference for the timeline: when did each chat entry appear in this normal run?
+  const reference = await stagePage.evaluate(function () {
+    return window.__phoneLog;
+  });
   await stagePage.close();
 
-  console.log('E2E: phone view - pause symbol and legal notice are large enough and clear');
-  // [width, height]: laptop, Full HD, two phone sizes
+  // ---------- Timeline (ADR-0008) ----------
+  console.log('E2E: timeline - jumps forwards and backwards match a normal run');
+  const seekPage = await context.newPage();
+  seekPage.on('pageerror', function (err) {
+    pageErrors.push(String(err));
+  });
+  await seekPage.goto('http://127.0.0.1:' + server.port + '/?testspeed=10&beamer=1');
+  await seekPage.click('#startBtn');
+  await seekPage.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+  // Paused, so the state cannot move on while it is compared
+  await seekPage.evaluate(function () {
+    window.togglePause();
+    // The homescreen keeps only the last four notifications; count them as they come
+    window.__hsSeen = 0;
+    window.__countHs = function () {
+      window.__hsSeen = 0;
+      new MutationObserver(function (records) {
+        records.forEach(function (r) {
+          for (var i = 0; i < r.addedNodes.length; i++) {
+            if (r.addedNodes[i].classList && r.addedNodes[i].classList.contains('hs-n')) {
+              window.__hsSeen++;
+            }
+          }
+        });
+      }).observe(document.getElementById('hsN'), { childList: true });
+    };
+  });
+  check(reference.length >= 33, 'reference run recorded ' + reference.length + ' chat entries');
+
+  // Targets sit in quiet moments, at least 0.8 s away from any scene event,
+  // and are visited in an order that jumps both forwards and backwards
+  const targets = [62.8, 13.5, 100, 34.5, 87.2];
+  for (const target of targets) {
+    const snap = await seekPage.evaluate(function (t) {
+      // Count homescreen notifications during this jump: wire the counter right
+      // after the restart inside simSeek() by wrapping p1() for one call
+      var original = window.p1;
+      window.p1 = function () {
+        window.p1 = original;
+        window.__countHs();
+        return original.apply(this, arguments);
+      };
+      window.simSeek(t);
+      return null;
+    }, target);
+    void snap;
+    await seekPage.waitForTimeout(60); // let the observers of the stage run
+    const got = await seekPage.evaluate(simSnapshot);
+    const want = { wa: 0, ig: 0, tk: 0, hs: 0, im: 0 };
+    reference.forEach(function (entry) {
+      if (entry.t <= target) want[entry.kind]++;
+    });
+    const same = ['wa', 'ig', 'tk', 'hs', 'im'].every(function (kind) {
+      return got.counts[kind] === want[kind];
+    });
+    check(
+      same,
+      'jump to ' +
+        target +
+        ' s: phone shows the same entries as a normal run (' +
+        JSON.stringify(got.counts) +
+        (same ? '' : ' instead of ' + JSON.stringify(want)) +
+        ')'
+    );
+    check(
+      got.app === got.panel && got.phoneNewest === got.stageNewest,
+      'jump to ' +
+        target +
+        ' s: stage shows the same scene and the same newest message as the phone' +
+        (got.phoneNewest === got.stageNewest
+          ? ''
+          : ' (phone "' + got.phoneNewest + '", stage "' + got.stageNewest + '")')
+    );
+    check(
+      got.paused && Math.abs(got.sec - target) < 0.01 && !got.flashing,
+      'jump to ' + target + ' s: stays paused at that second, no camera flash'
+    );
+  }
+
+  // Every mark on the timeline must be the real scene switch
+  const marks = await seekPage.evaluate(function () {
+    var out = [];
+    window.CTL_SCENES.forEach(function (scene, index) {
+      window.simSeek(scene.at);
+      var at = document.querySelector('#phone .app.on').id;
+      var before = null;
+      if (index > 0) {
+        window.simSeek(scene.at - 0.5);
+        before = document.querySelector('#phone .app.on').id;
+      }
+      out.push({
+        at: scene.at,
+        app: scene.app,
+        atMark: at,
+        justBefore: before,
+        previous: index > 0 ? window.CTL_SCENES[index - 1].app : null,
+        label: window.t(scene.key),
+      });
+    });
+    return out;
+  });
+  check(
+    marks.every(function (m) {
+      return m.atMark === m.app && m.justBefore === m.previous;
+    }),
+    'all six scene marks sit exactly on the scene switches (' +
+      marks
+        .map(function (m) {
+          return m.at;
+        })
+        .join(', ') +
+      ' s)'
+  );
+
+  console.log('E2E: timeline - mouse and keyboard');
+  const track = await seekPage.evaluate(function () {
+    var r = document.getElementById('ctlTrack').getBoundingClientRect();
+    return { left: r.left, width: r.width, y: r.top + r.height / 2 };
+  });
+  function trackX(second) {
+    return track.left + (track.width * second) / 120;
+  }
+  // Pointing shows where a click goes; a click snaps to the start of the scene
+  await seekPage.mouse.move(trackX(70), track.y);
+  const tip = await seekPage.evaluate(function () {
+    var el = document.getElementById('ctlTip');
+    return { shown: el.classList.contains('show'), text: el.textContent };
+  });
+  check(
+    tip.shown && /TikTok/.test(tip.text) && /0:56/.test(tip.text),
+    'pointing at a scene names it (' + tip.text + ')'
+  );
+  await seekPage.mouse.click(trackX(70), track.y);
+  let after = await seekPage.evaluate(simSnapshot);
+  check(
+    after.app === 'aTk' && Math.abs(after.sec - 56) < 0.01 && after.now === '0:56',
+    'click inside the TikTok part jumps to its start (0:56)'
+  );
+  await seekPage.mouse.click(trackX(10), track.y);
+  after = await seekPage.evaluate(simSnapshot);
+  check(
+    after.app === 'aWa' && Math.abs(after.sec) < 0.01 && after.counts.ig === 0 && after.likes === 0,
+    'click inside the WhatsApp part jumps back to the start, counters are back at zero'
+  );
+  // Dragging lands exactly where the pointer is released
+  await seekPage.mouse.move(trackX(5), track.y);
+  await seekPage.mouse.down();
+  await seekPage.mouse.move(trackX(20), track.y, { steps: 4 });
+  await seekPage.mouse.move(trackX(40), track.y, { steps: 4 });
+  await seekPage.mouse.up();
+  after = await seekPage.evaluate(simSnapshot);
+  check(
+    after.app === 'aIg' && Math.abs(after.sec - 40) < 1,
+    'dragging to 0:40 lands there (' + after.sec.toFixed(1) + ' s, Instagram)'
+  );
+  // Keyboard on the focused timeline
+  await seekPage.focus('#ctlSeek');
+  await seekPage.keyboard.press('ArrowRight');
+  after = await seekPage.evaluate(simSnapshot);
+  const afterArrow = after.sec;
+  await seekPage.keyboard.press('PageUp');
+  after = await seekPage.evaluate(simSnapshot);
+  const afterPage = { sec: after.sec, app: after.app };
+  await seekPage.keyboard.press('Home');
+  after = await seekPage.evaluate(simSnapshot);
+  check(
+    Math.abs(afterArrow - 45) < 1.1 &&
+      afterPage.app === 'aTk' &&
+      afterPage.sec === 56 &&
+      after.sec === 0,
+    'keyboard: arrow +5 s, Page Up next scene, Home back to the start'
+  );
+  check(
+    await seekPage.evaluate(function () {
+      var seek = document.getElementById('ctlSeek');
+      return (
+        seek.getAttribute('role') === 'slider' &&
+        seek.getAttribute('aria-valuemax') === '120' &&
+        seek.getAttribute('aria-valuenow') === '0' &&
+        !!seek.getAttribute('aria-label') &&
+        !!document.getElementById('pauseBtn').getAttribute('aria-label')
+      );
+    }),
+    'timeline and pause button carry role, value and accessible names'
+  );
+  // After a jump the run really continues from there
+  await seekPage.evaluate(function () {
+    window.simSeek(30);
+    window.togglePause();
+  });
+  await seekPage.waitForFunction(
+    function () {
+      return window.sec > 34 && document.querySelectorAll('#igCm .ig-c').length >= 2;
+    },
+    { timeout: 5000 }
+  );
+  after = await seekPage.evaluate(simSnapshot);
+  check(
+    !after.paused && after.app === 'aIg' && after.phoneNewest === after.stageNewest,
+    'after a jump and resume the run continues, phone and stage stay together'
+  );
+  await seekPage.close();
+
+  console.log('E2E: timeline - on a phone it only shows the progress');
+  const phoneCtx = await browser.newContext({
+    locale: 'de-DE',
+    viewport: { width: 393, height: 852 },
+  });
+  await makeHermetic(phoneCtx);
+  const phonePage = await phoneCtx.newPage();
+  phonePage.on('pageerror', function (err) {
+    pageErrors.push(String(err));
+  });
+  await phonePage.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+  await phonePage.click('#startBtn');
+  await phonePage.waitForSelector('#aWa.on', { timeout: 5000 });
+  await phonePage.evaluate(function () {
+    window.togglePause();
+  });
+  const narrow = await phonePage.evaluate(function () {
+    var r = document.getElementById('ctlTrack').getBoundingClientRect();
+    var seek = document.getElementById('ctlSeek');
+    return {
+      x: r.left + r.width * 0.6,
+      y: r.top + r.height / 2,
+      role: seek.getAttribute('role'),
+      tabIndex: seek.tabIndex,
+      knob: getComputedStyle(document.querySelector('.ctl-knob')).display,
+      viewPicker: getComputedStyle(document.querySelector('.ctl-view')).display,
+      before: window.sec,
+    };
+  });
+  await phonePage.mouse.click(narrow.x, narrow.y);
+  const narrowAfter = await phonePage.evaluate(function () {
+    return { sec: window.sec, app: document.querySelector('#phone .app.on').id };
+  });
+  check(
+    narrow.role === 'progressbar' &&
+      narrow.tabIndex === -1 &&
+      narrow.knob === 'none' &&
+      narrow.viewPicker === 'none' &&
+      narrowAfter.app === 'aWa' &&
+      narrowAfter.sec === narrow.before,
+    '393 px wide: timeline is a progress display, a tap does not jump, no view picker'
+  );
+  await phoneCtx.close();
+
+  // ---------- Layout ----------
+  /** True if no two rectangles of the list overlap and all lie inside `box`. */
+  function layoutProbe() {
+    function rect(sel) {
+      var el = document.querySelector(sel);
+      if (!el || getComputedStyle(el).display === 'none') return null;
+      var r = el.getBoundingClientRect();
+      return r.width && r.height ? r : null;
+    }
+    function overlaps(names, box) {
+      var hits = [];
+      var list = names
+        .map(function (n) {
+          return { name: n, r: rect(n) };
+        })
+        .filter(function (x) {
+          return x.r;
+        });
+      for (var a = 0; a < list.length; a++) {
+        var c = list[a].r;
+        if (
+          box &&
+          (c.left < box.left - 1 ||
+            c.right > box.right + 1 ||
+            c.top < box.top - 1 ||
+            c.bottom > box.bottom + 1)
+        ) {
+          hits.push(list[a].name + ' outside');
+        }
+        for (var b = a + 1; b < list.length; b++) {
+          var d = list[b].r;
+          if (
+            c.left < d.right - 0.5 &&
+            c.right - 0.5 > d.left &&
+            c.top < d.bottom - 0.5 &&
+            c.bottom - 0.5 > d.top
+          ) {
+            hits.push(list[a].name + ' / ' + list[b].name);
+          }
+        }
+      }
+      return hits;
+    }
+    var windowBox = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
+    var live = document.body.classList.contains('stage-live');
+    var frame = document.querySelector('.st-frame').getBoundingClientRect();
+    var bar = document.getElementById('ctlBar').getBoundingClientRect();
+    var unit = Math.min(window.innerWidth / 100, window.innerHeight / 56.25);
+    return {
+      // parts inside the bar: next to each other, inside the bar
+      insideBar: overlaps(
+        ['#pauseBtn', '.ctl-time', '#ctlSeek', '#ctlEnd', '.ctl-sound', '.ctl-view', '#impLinkRun'],
+        bar
+      ),
+      // bar against everything around it
+      around: overlaps(
+        ['#ctlBar', '#phone', '.impr-link-bar .impr-link'],
+        live ? frame : windowBox
+      ),
+      bar: {
+        left: bar.left,
+        right: bar.right,
+        top: bar.top,
+        bottom: bar.bottom,
+        height: bar.height,
+      },
+      wantHeight: window.innerWidth <= 500 ? 36 : Math.max(40, unit * 3.6),
+      scrollbars:
+        document.documentElement.scrollWidth > window.innerWidth ||
+        document.documentElement.scrollHeight > window.innerHeight,
+    };
+  }
+
+  console.log('E2E: start screen - nothing overlaps in any window size');
+  // [width, height]: laptop, low windows, Full HD, phones, a very low phone window
+  const startSizes = [
+    [1280, 720],
+    [1280, 600],
+    [1366, 657],
+    [1920, 1080],
+    [393, 852],
+    [375, 667],
+    [375, 553],
+  ];
+  for (const size of startSizes) {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: size[0], height: size[1] },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/');
+    await p.waitForSelector('#startBtn');
+    const hits = await p.evaluate(function () {
+      function rect(sel) {
+        var el = document.querySelector(sel);
+        if (!el || getComputedStyle(el).display === 'none') return null;
+        return el.getBoundingClientRect();
+      }
+      var names = [
+        '#start h1',
+        '#start .sub1',
+        '#startBtn',
+        '.view-pick',
+        '.beamer-hint',
+        '#startShareBtn',
+        '.start-views',
+        '.start-credit',
+        '.disclaimer',
+        '.impr-link',
+      ];
+      var list = names
+        .map(function (n) {
+          return { name: n, r: rect(n) };
+        })
+        .filter(function (x) {
+          return x.r;
+        });
+      var out = [];
+      for (var a = 0; a < list.length; a++) {
+        var c = list[a].r;
+        if (c.top < -1 || c.bottom > window.innerHeight + 1) out.push(list[a].name + ' outside');
+        for (var b = a + 1; b < list.length; b++) {
+          var d = list[b].r;
+          if (
+            c.left < d.right &&
+            c.right > d.left &&
+            c.top < d.bottom - 0.5 &&
+            c.bottom - 0.5 > d.top
+          ) {
+            out.push(list[a].name + ' / ' + list[b].name);
+          }
+        }
+      }
+      return out;
+    });
+    check(
+      hits.length === 0,
+      size[0] +
+        'x' +
+        size[1] +
+        ': start screen has no overlaps' +
+        (hits.length ? ' - ' + hits.join(', ') : '')
+    );
+    await ctx.close();
+  }
+
+  console.log('E2E: control bar - fits in the phone view in every window size');
   const phoneViewSizes = [
     [1280, 720],
     [1920, 1080],
+    [1024, 768],
     [393, 852],
     [375, 667],
   ];
@@ -492,64 +1024,61 @@ function missingOnStage(keys) {
       pageErrors.push(String(err));
     });
     await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
-    await p.waitForSelector('#startBtn');
-    const startScreen = await p.evaluate(function () {
-      var impr = document.querySelector('.impr-link').getBoundingClientRect();
-      var disc = document.querySelector('.disclaimer').getBoundingClientRect();
-      return { clear: disc.bottom <= impr.top + 1 && impr.bottom <= window.innerHeight };
-    });
     await p.click('#startBtn');
     await p.waitForSelector('#aWa.on', { timeout: 5000 });
     await p.evaluate(function () {
       window.togglePause();
     });
-    const m = await p.evaluate(function () {
-      function rect(sel) {
-        return document.querySelector(sel).getBoundingClientRect();
-      }
-      function shown(sel) {
-        return getComputedStyle(document.querySelector(sel)).display !== 'none';
-      }
-      var unit = Math.min(window.innerWidth / 100, window.innerHeight / 56.25);
-      var items = [rect('#pauseBtn'), rect('.impr-link'), rect('.pause-text'), rect('#phone')];
-      if (shown('.sound-mini')) items.push(rect('.sound-mini'));
-      if (shown('.view-mini')) items.push(rect('.view-mini'));
-      var clear = true;
-      for (var a = 0; a < items.length; a++) {
-        var c = items[a];
-        if (c.left < -1 || c.right > window.innerWidth + 1 || c.bottom > window.innerHeight + 1) {
-          clear = false;
-        }
-        for (var b = a + 1; b < items.length; b++) {
-          var d = items[b];
-          if (c.left < d.right && c.right > d.left && c.top < d.bottom && c.bottom > d.top) {
-            clear = false;
-          }
-        }
-      }
-      return {
-        pause: parseFloat(getComputedStyle(document.getElementById('pauseBtn')).fontSize),
-        impr: parseFloat(getComputedStyle(document.querySelector('.impr-link')).fontSize),
-        wantPause: Math.max(22, unit * 2),
-        wantImpr: Math.max(15, unit * 1.2),
-        clear: clear,
-      };
-    });
+    const m = await p.evaluate(layoutProbe);
     const label = size[0] + 'x' + size[1];
     check(
-      Math.abs(m.pause - m.wantPause) < 0.5 && Math.abs(m.impr - m.wantImpr) < 0.5,
+      m.insideBar.length === 0 && m.around.length === 0 && !m.scrollbars,
       label +
-        ': pause symbol ' +
-        m.pause.toFixed(1) +
-        'px, legal notice ' +
-        m.impr.toFixed(1) +
-        'px (at least 22px / 15px)'
+        ': bar, phone and legal notice do not overlap, parts of the bar sit side by side' +
+        (m.insideBar.concat(m.around).length ? ' - ' + m.insideBar.concat(m.around).join(', ') : '')
     );
     check(
-      m.clear,
-      label + ': paused - pause symbol, pause text, legal notice, controls and phone do not overlap'
+      Math.abs(m.bar.height - m.wantHeight) < 0.6,
+      label +
+        ': bar is ' +
+        m.bar.height.toFixed(1) +
+        ' px high (expected ' +
+        m.wantHeight.toFixed(1) +
+        ')'
     );
-    check(startScreen.clear, label + ': start screen - disclaimer does not cover the legal notice');
+    await ctx.close();
+  }
+
+  console.log('E2E: switching views keeps the newest chat message in sight');
+  {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1024, height: 768 },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10&beamer=1');
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+    await p.evaluate(function () {
+      window.togglePause();
+      window.simSeek(24);
+    });
+    await p.keyboard.press('b'); // projector -> phone view, the phone gets lower
+    const hidden = await p.evaluate(function () {
+      var box = document.getElementById('wC').getBoundingClientRect();
+      var last = document.querySelector('#wC').lastElementChild.getBoundingClientRect();
+      return Math.round(last.bottom - box.bottom);
+    });
+    check(
+      hidden <= 1,
+      '1024x768: after switching to the phone view the newest message is inside the chat (' +
+        hidden +
+        ' px below its edge)'
+    );
     await ctx.close();
   }
 
@@ -578,6 +1107,9 @@ function missingOnStage(keys) {
     await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10&beamer=1');
     await p.click('#startBtn');
     await p.waitForSelector('#stWaList .st-item', { timeout: 5000 });
+    await p.evaluate(function () {
+      window.togglePause();
+    });
     await p.waitForTimeout(500); // let the entry animation finish
     const m = await p.evaluate(function () {
       var frame = document.querySelector('.st-frame').getBoundingClientRect();
@@ -612,36 +1144,11 @@ function missingOnStage(keys) {
       });
       var igCounts = rect('#stIg .st-counts');
       var tkCounts = rect('#stTk .st-counts');
-      var controls = [
-        rect('#pauseBtn'),
-        rect('.impr-link'),
-        rect('.view-mini'),
-        rect('.sound-mini'),
-        phone,
-      ];
-      var controlsClear = true;
-      for (var a = 0; a < controls.length; a++) {
-        var c = controls[a];
-        if (c.left < frame.left - 1 || c.right > frame.right + 1 || c.bottom > frame.bottom + 1) {
-          controlsClear = false;
-        }
-        for (var b = a + 1; b < controls.length; b++) {
-          var d = controls[b];
-          if (c.left < d.right && c.right > d.left && c.top < d.bottom && c.bottom > d.top) {
-            controlsClear = false;
-          }
-        }
-      }
       return {
         samePhotoPlace: samePhotoPlace,
         sameCounterPlace:
           Math.abs(igCounts.right - tkCounts.right) <= 1 &&
           Math.abs(igCounts.top - tkCounts.top) <= 1,
-        pauseRatio:
-          parseFloat(getComputedStyle(document.getElementById('pauseBtn')).fontSize) / frame.width,
-        imprRatio:
-          parseFloat(getComputedStyle(document.querySelector('.impr-link')).fontSize) / frame.width,
-        controlsClear: controlsClear,
         phoneRatio: phone.height / frame.width,
         phoneInside:
           phone.left >= frame.left - 1 &&
@@ -657,12 +1164,16 @@ function missingOnStage(keys) {
           frame.right <= window.innerWidth + 1 &&
           frame.bottom <= window.innerHeight + 1,
         inside: inside,
-        scrollbars:
-          document.documentElement.scrollWidth > window.innerWidth ||
-          document.documentElement.scrollHeight > window.innerHeight,
       };
     });
+    const bar = await p.evaluate(layoutProbe);
+    // Same window in the phone view: on 16:9 the bar must not move at all
+    await p.keyboard.press('b');
+    const barPhoneView = await p.evaluate(layoutProbe);
     const label = size[0] + 'x' + size[1] + ' @' + size[2];
+    // Identical bars need a 16:9 window that is large enough for the phone
+    // view's minimum bar height (40 px) not to apply
+    const wide = Math.abs(size[0] / size[1] - 16 / 9) < 0.01 && (size[0] / 100) * 3.6 >= 40;
     check(
       Math.abs(m.ratio - 0.035) < 0.00035,
       label +
@@ -674,19 +1185,86 @@ function missingOnStage(keys) {
       Math.abs(m.width - m.expectedWidth) <= 1 && m.frameInWindow,
       label + ': stage fills the window as a 16:9 area'
     );
-    check(m.inside && !m.scrollbars, label + ': nothing sticks out, no scrollbars');
+    check(m.inside && !bar.scrollbars, label + ': nothing sticks out, no scrollbars');
     check(
       m.samePhotoPlace && m.sameCounterPlace,
       label + ': picture and counters sit at the same place in WhatsApp, Instagram and TikTok'
     );
     check(
-      Math.abs(m.pauseRatio - 0.022) < 0.0005 && Math.abs(m.imprRatio - 0.013) < 0.0005,
-      label + ': pause symbol is 2.2% and legal notice 1.3% of the stage width'
-    );
-    check(m.controlsClear, label + ': controls are inside the picture and do not overlap');
-    check(
       Math.abs(m.phoneRatio - 0.49) < 0.005 && m.phoneInside,
       label + ': phone beside the stage is 49% of the stage width high and fully visible'
+    );
+    check(
+      bar.insideBar.length === 0 &&
+        bar.around.length === 0 &&
+        Math.abs(bar.bar.height / m.width - 0.036) < 0.0006,
+      label +
+        ': control bar is 3.6% of the stage width high, inside the stage, clear of the phone' +
+        (bar.insideBar.concat(bar.around).length
+          ? ' - ' + bar.insideBar.concat(bar.around).join(', ')
+          : '')
+    );
+    if (wide) {
+      check(
+        Math.abs(bar.bar.left - barPhoneView.bar.left) < 0.6 &&
+          Math.abs(bar.bar.right - barPhoneView.bar.right) < 0.6 &&
+          Math.abs(bar.bar.top - barPhoneView.bar.top) < 0.6 &&
+          Math.abs(bar.bar.bottom - barPhoneView.bar.bottom) < 0.6,
+        label + ': the bar sits at exactly the same place in phone view and projector view'
+      );
+    }
+    await ctx.close();
+  }
+
+  console.log('E2E: projector view - wider fallback fonts do not cut messages off');
+  {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1920, height: 1080 },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=4&beamer=1');
+    await p.waitForSelector('#startBtn');
+    // About 10% wider text, as with a wider system font on another platform
+    await p.addStyleTag({ content: '#stage .st-text,#stage .st-name{letter-spacing:.055em}' });
+    await p.evaluate(function () {
+      window.__clip = { worst: 0, emptyWhileItems: 0, samples: 0 };
+      setInterval(function () {
+        var lists = document.querySelectorAll('#stage .st-scene.on .st-list');
+        for (var i = 0; i < lists.length; i++) {
+          var live = lists[i].querySelectorAll('.st-item:not(.out)');
+          if (!live.length) {
+            if (lists[i].querySelector('.st-item')) window.__clip.emptyWhileItems++;
+            continue;
+          }
+          window.__clip.samples++;
+          // only settled states count: an item that is still fading out may stick out
+          if (
+            lists[i].querySelector('.st-item.out') &&
+            lists[i].scrollHeight > lists[i].clientHeight + 1
+          )
+            continue;
+          var cut = lists[i].getBoundingClientRect().top - live[0].getBoundingClientRect().top;
+          if (cut > window.__clip.worst) window.__clip.worst = cut;
+        }
+      }, 40);
+    });
+    await p.click('#startBtn');
+    await p.waitForSelector('#aCta:not(.hidden)', { timeout: 90000 });
+    const clip = await p.evaluate(function () {
+      return window.__clip;
+    });
+    check(
+      clip.samples > 100 && clip.worst <= 1.5 && clip.emptyWhileItems === 0,
+      'with 10% wider text no live message is cut off at the top (worst ' +
+        clip.worst.toFixed(1) +
+        ' px in ' +
+        clip.samples +
+        ' samples)'
     );
     await ctx.close();
   }

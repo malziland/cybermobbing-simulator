@@ -32,6 +32,19 @@ var TRANSLATIONS = {
     'ui.soundMute': 'Ton ausschalten',
     'ui.soundUnmute': 'Ton einschalten',
     'ui.volume': 'Lautst\u00E4rke',
+
+    // ===== CONTROL BAR =====
+    'ctl.label': 'Steuerung',
+    'ctl.timeline': 'Zeitleiste',
+    'ctl.pause': 'Pause',
+    'ctl.resume': 'Fortsetzen',
+    'ctl.paused': 'Pausiert',
+    'ctl.wa': 'WhatsApp',
+    'ctl.ig': 'Instagram',
+    'ctl.tk': 'TikTok',
+    'ctl.hs': 'Mitteilungen',
+    'ctl.im': 'Nachrichten',
+    'ctl.fin': 'Schluss',
     'ui.credit':
       'Ein <a href="https://github.com/malziland/cybermobbing-simulator" target="_blank">Open-Source</a>-Bildungsprojekt von malziland',
 
@@ -198,6 +211,19 @@ var TRANSLATIONS = {
     'ui.soundMute': 'Mute sound',
     'ui.soundUnmute': 'Unmute sound',
     'ui.volume': 'Volume',
+
+    // ===== CONTROL BAR =====
+    'ctl.label': 'Controls',
+    'ctl.timeline': 'Timeline',
+    'ctl.pause': 'Pause',
+    'ctl.resume': 'Resume',
+    'ctl.paused': 'Paused',
+    'ctl.wa': 'WhatsApp',
+    'ctl.ig': 'Instagram',
+    'ctl.tk': 'TikTok',
+    'ctl.hs': 'Notifications',
+    'ctl.im': 'Messages',
+    'ctl.fin': 'Ending',
     'ui.credit':
       'An <a href="https://github.com/malziland/cybermobbing-simulator" target="_blank">open-source</a> education project by malziland',
 

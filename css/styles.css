@@ -2,11 +2,14 @@
 html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;color:#fff;-webkit-font-smoothing:antialiased}
 
 /* ===== START SCREEN ===== */
-#start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9000;background:#000;transition:opacity .8s}
-#start.gone{opacity:0;pointer-events:none}
-#start h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:700;text-align:center;margin-bottom:.5rem;letter-spacing:-.02em}
+/* Title block and footer share the height: the title block sits in the free
+   space above the footer, the footer above the disclaimer. Nothing is pinned
+   on top of anything else, so low windows cannot produce overlaps. */
+#start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:clamp(12px,4vh,48px) 16px calc(var(--ctl-impr)*1.25 + 84px);z-index:9000;background:#000;transition:opacity .8s,visibility 0s .8s}
+#start.gone{opacity:0;pointer-events:none;visibility:hidden}
+#start h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:700;text-align:center;margin-top:auto;margin-bottom:.5rem;letter-spacing:-.02em}
 #start h1 em{color:#fe2c55;font-style:normal}
-#start .sub1{font-size:1.1rem;color:#777;margin-bottom:2.5rem} /* >=4.5:1 on #000 (WCAG AA) */
+#start .sub1{font-size:1.1rem;color:#777;margin-bottom:clamp(1rem,4.5vh,2.5rem)} /* >=4.5:1 on #000 (WCAG AA) */
 #start button{padding:14px 40px;border:none;border-radius:50px;background:#e0264d;color:#fff;font-size:1.1rem;font-weight:600;cursor:pointer;font-family:inherit;transition:transform .15s} /* #e0264d: 4.6:1 with white text (AA); #fe2c55 was 3.68:1 */
 #start button:hover{transform:scale(1.05)}
 
@@ -39,7 +42,7 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
 
 /* Start screen footer */
 .start-footer{
-  position:absolute;bottom:100px;left:0;right:0;
+  margin-top:auto;padding-top:clamp(10px,3vh,28px);
   display:flex;flex-direction:column;align-items:center;gap:8px;
 }
 .start-share{
@@ -49,65 +52,61 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
   cursor:pointer;font-family:inherit;transition:background .2s,color .2s;
 }
 .start-share:hover{background:rgba(254,44,85,.1)!important;color:#fe2c55!important;transform:none!important}
-.start-views{display:flex;align-items:center;gap:4px;font-size:11px;color:#fe2c55;font-variant-numeric:tabular-nums;margin-bottom:25px}
+.start-views{display:flex;align-items:center;gap:4px;font-size:11px;color:#fe2c55;font-variant-numeric:tabular-nums;margin-bottom:clamp(10px,2.4vh,25px)}
 .start-views span{color:#fe2c55;font-weight:600}
 .start-credit{font-size:.68rem;color:#777;margin-top:-15px} /* >=4.5:1 on #000 (WCAG AA) */
 .start-credit a{color:#888;text-decoration:underline}
 .start-credit a:hover{color:#fe2c55}
 
-/* Pause button — subtle tap target */
-.pause-btn{
-  position:fixed;bottom:calc(var(--ctl-bottom) + var(--ctl-impr)*1.25 + var(--ctl-gap));left:50%;transform:translateX(-50%);z-index:8500;
-  padding:.1em .75em;border:none;border-radius:50px;
-  background:transparent;
-  color:rgba(255,255,255,.62);font-size:var(--ctl-pause);line-height:1.15;font-weight:600;letter-spacing:1px;
-  cursor:pointer;font-family:inherit;
-  transition:color .2s;
+/* ===== CONTROL BAR (ADR-0008) =====
+   One bar for everything that used to be five separate pieces: pause, time,
+   timeline with scene marks, sound, view picker, legal notice. Same order,
+   same symbols and same sizes in phone view and projector view; red marks
+   what is chosen or active and nothing else. Filled by js/controls.js. */
+.ctl-bar{
+  display:none;position:fixed;left:var(--bar-side);right:var(--bar-side);bottom:var(--bar-bottom);height:var(--bar-h);z-index:8500;
+  align-items:center;gap:calc(var(--bar-h)*.3);padding:0 calc(var(--bar-h)*.34) 0 calc(var(--bar-h)*.16);
+  border-radius:calc(var(--bar-h)*.32);background:rgba(24,24,26,.95);border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.66);font-size:var(--bar-fs);font-weight:600;white-space:nowrap;
 }
-.pause-btn:hover{color:#fff}
+body.sim-running .ctl-bar{display:flex}
+.ctl-play{flex-shrink:0;width:calc(var(--bar-h)*.9);height:calc(var(--bar-h)*.72);padding:0;border:none;border-radius:calc(var(--bar-h)*.2);background:transparent;color:#fff;font-family:inherit;font-size:calc(var(--bar-h)*.5);font-weight:700;letter-spacing:.06em;line-height:1;cursor:pointer}
+.ctl-play.paused{background:rgba(254,44,85,.4)}
+.ctl-time{flex-shrink:0;display:flex;align-items:baseline;gap:.7em;font-variant-numeric:tabular-nums}
+.ctl-now{color:#fff}
+.ctl-scene{font-weight:500;min-width:6.6em}
+.ctl-scene.paused{color:#ff6b81}
+.ctl-seek{flex:1;min-width:0;height:100%;position:relative;display:flex;align-items:center;cursor:pointer;touch-action:none;--pos:0%}
+.ctl-seek[role="progressbar"]{cursor:default}
+.ctl-track{position:relative;width:100%;height:calc(var(--bar-h)*.15);border-radius:99px;background:rgba(255,255,255,.2)}
+.ctl-fill{position:absolute;inset:0;border-radius:99px;background:linear-gradient(90deg,#25f4ee,#fe2c55);clip-path:inset(0 calc(100% - var(--pos)) 0 0)}
+.ctl-mark{position:absolute;top:0;bottom:0;width:max(3px,calc(var(--bar-h)*.06));background:rgb(24,24,26);transform:translateX(-50%)}
+.ctl-knob{position:absolute;top:50%;left:var(--pos);width:calc(var(--bar-h)*.38);height:calc(var(--bar-h)*.38);border-radius:50%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 0 0 calc(var(--bar-h)*.05) rgba(0,0,0,.4);pointer-events:none}
+.ctl-tip{display:none;position:absolute;bottom:calc(var(--bar-h)*.86);transform:translateX(-50%);padding:.4em .85em;border-radius:.65em;background:#fff;color:#000;font-weight:700;pointer-events:none}
+.ctl-tip.show{display:block}
+.ctl-tip::after{content:'';position:absolute;left:50%;top:100%;border:.4em solid transparent;border-top-color:#fff;transform:translateX(-50%)}
+.ctl-end{flex-shrink:0;font-variant-numeric:tabular-nums}
+.ctl-sep{flex-shrink:0;width:1px;height:46%;background:rgba(255,255,255,.16)}
+.ctl-sound{flex-shrink:0;display:flex;align-items:center;gap:.55em}
+.ctl-sound button{display:flex;align-items:center;justify-content:center;width:calc(var(--bar-h)*.72);height:calc(var(--bar-h)*.72);padding:0;border:none;border-radius:calc(var(--bar-h)*.2);background:transparent;color:#fff;cursor:pointer}
+.ctl-sound svg{width:calc(var(--bar-h)*.46);height:calc(var(--bar-h)*.46);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ctl-sound .ico-off{display:none}
+.ctl-sound button.muted{background:rgba(254,44,85,.4)}
+.ctl-sound button.muted .ico-on{display:none}
+.ctl-sound button.muted .ico-off{display:block}
+.ctl-sound input{width:calc(var(--bar-h)*1.9);height:calc(var(--bar-h)*.4);margin:0;accent-color:#fff;cursor:pointer}
+.ctl-view{flex-shrink:0;display:flex;gap:calc(var(--bar-h)*.08)}
+.ctl-view button{display:flex;align-items:center;justify-content:center;width:calc(var(--bar-h)*.98);height:calc(var(--bar-h)*.72);padding:0;border:none;border-radius:calc(var(--bar-h)*.2);background:transparent;color:rgba(255,255,255,.66);cursor:pointer}
+.ctl-view button[aria-pressed="true"]{background:rgba(254,44,85,.4);color:#fff}
+.ctl-view .view-ico{font-size:calc(var(--bar-h)*.21)}
+.ctl-impr{flex-shrink:0;font-size:inherit;font-weight:500;color:rgba(255,255,255,.66);text-decoration:underline;text-underline-offset:.22em;cursor:pointer}
+/* While the bar is shown it carries the legal notice link (wide windows) */
+body.sim-running .impr-link-bar{display:none}
 
-/* In-run view picker: the same two previews, small, in the bottom right
-   corner. Shown together with the pause button, clear of the pause text. */
-.view-mini{display:none;position:fixed;bottom:10px;right:14px;z-index:8500;gap:4px;padding:3px;border-radius:12px;background:rgba(255,255,255,.07)}
-#pauseBtn:not(.hidden) ~ .view-mini{display:flex}
-.view-mini-opt{display:flex;align-items:center;justify-content:center;width:46px;height:34px;padding:0;border:none;border-radius:9px;background:transparent;color:rgba(255,255,255,.62);cursor:pointer;transition:color .2s,background .2s}
-.view-mini-opt:hover{color:#fff}
-.view-mini-opt[aria-pressed="true"]{background:rgba(254,44,85,.4);color:#fff}
-.view-mini .view-ico{font-size:10px}
-
-/* Sound control: mute button and volume slider in the bottom left corner,
-   the counterpart of the view picker on the right. */
-.sound-mini{display:none;position:fixed;bottom:10px;left:14px;z-index:8500;align-items:center;gap:6px;padding:3px 10px 3px 3px;border-radius:12px;background:rgba(255,255,255,.07)}
-#pauseBtn:not(.hidden) ~ .sound-mini{display:flex}
-.sound-btn{display:flex;align-items:center;justify-content:center;width:38px;height:34px;padding:0;border:none;border-radius:9px;background:transparent;color:rgba(255,255,255,.62);cursor:pointer;transition:color .2s,background .2s}
-.sound-btn:hover{color:#fff}
-.sound-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sound-btn .ico-off{display:none}
-.sound-btn.muted{background:rgba(254,44,85,.4);color:#fff}
-.sound-btn.muted .ico-on{display:none}
-.sound-btn.muted .ico-off{display:block}
-.vol-slider{width:84px;height:18px;margin:0;accent-color:#fe2c55;cursor:pointer}
-
-/* Pause overlay — dim area below phone */
-.pause-overlay{
-  position:fixed;left:0;right:0;bottom:0;z-index:8200;
-  height:calc(var(--ctl-bottom) + var(--ctl-impr)*1.25 + var(--ctl-gap)*2 + var(--ctl-pause)*1.35);
-  cursor:pointer;
-}
-/* Right of the pause symbol and as high as it, so the larger symbol never covers the text */
-.pause-text{
-  position:absolute;left:calc(50% + var(--ctl-pause)*1.3 + 6px);
-  bottom:calc(var(--ctl-bottom) + var(--ctl-impr)*1.25 + var(--ctl-gap));
-  height:calc(var(--ctl-pause)*1.35);max-width:calc(50% - var(--ctl-pause)*1.3 - 16px);
-  display:flex;align-items:center;
-  font-size:max(13px,calc(var(--u)*1.2));line-height:1.2;font-weight:500;color:rgba(255,255,255,.5);letter-spacing:.3px;
-}
-.pause-hint{display:none}
-
-/* ===== TIMER ===== */
-.tbar{position:fixed;bottom:0;left:0;right:0;height:3px;z-index:8000;background:#111}
-.tbar .fill{height:100%;width:0;background:linear-gradient(90deg,#25f4ee,#fe2c55);transition:width .1s linear}
-.tbar .lbl{display:none}
+/* Old controls, no longer shown. The elements stay in the page until the bar
+   is approved, because togglePause() and tick() still write to them
+   (see "Aufräumen nach Abnahme" in docs/handover). */
+.pause-overlay,.tbar{display:none}
 
 /* ===== PHONE ===== */
 .phone{position:fixed;top:calc(50% - 20px);left:50%;transform:translate(-50%,-50%);width:393px;height:852px;max-width:96vw;max-height:88vh;background:#000;border-radius:55px;border:4px solid #1a1a1a;overflow:hidden;z-index:1000;box-shadow:0 0 0 2px #000,0 40px 80px rgba(0,0,0,.6)}
@@ -130,6 +129,7 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
 @keyframes flashAnim{0%{opacity:.85}100%{opacity:0}}
 .toast{position:fixed;bottom:55px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(28,28,30,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:12px 22px;border-radius:14px;font-size:15px;color:#e5e5e7;z-index:9999;opacity:0;transition:all .35s;white-space:nowrap;display:flex;align-items:center;gap:10px;font-weight:500;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+body.sim-running .toast{bottom:calc(var(--bar-bottom) + var(--bar-h) + 10px)}
 
 /* ===== WHATSAPP ===== */
 .wa{background:#0b141a}
@@ -595,10 +595,13 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
    proportions. --st-text is the one knob for the message size: 3.5 gives
    capital letters of about 4.4% of the stage height. */
 :root{--u:min(1vw,1.7778vh)}
-/* Pause symbol and legal notice link: grow with the window in both views, but
-   never fall below a size that works on a phone. The projector view sets its
-   own values further down (aligned to the stage instead of the window). */
-:root{--ctl-pause:max(22px,calc(var(--u)*2));--ctl-impr:max(15px,calc(var(--u)*1.2));--ctl-gap:6px;--ctl-bottom:3px}
+/* Legal notice link below the start and help screen: grows with the window
+   but never falls below a size that works on a phone. */
+:root{--ctl-impr:max(15px,calc(var(--u)*1.2));--ctl-bottom:3px}
+/* Control bar: one height, everything inside is derived from it. Position and
+   size are the same in both views on a 16:9 window; the projector view only
+   aligns the bar to the stage instead of the window (further down). */
+:root{--bar-h:max(40px,calc(var(--u)*3.6));--bar-fs:max(13px,calc(var(--u)*1.35));--bar-side:max(10px,calc(var(--u)*2));--bar-bottom:max(8px,calc(var(--u)*.8))}
 .stage{
   --st-text:3.5;
   position:fixed;inset:0;z-index:1500;display:none;
@@ -612,7 +615,7 @@ body.stage-live .toast{display:none}
 body.stage-live .phone{
   left:calc((100vw - var(--u)*100)/2 + var(--u)*2);
   top:calc((100vh - var(--u)*56.25)/2 + var(--u)*1.6);
-  width:393px;height:852px;max-width:none;max-height:none;
+  max-width:none;max-height:none;
   transform:scale(var(--st-phone-k,1));transform-origin:0 0;z-index:1600;
 }
 
@@ -735,18 +738,11 @@ body.stage-live .phone{
 .st-fl.show{opacity:1;transform:none}
 .st-fn-gap{height:calc(var(--u)*2.4);flex-shrink:0}
 
-/* Controls in the projector view: sized and placed relative to the stage,
-   otherwise they are lost on a large screen. Pause in the middle with the
-   legal notice link below it, sound on the left, view picker on the right. */
-body.stage-live{--ctl-pause:calc(var(--u)*2.2);--ctl-impr:calc(var(--u)*1.3);--ctl-gap:calc(var(--u)*.3);--ctl-bottom:calc((100vh - var(--u)*56.25)/2 + var(--u)*.3)}
-body.stage-live .view-mini,body.stage-live .sound-mini{bottom:calc((100vh - var(--u)*56.25)/2 + var(--u)*.8);gap:calc(var(--u)*.3);padding:calc(var(--u)*.2);border-radius:calc(var(--u)*.8)}
-body.stage-live .view-mini{right:calc((100vw - var(--u)*100)/2 + var(--u)*1.5)}
-body.stage-live .sound-mini{left:calc((100vw - var(--u)*100)/2 + var(--u)*2);padding-right:calc(var(--u)*.8)}
-body.stage-live .view-mini-opt{width:calc(var(--u)*3.6);height:calc(var(--u)*2.7);border-radius:calc(var(--u)*.6)}
-body.stage-live .view-mini .view-ico{font-size:calc(var(--u)*.8)}
-body.stage-live .sound-btn{width:calc(var(--u)*3);height:calc(var(--u)*2.7);border-radius:calc(var(--u)*.6)}
-body.stage-live .sound-btn svg{width:calc(var(--u)*1.7);height:calc(var(--u)*1.7)}
-body.stage-live .vol-slider{width:calc(var(--u)*8);height:calc(var(--u)*1.4)}
+/* Control bar in the projector view: aligned to the stage (matters when the
+   window is not 16:9 and the stage is letterboxed) and, like everything on the
+   stage, purely proportional. The minimum sizes of the phone view do not apply
+   here, otherwise browser zoom would change the proportions. */
+body.stage-live{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(var(--u)*1.35);--bar-side:calc((100vw - var(--u)*100)/2 + var(--u)*2);--bar-bottom:calc((100vh - var(--u)*56.25)/2 + var(--u)*.8)}
 
 /* Photo scribbles: same positions as in the phone, sizes relative to the stage */
 .stage .photo-wrap .e{text-shadow:calc(var(--u)*.12) calc(var(--u)*.12) calc(var(--u)*.3) rgba(0,0,0,.8)}
@@ -764,10 +760,13 @@ body.stage-live .vol-slider{width:calc(var(--u)*8);height:calc(var(--u)*1.4)}
 .stage .photo-wrap .igfr::before{top:calc(var(--u)*.4);left:calc(var(--u)*.7);font-size:calc(var(--u)*.9)}
 .stage .photo-wrap .igfr::after{bottom:calc(var(--u)*.4);left:calc(var(--u)*.7);font-size:calc(var(--u)*.85)}
 
+/* Low windows: the hint below the view picker gives way first */
+@media (max-height:620px){.beamer-hint{display:none}}
+
 /* ===== MOBILE ===== */
 @media (max-width:500px){
   .phone{max-height:85vh!important;top:calc(50% - 20px)!important}
-  .start-footer{bottom:110px}
+  #start{padding-bottom:calc(var(--ctl-impr)*1.25 + 104px)}
   .start-share{padding:4px 10px!important;font-size:10px!important}
   .start-views{margin-bottom:15px}
   .disclaimer{font-size:.55rem;padding:2px 16px}
@@ -793,9 +792,12 @@ body.stage-live .vol-slider{width:calc(var(--u)*8);height:calc(var(--u)*1.4)}
   #start .view-opt{width:92px;height:62px;gap:6px;padding:8px 6px;font-size:.72rem}
   .view-pick .view-ico{font-size:12px}
   .beamer-hint{display:none}
-  .view-mini{right:6px}
-  .sound-mini{left:6px;padding:3px}
-  .vol-slider{display:none}
-  body:not(.beamer) #pauseBtn:not(.hidden) ~ .view-mini{display:none}
+  /* Control bar on phones: pause, progress and sound only. Jumping is off
+     there (js/controls.js), the legal notice stays as a line below the bar. */
+  :root{--bar-h:36px;--bar-bottom:calc(var(--ctl-bottom) + var(--ctl-impr)*1.25 + 6px)}
+  .ctl-bar{gap:calc(var(--bar-h)*.24)}
+  .ctl-time,.ctl-end,.ctl-sep,.ctl-sound input,.ctl-impr,.ctl-knob,.ctl-tip{display:none!important}
+  body:not(.beamer) .ctl-view{display:none}
+  body.sim-running .impr-link-bar{display:block}
   body.stage-live .phone{max-height:none!important;top:calc((100vh - var(--u)*56.25)/2 + var(--u)*1.6)!important}
 }

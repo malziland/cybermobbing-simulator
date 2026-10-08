@@ -75,6 +75,7 @@ function sw(a, b) {
  * even if it was already playing.
  */
 function flash() {
+  if (simSeeking) return; // a jump on the timeline must not end in a white flash
   var f = document.getElementById('fl');
   f.classList.remove('go');
   void f.offsetWidth; // Force reflow to restart animation

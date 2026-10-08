@@ -108,7 +108,7 @@ function initAudio() {
  * @param {string} [type='sine'] - OscillatorNode waveform type
  */
 function tone(freq, start, dur, vol, type) {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var o = ax.createOscillator();
   var g = ax.createGain();
   o.connect(g);
@@ -127,7 +127,7 @@ function tone(freq, start, dur, vol, type) {
  * WhatsApp-style notification: two-note rising chime (A5 -> D6).
  */
 function sndWa() {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var t = ax.currentTime;
   tone(880, t, 0.12, 0.1);
   tone(1175, t + 0.12, 0.15, 0.1);
@@ -137,7 +137,7 @@ function sndWa() {
  * Instagram-style notification: three-note ascending arpeggio (C6 -> E6 -> G6).
  */
 function sndIg() {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var t = ax.currentTime;
   tone(1047, t, 0.06, 0.06);
   tone(1319, t + 0.07, 0.06, 0.06);
@@ -149,7 +149,7 @@ function sndIg() {
  * giving a short "bloop" effect.
  */
 function sndTk() {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var t = ax.currentTime;
   var o = ax.createOscillator();
   var g = ax.createGain();
@@ -170,7 +170,7 @@ function sndTk() {
  * slightly longer and louder than the Instagram sound.
  */
 function sndIm() {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var t = ax.currentTime;
   tone(1047, t, 0.1, 0.08);
   tone(1319, t + 0.12, 0.1, 0.08);
@@ -183,7 +183,7 @@ function sndIm() {
  * to simulate the mechanical "click" of a camera.
  */
 function sndShutter() {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var t = ax.currentTime;
   // Generate 80ms of white noise with exponential decay
   var b = ax.createBuffer(1, ax.sampleRate * 0.08, ax.sampleRate);
@@ -211,7 +211,7 @@ function sndShutter() {
  * the haptic buzz of a phone notification.
  */
 function sndBuzz() {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var t = ax.currentTime;
   var o = ax.createOscillator();
   var g = ax.createGain();
@@ -277,6 +277,13 @@ function startMusic() {
 var simPaused = false;
 
 /**
+ * @type {boolean} True while simAdvance() fast-forwards through the timers
+ * (jump on the timeline, see js/controls.js). Sounds and the camera flash
+ * stay off, and new timers are not armed until the jump is finished.
+ */
+var simSeeking = false;
+
+/**
  * @type {number} Test-only time-lapse factor, set via URL parameter
  * `?testspeed=N` (integer 1-60). All simTimeout delays and the progress-bar
  * tick interval are divided by it, so N=10 runs the 120s simulation in ~12s.
@@ -330,8 +337,58 @@ function simTimeout(fn, delay) {
 
   timer.schedule = schedule;
   simTimers.push(timer);
-  schedule();
+  // While paused or fast-forwarding the timer only waits in the list;
+  // togglePause() / simSeek() arm it later.
+  if (!simPaused && !simSeeking) schedule();
   return id;
+}
+
+/**
+ * Stops every native timeout and writes the time that has already passed
+ * into `remaining`, exactly as pausing does. Afterwards the timer list is a
+ * plain, frozen description of what is still to come.
+ */
+function simFreezeTimers() {
+  simTimers.forEach(function (t) {
+    if (t.nativeId === undefined) return;
+    clearTimeout(t.nativeId);
+    t.nativeId = undefined;
+    t.remaining -= Date.now() - t.startedAt;
+    if (t.remaining < 0) t.remaining = 0;
+  });
+}
+
+/**
+ * Fast-forwards the frozen timer list by `ms` milliseconds of timer time:
+ * every timer that becomes due is run immediately and in order, including
+ * timers created on the way. Nothing is armed here; the caller decides
+ * whether the simulation continues or stays paused.
+ * @param {number} ms - Timer time to skip (already divided by SIM_SPEED)
+ */
+function simAdvance(ms) {
+  var left = ms;
+  var guard = 0;
+  simSeeking = true;
+  try {
+    while (guard++ < 200000) {
+      var next = null;
+      for (var i = 0; i < simTimers.length; i++) {
+        if (!next || simTimers[i].remaining < next.remaining) next = simTimers[i];
+      }
+      // Half a millisecond of tolerance: remaining times are sums of floats
+      if (!next || next.remaining > left + 0.5) break;
+      var step = Math.max(next.remaining, 0);
+      left -= step;
+      for (var j = 0; j < simTimers.length; j++) simTimers[j].remaining -= step;
+      simTimers.splice(simTimers.indexOf(next), 1);
+      next.fn();
+    }
+    for (var k = 0; k < simTimers.length; k++) {
+      simTimers[k].remaining = Math.max(simTimers[k].remaining - left, 0);
+    }
+  } finally {
+    simSeeking = false;
+  }
 }
 
 /**
@@ -354,12 +411,7 @@ function togglePause() {
 
   if (simPaused) {
     // -- PAUSE: freeze everything --
-    simTimers.forEach(function (t) {
-      clearTimeout(t.nativeId);
-      // Calculate how much time has already elapsed and subtract it
-      t.remaining -= Date.now() - t.startedAt;
-      if (t.remaining < 0) t.remaining = 0;
-    });
+    simFreezeTimers();
     if (bgMusic) bgMusic.pause();
     if (typeof clockInt !== 'undefined') clearInterval(clockInt);
     if (typeof tmr !== 'undefined') clearInterval(tmr);
@@ -378,4 +430,5 @@ function togglePause() {
     btn.textContent = t('ui.pause');
     overlay.classList.add('hidden');
   }
+  if (typeof ctlUpdate === 'function') ctlUpdate();
 }

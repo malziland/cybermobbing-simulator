@@ -226,10 +226,11 @@ document.addEventListener('DOMContentLoaded', function () {
   // Projector view (ADR-0007): the two view pickers (start screen and in-run),
   // the B key and the link suffix ?beamer=1. The choice is kept in the address
   // bar only. Every picker button carries data-view="phone" or "beamer".
+  ctlInit();
   stageInit();
   stageSet(stageFromUrl(window.location.search));
   var viewLabels = { phone: t('ui.viewPhoneLong'), beamer: t('ui.viewBeamerLong') };
-  var viewGroups = document.querySelectorAll('.view-pick, .view-mini');
+  var viewGroups = document.querySelectorAll('.view-pick, .ctl-view');
   for (var g = 0; g < viewGroups.length; g++) {
     viewGroups[g].setAttribute('aria-label', t('ui.viewLabel'));
   }
@@ -243,14 +244,14 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'b' && e.key !== 'B') return;
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     if (impModal && impModal.classList.contains('show')) return;
     stageToggle();
     stageRemember();
   });
 
   // Sound control: mute button, volume slider and the M key
-  var soundGroup = document.querySelector('.sound-mini');
+  var soundGroup = document.querySelector('.ctl-sound');
   var soundBtn = document.getElementById('soundBtn');
   var volSlider = document.getElementById('volSlider');
   if (soundGroup) soundGroup.setAttribute('aria-label', t('ui.sound'));
@@ -264,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
   applyVolume();
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'm' && e.key !== 'M') return;
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     if (impModal && impModal.classList.contains('show')) return;
     toggleMute();
   });
@@ -276,19 +277,22 @@ document.addEventListener('DOMContentLoaded', function () {
   if (pauseOverlay) pauseOverlay.addEventListener('click', togglePause);
 
   // Impressum links
-  var impLinkGlobal = document.getElementById('impLinkGlobal');
   var impCloseBtn = document.getElementById('impCloseBtn');
-  if (impLinkGlobal) {
-    impLinkGlobal.addEventListener('click', openImpressum);
+  // Two links open the legal notice: the one below start and help screen,
+  // and the one inside the control bar during the run
+  ['impLinkGlobal', 'impLinkRun'].forEach(function (id) {
+    var link = document.getElementById(id);
+    if (!link) return;
+    link.addEventListener('click', openImpressum);
     // span[role=button] gets no synthetic click on Enter/Space like a real
     // <button> does -- required for keyboard operability (WCAG 2.1.1)
-    impLinkGlobal.addEventListener('keydown', function (e) {
+    link.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         openImpressum();
       }
     });
-  }
+  });
   if (impCloseBtn) impCloseBtn.addEventListener('click', closeImpressum);
 
   // Impressum modal: close on backdrop click and Escape key
