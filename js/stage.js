@@ -197,10 +197,12 @@ function stagePush(list, item, max) {
   list.insertBefore(item, list.querySelector('.st-typing'));
   items = list.querySelectorAll('.st-item');
   for (i = 0; i < items.length - max; i++) items[i].classList.add('out');
-  // The entry animation lets the item grow; only afterwards its height is known
-  item.addEventListener('animationend', function () {
-    stageFitList(list);
-  });
+  // Decide before the item fades in whether everything fits: without its entry
+  // animation the item has its full height, so the older message can leave
+  // first instead of being cut off at the top for a moment.
+  item.style.animation = 'none';
+  stageFitList(list);
+  item.style.animation = '';
 }
 
 /**
@@ -248,6 +250,7 @@ function stageTyping(list, on, cls) {
   d.className = 'st-typing ' + cls;
   d.innerHTML = '<i></i><i></i><i></i>';
   list.appendChild(d);
+  stageFitList(list);
 }
 
 /**
@@ -336,6 +339,7 @@ function stageOnWa(node, added) {
     var sys = document.getElementById('stWaSys');
     sys.textContent = node.textContent;
     sys.classList.add('show');
+    stageFitList(list); // the row takes its height from the list above it
   }
 }
 
@@ -397,6 +401,7 @@ function stageOnTkReport(node) {
   var dst = document.getElementById('stTkRpt');
   dst.textContent = node.textContent;
   dst.classList.add('show');
+  stageFitList(document.getElementById('stTkList')); // the row takes its height from the list
 }
 
 /**

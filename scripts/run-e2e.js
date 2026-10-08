@@ -489,8 +489,9 @@ function missingOnStage(keys) {
     }, timersBefore),
     'switching does not touch the running timers'
   );
-  // Holding the key down sends repeats; they must not toggle back and forth
-  await stagePage.keyboard.down('b');
+  // Holding the key down sends repeats; they must not toggle back and forth.
+  // Exactly two key-down events: one real press and one repeat. Without the
+  // guard that is two toggles and the view would be back where it started.
   await stagePage.keyboard.down('b');
   await stagePage.keyboard.down('b');
   await stagePage.keyboard.up('b');
@@ -1216,7 +1217,7 @@ function missingOnStage(keys) {
     await ctx.close();
   }
 
-  console.log('E2E: projector view - wider fallback fonts do not cut messages off');
+  console.log('E2E: projector view - wider text does not cut messages off');
   {
     const ctx = await browser.newContext({
       locale: 'de-DE',
@@ -1229,8 +1230,10 @@ function missingOnStage(keys) {
     });
     await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=4&beamer=1');
     await p.waitForSelector('#startBtn');
-    // About 10% wider text, as with a wider system font on another platform
-    await p.addStyleTag({ content: '#stage .st-text,#stage .st-name{letter-spacing:.055em}' });
+    // Much wider text than any real fallback font (about 30%): without the fit
+    // check in stage.js two long messages no longer fit and the older one
+    // would be cut off at the top
+    await p.addStyleTag({ content: '#stage .st-text,#stage .st-name{letter-spacing:.16em}' });
     await p.evaluate(function () {
       window.__clip = { worst: 0, emptyWhileItems: 0, samples: 0 };
       setInterval(function () {
@@ -1260,7 +1263,7 @@ function missingOnStage(keys) {
     });
     check(
       clip.samples > 100 && clip.worst <= 1.5 && clip.emptyWhileItems === 0,
-      'with 10% wider text no live message is cut off at the top (worst ' +
+      'with 30% wider text no live message is cut off at the top (worst ' +
         clip.worst.toFixed(1) +
         ' px in ' +
         clip.samples +
