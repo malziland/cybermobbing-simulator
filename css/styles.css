@@ -5,7 +5,7 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
 /* Title block and footer share the height: the title block sits in the free
    space above the footer, the footer above the disclaimer. Nothing is pinned
    on top of anything else, so low windows cannot produce overlaps. */
-#start{position:fixed;inset:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:clamp(12px,4vh,48px) 16px calc(var(--ctl-impr)*1.25 + var(--disc-h,44px) + 40px);z-index:9000;background:#000;transition:opacity .8s,visibility 0s .8s}
+#start{position:fixed;inset:0 0 calc(var(--ctl-impr)*1.25 + var(--disc-h,44px) + 6px) 0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:clamp(12px,4vh,48px) 16px 34px;z-index:9000;background:#000;transition:opacity .8s,visibility 0s .8s}
 #start.gone{opacity:0;pointer-events:none;visibility:hidden}
 #start h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:700;text-align:center;margin-top:auto;margin-bottom:.5rem;letter-spacing:-.02em}
 #start h1 em{color:#fe2c55;font-style:normal}
@@ -302,12 +302,12 @@ body.sim-running .toast{bottom:calc(var(--bar-bottom) + var(--bar-h) + 10px)}
 
 /* CTA screen: fullscreen call to action (outside phone frame) */
 .cta-screen{
-  position:fixed;inset:0;
+  /* The page ends above the disclaimer (and above the control bar, see below):
+     in a low window it scrolls there instead of running underneath them */
+  position:fixed;inset:0 0 calc(var(--ctl-impr)*1.25 + var(--disc-h,44px) + 6px) 0;
   z-index:2000;background:#000;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:16px;padding:40px 30px calc(var(--ctl-impr)*1.25 + var(--disc-h,44px) + 18px);
-  /* Low windows (a phone held sideways): the page can be scrolled instead of
-     being cut off at the top or hidden under the disclaimer */
+  gap:16px;padding:40px 30px 12px;
   overflow-y:auto;justify-content:safe center;
 }
 @media (max-height:480px){
@@ -316,7 +316,7 @@ body.sim-running .toast{bottom:calc(var(--bar-bottom) + var(--bar-h) + 10px)}
   .fin-buttons{gap:6px}
 }
 /* After a run the control bar stays on the help page: the disclaimer sits above it */
-body.sim-ended .cta-screen{padding-bottom:calc(var(--bar-bottom) + var(--bar-h) + var(--disc-h,44px) + 24px)}
+body.sim-ended .cta-screen{bottom:calc(var(--bar-bottom) + var(--bar-h) + var(--disc-h,44px) + 12px)}
 body.sim-ended .disclaimer{bottom:calc(var(--bar-bottom) + var(--bar-h) + 6px)}
 
 .cta-logo{
@@ -789,7 +789,7 @@ body.stage-live,body.beamer.sim-ended{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(v
 /* ===== MOBILE ===== */
 @media (max-width:500px){
   .phone{max-height:85vh!important;top:calc(50% - 20px)!important}
-  #start{padding-bottom:calc(var(--ctl-impr)*1.25 + var(--disc-h,76px) + 28px)}
+  #start{padding-bottom:22px}
   .start-share{padding:4px 10px!important;font-size:10px!important}
   .start-views{margin-bottom:15px}
   .disclaimer{font-size:.55rem;padding:2px 16px}

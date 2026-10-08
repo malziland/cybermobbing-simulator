@@ -25,11 +25,15 @@ ist neu, deshalb ein voller Versionssprung).
 - **Startbildschirm und letzte Seite:** Der Platz für den Hinweistext unten richtet sich nach dessen wirklicher Höhe. In schmalen Fenstern läuft der Text über bis zu fünf Zeilen und überdeckt nichts mehr. Das Impressum ist größer (mindestens 15 statt 12 CSS-Pixel)
 - Der Teilen-Knopf gibt den Link immer ohne den Zusatz `?beamer=1` weiter
 - Nach dem Start ist der Startbildschirm auch für die Tastatur ausgeblendet (vorher blieben seine Knöpfe unsichtbar anwählbar)
+- **Barrierefreiheit des Rahmens:** Das Impressum übernimmt beim Öffnen den Tastaturfokus und gibt ihn beim Schließen zurück; dahinter ist nichts bedienbar. Schließen-Knopf und Links im Impressum erfüllen die Kontrastprüfung, die Seite nennt Screenreadern ihre Sprache (auch in der englischen Fassung), die Links der letzten Seite sind 24 Pixel hoch
+- In niedrigen Fenstern (quer gehaltenes Handy) lassen sich Startbildschirm und letzte Seite rollen, statt dass der Hinweistext Teile überdeckt
+- Die Uhr der Leiste läuft nach der echten Zeit statt nach gezählten Takten; in Firefox und Safari ging sie sonst bis zu sechs Prozent nach
 - Video-Export (`scripts/video-export/`) blendet die neuen Bedienelemente aus
 - Szenenzeiten stehen nur noch an einer Stelle (`CTL_SCENES` in `js/controls.js`); README und Kommentare nannten teils falsche Zeiten
 - Betriebshandbuch: Release-Ablauf über Pull Request, mit Prüfsummen-Vergleich der Live-Seite (`scripts/verify-live.sh`) und dem Tag erst nach dem Deploy
 
 ### Behoben
+- **Start hing am fremden Skript des Zählers:** War der Host des Firebase-SDK im Netz gesperrt oder antwortete er nicht, oder fehlte `js/config.js`, blieb „Simulation starten" ohne Wirkung. Das SDK lädt jetzt als Letztes; die Simulation startet auch ohne Zähler (bestand schon vor dieser Version)
 - **Hinweise zu kurz sichtbar:** Folgten zwei Hinweise dicht aufeinander, blendete der Ausblend-Zeitgeber des ersten den zweiten mit aus. „… hat es auf Instagram gepostet" und zwei weitere standen nur eine halbe Sekunde, auch in der Beamer-Ansicht. Jetzt steht jeder Hinweis seine volle Zeit oder bis ihn der nächste ablöst, mindestens anderthalb Sekunden (bestand schon vor dieser Version)
 - **Pause direkt nach dem Start:** Wer in der ersten halben Sekunde pausierte und fortsetzte, startete die Uhr doppelt; sie lief danach mit doppelter Geschwindigkeit und im Pausezustand weiter (bestand schon vor dieser Version)
 
@@ -38,7 +42,7 @@ ist neu, deshalb ein voller Versionssprung).
 - Eine unbenutzte Gestaltungsregel (`.fin-msg`) und eine unbenutzte Funktion (`startMusic()`), beide schon vorher ohne Verwendung
 
 ### Sicherheit
-- **Die Live-Seite liefert nur noch die Seite selbst aus.** Doku, Tests, Skripte und Werkzeugdateien waren bisher über die Live-Adresse abrufbar (zum Beispiel `/docs/RUNBOOK.md`, `/tests/test-runner.html`, `/package.json`). Geheim war davon nichts, das Repository ist öffentlich; es gehört aber nicht auf die Seite. `scripts/verify-live.sh` prüft das nach jedem Deploy mit
+- **Die Live-Seite liefert nur noch die Seite selbst aus.** Seit dem 16.07.2026 waren über die Live-Adresse auch versteckte Ordner abrufbar: der Versionsverlauf (`.git/`), eine lokale Einstellungsdatei (`.claude/settings.local.json`) und `.github/`, dazu Doku, Tests und Skripte. Ursache war ein Ausschlussmuster, das Dateien in Punkt-Ordnern nicht erfasst. Zugangsdaten wurden in diesen Dateien nicht gefunden. Jetzt schließt die Liste alles außer der Seite aus, eine Sperre (`scripts/deploy-files.js`) bricht jeden Deploy mit fremden Dateien ab, und `scripts/verify-live.sh` prüft nach jedem Deploy, dass diese Pfade nicht mehr abrufbar sind. Einzelheiten: `docs/SECURITY-MODEL.md`, Abschnitt „Vorfälle"
 - Entwicklungswerkzeug `brace-expansion` 5.0.7 → 5.0.12 (mehrere Meldungen zu Überlastung, unter anderem GHSA-mh99-v99m-4gvg). Betrifft nur die Werkzeuge; die Seite selbst hat keine Laufzeit-Abhängigkeiten
 
 ## [1.2.1] - 2026-07-16

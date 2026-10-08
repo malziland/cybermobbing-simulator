@@ -132,8 +132,8 @@ html, body { margin: 0 !important; padding: 0 !important; background: #000 !impo
    hier wieder mittig stehen. */
 #start { justify-content: center !important; padding: 0 !important; }
 #start h1 { margin-top: 0 !important; }
-/* Die Seite mit den Hilfsangeboten hält unten Platz für Steuerleiste und
-   Hinweistext frei. Beides ist hier ausgeblendet, also gilt der feste Abstand. */
+/* Die Seite mit den Hilfsangeboten endet sonst oberhalb von Steuerleiste und
+   Hinweistext. Beides ist hier ausgeblendet, also gilt der feste Abstand. */
 .cta-screen { padding-bottom: 80px !important; }
 /* UI-Elemente ausblenden, die für das Workshop-Backup nicht gebraucht werden */
 #startBtn,

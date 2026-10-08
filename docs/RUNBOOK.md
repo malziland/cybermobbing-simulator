@@ -46,24 +46,36 @@ Deploy committet.
 
 **Was ausgeliefert wird:** nur die Seite selbst, also `index.html`, `css/`,
 `js/`, `assets/`, `favicon.svg`, `llms.txt`, `robots.txt`, `sitemap.xml` und
-`LICENSE`. Doku, Tests, Skripte und Werkzeugdateien bleiben im Repository; die
-Liste `hosting.ignore` in `firebase.json` schließt sie aus (Entscheidung vom
-2026-10-08; bis v1.2.1 waren sie über die Live-Adresse abrufbar, etwa
-`/docs/RUNBOOK.md` und `/tests/test-runner.html`). Wer eine neue Datei anlegt,
-die die Seite braucht und die nicht unter `css/`, `js/` oder `assets/` liegt,
-trägt sie in `scripts/verify-live.sh` ein; wer eine neue Werkzeugdatei im
-Wurzelverzeichnis anlegt, trägt sie in `hosting.ignore` ein.
+`LICENSE`. Alles andere bleibt im Repository; die Liste `hosting.ignore` in
+`firebase.json` schließt es aus.
+
+Diese Liste ist eine Negativliste, und ein fehlender Eintrag veröffentlicht einen
+ganzen Ordner. Deshalb steht davor eine Sperre: `scripts/deploy-files.js` läuft
+bei jedem Deploy automatisch (`hosting.predeploy` in `firebase.json`), ermittelt
+mit der Dateiauswahl der Firebase-CLI selbst, was hochgeladen würde, und bricht
+den Deploy ab, sobald eine Datei dabei ist, die nicht zur Seite gehört. Wer eine
+neue Datei anlegt, die die Seite braucht und die nicht unter `css/`, `js/` oder
+`assets/` liegt, trägt sie in diesem Skript ein; wer eine neue Werkzeugdatei
+anlegt, trägt sie in `hosting.ignore` ein. Von Hand prüfen:
+`node scripts/deploy-files.js` (Rückgabewert 0) oder mit `--list` die Dateien
+ansehen.
+
+Hintergrund (Vorfall, siehe `docs/SECURITY-MODEL.md`): Bis v1.2.1 lieferte die
+Live-Seite auch `.git/`, `.claude/settings.local.json`, `.github/`, `docs/`,
+`tests/` und `scripts/` aus.
 
 Release-Ablauf, in dieser Reihenfolge:
 
 1. Prüfungen oben grün, CHANGELOG-Abschnitt „Unveröffentlicht" fertig.
 2. Zweig hochladen, Pull Request, Pipeline grün, nach `main` zusammenführen.
-3. Von `main` aus deployen (`npm run deploy`).
+3. Von `main` aus deployen (`npm run deploy`). Die Sperre
+   `scripts/deploy-files.js` läuft dabei von selbst; bricht sie ab, wird nicht
+   an ihr vorbei ausgeliefert.
 4. Beweisen, dass die Live-Seite den Stand zeigt: `bash scripts/verify-live.sh`.
    Das Skript ruft jede Datei der Seite von https://cybermobbing.web.app ab und
    vergleicht ihre Prüfsumme mit der lokalen (`js/config.js` nur über die
-   Prüfsumme, nie über den Inhalt). Es prüft auch, dass Doku, Tests und
-   Werkzeugdateien nicht abrufbar sind. Nach dem Deploy muss es mit
+   Prüfsumme, nie über den Inhalt). Es prüft auch, dass versteckte Ordner,
+   Doku, Tests und Werkzeugdateien nicht abrufbar sind. Nach dem Deploy muss es mit
    Rückgabewert 0 enden. Unmittelbar vor dem Deploy muss es mit 1 enden, weil
    live noch der vorige Stand liegt; das ist der Beleg, dass die Prüfung
    anschlagen kann.
@@ -81,6 +93,11 @@ Zwei Wege, je nach Situation:
    Hosting → Release-Verlauf → gewünschtes früheres Release → „Rollback".
    Stellt exakt die zuvor ausgelieferten Dateien wieder her; Code im Repo
    bleibt unverändert.
+   **Achtung bei Releases vor v2.0.0:** Sie enthalten `.git/` und
+   `.claude/settings.local.json`. Ein Rollback auf sie stellt diese Dateien
+   wieder öffentlich ins Netz. Nur als Notmaßnahme, und danach sofort über
+   Weg 2 neu ausliefern. Sobald v2.0.0 einen Tag stabil läuft, die älteren
+   Releases im Release-Verlauf löschen; dann gilt für sie nur noch Weg 2.
 2. **Code-Rollback über Git-Tag:**
    ```bash
    git worktree add /tmp/rollback vX.Y.Z   # alten Stand isoliert auschecken

@@ -27,6 +27,10 @@ bash setup.sh          # lädt App-Icons (einmalig, nicht im Repo)
   Betreibers vom 2026-10-08); sie steht im Impressum, in `llms.txt`,
   `SECURITY.md`, `CONTRIBUTING.md` und in der Issue-Vorlage.
 - **Kein Push, Deploy, Release-Tag ohne ausdrückliche Freigabe.**
+- **Ausgeliefert wird nur die Seite.** `scripts/deploy-files.js` sperrt jeden
+  Deploy, dessen Dateiliste etwas anderes enthält; die Sperre wird nie umgangen
+  (kein `firebase deploy` an `firebase.json` vorbei). Neue Dateien: siehe
+  docs/RUNBOOK.md, „Was ausgeliefert wird".
 
 ## Konventionen
 
