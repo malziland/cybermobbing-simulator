@@ -17,13 +17,28 @@ Konzipiert fuer den Einsatz in Schulworkshops: pausierbar, diskutierbar, wirkung
 ## Features
 
 - 5 realistische App-Szenen (WhatsApp, Instagram, TikTok, Homescreen, iMessage)
-- Pausierbar fuer Workshop-Diskussionen
-- Ton-Regler: Ton aus/ein und Lautstaerke waehrend des Laufs (unten links, Taste M)
-- Beamer-Ansicht fuer grosse Raeume: Handy, Bild und Nachrichten nebeneinander in grosser Schrift, jederzeit umschaltbar
+- Steuerleiste: Pause, Zeitleiste mit Sprung zu jeder Szene (vor und zurueck), Ton, Ansicht
+- Beamer-Ansicht fuer grosse Raeume: Handy, Bild und Nachrichten nebeneinander in grosser Schrift
 - View-Counter (Firebase Realtime Database)
 - Teilen-Button
 - Mehrsprachig (i18n: Deutsch + Englisch)
 - Kein Build-Step noetig
+
+## Bedienung im Lauf
+
+Waehrend die Simulation laeuft, liegt am unteren Rand eine Steuerleiste
+(`docs/adr/ADR-0008`):
+
+- **Pause** und Fortsetzen.
+- **Zeitleiste** mit Marken an den Szenenwechseln: Ein Klick auf einen Abschnitt
+  springt an dessen Anfang, Ziehen und die Pfeiltasten landen frei, vor und
+  zurueck. Im Pausezustand bleibt die Simulation nach dem Sprung pausiert.
+- **Ton:** aus und ein (auch Taste M) und Lautstaerke.
+- **Ansicht:** Handy oder Beamer (auch Taste B).
+
+Bis einschliesslich 500 Pixel Fensterbreite, also auf Handys, zeigt die Leiste
+nur Pause, Fortschritt und Ton. Springen und die Wahl der Ansicht gibt es dort
+nicht.
 
 ## Beamer-Ansicht
 
@@ -33,8 +48,7 @@ Nachrichten in grosser Schrift. Hintergrund und Abwaegungen stehen in
 `docs/adr/ADR-0007`.
 
 - **Einschalten:** am Startbildschirm die Kachel „Beamer", der Link-Zusatz
-  `?beamer=1`, oder waehrend des Laufs die Taste B bzw. die zwei Symbole unten
-  rechts.
+  `?beamer=1`, oder waehrend des Laufs die Taste B bzw. die Steuerleiste.
 - **Umschalten ohne Sprung:** Beide Ansichten zeigen denselben Lauf.
 - **Vollbild verwenden:** Die Ansicht passt sich jedem Fenster an (Aufloesung
   und Browser-Zoom aendern die Proportionen nicht), ein kleines Fenster ergibt
@@ -62,6 +76,7 @@ js/
   helpers.js           — Avatar-System + UI-Helfer
   timer.js             — Fortschrittsbalken + Uhr
   stage.js             — Beamer-Ansicht (liest im Handy mit, zeigt gross an)
+  controls.js          — Steuerleiste + Zeitleiste (Sprung = Neustart und stummes Durchlaufen)
   config.js            — Firebase-Konfiguration (nicht im Repo)
   firebase-counter.js  — View-Counter + Tageslimit
   main.js              — Entry Point + Share

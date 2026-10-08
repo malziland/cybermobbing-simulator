@@ -42,6 +42,12 @@ bash setup.sh          # lädt App-Icons (einmalig, nicht im Repo)
   Szeneninhalte brauchen einen Eintrag in `js/stage.js` und in der Schlüsselliste
   des Ablauftests (`scripts/run-e2e.js`). Maße der Beamer-Ansicht nur in der
   Einheit `--u`, nie in festen Pixeln.
+- Zeitleiste (ADR-0008): Ein Sprung startet die Szenen neu und durchläuft sie
+  stumm bis zur Zielzeit. Jede Szene muss das mitmachen: sichtbarer Zustand nur
+  im Handy-Bildschirm (`#phone .scr`), kein eigener Timer, kein Zugriff auf
+  Elemente außerhalb, der beim Neustart stehen bliebe. Eine neue Szene oder eine
+  geänderte Szenendauer braucht den passenden Eintrag in `CTL_SCENES`
+  (`js/controls.js`).
 
 ## Wo was steht
 

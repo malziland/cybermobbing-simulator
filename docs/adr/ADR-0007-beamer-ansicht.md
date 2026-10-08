@@ -34,31 +34,45 @@ Es gibt eine zweite Darstellung desselben Ablaufs, die **Beamer-Ansicht**:
   Uhr und App-Symbole mit ihren Zählern als Zeile über den Mitteilungen; die
   Szene „Nachrichten" und der Schlusstext haben kein eigenes Bild und nutzen die
   ganze Breite neben dem Handy.
-- **Bedienelemente wachsen mit:** Pausesymbol und Impressum wachsen in beiden
-  Ansichten mit dem Fenster und unterschreiten nie eine Größe, die am Handy
-  taugt (22 und 15 CSS-Pixel). In der Beamer-Ansicht sind sie wie Ton-Regler
-  und Umschalter in der Einheit der Bildfläche bemessen und an ihr ausgerichtet.
-  Der Text „Pausiert …" steht rechts neben dem Pausesymbol.
 - **Höchstens zwei Nachrichten gleichzeitig groß** (einschließlich zwei), bei den
   Mitteilungen höchstens drei; die nächste verdrängt die älteste. Hinweise wie
   „… hat einen Screenshot gemacht" haben eine eigene Zeile und verdrängen keine
-  Nachricht.
+  Nachricht. Passen zwei Nachrichten nicht in die Spalte, etwa mit einer
+  breiteren Ersatzschrift, weicht die ältere, bevor die neue eingeblendet wird;
+  abgeschnitten wird nichts.
 - **Maße nur in Anteilen der Bildfläche.** Die Ansicht ist eine 16:9-Fläche, die
   in jedes Fenster eingepasst wird; alle Größen hängen an einer Einheit
   (`--u`, 1 % der Flächenbreite). Auflösung und Browser-Zoom ändern die
   Proportionen nicht. Die Schriftgröße der Nachrichten ist eine einzige
   Stellgröße (`--st-text` in `css/styles.css`).
-- **Umschalter als zwei Vorschaubilder:** ein Mini-Handy und eine Mini-Leinwand,
-  am Startbildschirm als Kacheln, während des Laufs klein unten rechts. Dazu die
-  Taste B und der Link-Zusatz `?beamer=1`. Der gewählte Zustand steht nur in
-  der Adresszeile, es kommt kein weiterer `localStorage`-Wert hinzu. Der
-  Teilen-Knopf gibt den Link ohne diesen Zusatz weiter.
+- **Wahl der Ansicht:** am Startbildschirm zwei Kacheln mit Vorschaubildern (ein
+  Mini-Handy, eine Mini-Leinwand), während des Laufs dieselben zwei Symbole in
+  der Steuerleiste (ADR-0008), dazu die Taste B und der Link-Zusatz `?beamer=1`.
+  Der gewählte Zustand steht nur in der Adresszeile, es kommt kein weiterer
+  `localStorage`-Wert hinzu. Der Teilen-Knopf gibt den Link ohne diesen Zusatz
+  weiter. Bis einschließlich 500 CSS-Pixel Fensterbreite zeigt die Leiste keinen
+  Umschalter, außer die Beamer-Ansicht ist bereits gewählt.
 - **Nicht eigens groß gezeigt** wird reine Dekoration der App-Oberflächen:
   Statusleiste, Eingabe- und Navigationsleisten, Uhrzeiten und Lesehäkchen an
   Nachrichten, die Datumsmarke im Chat. Sie sind im Handy links zu sehen.
-- **Accessibility:** Der Umschalter gehört zum Rahmen-UI (WCAG 2.2 AA,
+- **Accessibility:** Die Wahl der Ansicht gehört zum Rahmen-UI (WCAG 2.2 AA,
   ADR-0005). Die Beamer-Ansicht selbst ist wie die Szenen eine filmartige,
   nicht interaktive Darstellung und fällt unter die dort dokumentierte Ausnahme.
+
+## Bewusste Abweichung: Tastenkürzel aus einem Buchstaben
+
+Die Tasten B (Ansicht) und M (Ton) sind Kürzel aus einem einzelnen Buchstaben.
+WCAG 2.1.4 (Stufe A) verlangt, dass solche Kürzel abschaltbar oder umlegbar
+sind; das ist hier nicht der Fall.
+
+- Entscheidung des Betreibers vom 2026-10-08: Die Kürzel bleiben.
+- Begründung: Die Seite hat kein Eingabefeld, in dem die Tasten versehentlich
+  ausgelöst würden, und wird im Workshop von einer Person moderiert. Beide
+  Funktionen sind zusätzlich über sichtbare, per Tastatur erreichbare Knöpfe
+  bedienbar. Eine gehaltene Taste löst nur einmal aus.
+- Betrachtete Alternative: ein Schalter „Tastenkürzel aus".
+- Bedingung für Neubewertung: Einsatz außerhalb moderierter Workshops oder eine
+  Rückmeldung von Nutzern mit Sprachsteuerung.
 
 ## Betrachtete Alternativen
 
@@ -89,8 +103,10 @@ Es gibt eine zweite Darstellung desselben Ablaufs, die **Beamer-Ansicht**:
   Nachrichten und aus der letzten Reihe nicht sicher lesbar.
 - Das Handy wird per Skript skaliert (`stageFit()`), weil CSS eine Länge nicht
   durch eine Länge teilen kann. Die Pixelhöhe des Handys steht deshalb an zwei
-  Stellen (`.phone` in `css/styles.css` und `STAGE_PHONE_PX` in `js/stage.js`);
-  ein Test hält den Wert fest.
+  Stellen: in der Regel `.phone` in `css/styles.css` und als `STAGE_PHONE_PX` in
+  `js/stage.js`. Der Ablauftest vergleicht beide.
+- Beim Wechsel der Ansicht ändert das Handy seine Höhe; `stageScrollPhone()`
+  bringt die Chats danach wieder auf die neueste Nachricht.
 
 ## Bedingung für Neubewertung
 

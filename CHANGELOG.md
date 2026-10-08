@@ -9,15 +9,19 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) 
 Stand auf dem Zweig `feat/beamer-ansicht`, noch nicht ausgeliefert.
 
 ### Hinzugefügt
-- **Beamer-Ansicht** für große Räume (`docs/adr/ADR-0007`): zweite Darstellung desselben Ablaufs für alle Szenen, mit dem Handy links, dem Bild der Szene in der Mitte und den neuesten Nachrichten groß rechts. Umschalten jederzeit ohne Sprung im Ablauf. Alle Maße sind Anteile der Bildfläche, Auflösung und Browser-Zoom ändern die Proportionen nicht
-- **Umschalter mit zwei Vorschaubildern** (Handy und Beamer): als Kacheln am Startbildschirm, klein unten rechts während des Laufs; zusätzlich Taste B und Link-Zusatz `?beamer=1`
-- **Ton-Regler** während des Laufs: Knopf für Ton aus und ein sowie Schieberegler für die Lautstärke unten links, dazu die Taste M. Er wirkt auf Musik und Geräusche gemeinsam; auf schmalen Bildschirmen erscheint nur der Knopf. Die Einstellung wird nicht gespeichert
-- In der Beamer-Ansicht wachsen Ton-Regler und Umschalter mit dem Bild mit; Bild, Zahlen und Zusatztexte sitzen in jeder App an derselben Stelle
-- Tests für die Beamer-Ansicht: QUnit-Module `tests/test-stage.js` und `tests/test-volume.js`; der Ablauftest prüft zusätzlich, dass jeder Szenentext in der Beamer-Ansicht erscheint, und die Proportionen in sechs Fenstergrößen und Zoomstufen
+- **Beamer-Ansicht** für große Räume (`docs/adr/ADR-0007`): zweite Darstellung desselben Ablaufs für alle Szenen, mit dem Handy links, dem Bild der Szene in der Mitte und den neuesten Nachrichten groß rechts. Umschalten jederzeit ohne Sprung im Ablauf. Alle Maße sind Anteile der Bildfläche, Auflösung und Browser-Zoom ändern die Proportionen nicht. Bild, Zahlen und Zusatztexte sitzen in jeder App an derselben Stelle
+- **Steuerleiste** (`docs/adr/ADR-0008`): eine Leiste am unteren Rand mit Pause, Zeit und Name der Szene, Zeitleiste, Ton, Wahl der Ansicht und Impressum, in beiden Ansichten gleich aufgebaut
+- **Zeitleiste mit Springen vor und zurück:** Klick auf einen Abschnitt springt an den Anfang der Szene, Ziehen und Pfeiltasten landen frei. Ein Sprung startet die Szenen neu und durchläuft sie stumm bis zur Zielzeit; Handy und Beamer-Ansicht zeigen danach denselben Stand wie ein Durchlauf ohne Sprung
+- **Ton:** Knopf für Ton aus und ein sowie Schieberegler für die Lautstärke, dazu die Taste M. Wirkt auf Musik und Geräusche gemeinsam; die Einstellung wird nicht gespeichert
+- **Wahl der Ansicht** über zwei Kacheln mit Vorschaubildern am Startbildschirm, in der Steuerleiste, mit der Taste B und über den Link-Zusatz `?beamer=1`
+- Tests: QUnit-Module `tests/test-stage.js`, `tests/test-volume.js`, `tests/test-controls.js`; der Ablauftest prüft zusätzlich die Beamer-Ansicht, die Sprünge gegen einen Durchlauf ohne Sprung und das Layout in mehreren Fenstergrößen und Zoomstufen
 
 ### Geändert
+- **Bedienelemente im Lauf:** Pausesymbol, Pausentext „Pausiert – tippe um fortzufahren", der dünne Fortschrittsstrich und das Impressum unten in der Mitte sind in der Steuerleiste aufgegangen. Auf Handys (bis einschließlich 500 Pixel Fensterbreite) zeigt die Leiste Pause, Fortschritt und Ton, das Impressum steht als Zeile darunter
+- **Startbildschirm:** Titelblock und Fußbereich teilen sich die Höhe, statt übereinander zu liegen; in niedrigen Fenstern überlappt nichts mehr. Das Impressum ist größer (mindestens 15 statt 12 CSS-Pixel)
 - Der Teilen-Knopf gibt den Link immer ohne den Zusatz `?beamer=1` weiter
-- **Pausesymbol und Impressum sind größer, in beiden Ansichten:** Sie wachsen mit dem Fenster mit und sind am Handy mindestens 22 bzw. 15 CSS-Pixel groß (bisher 14 und 12). Das Pausesymbol ist heller (Weiß mit 62 % statt 35 % Deckkraft), der Text „Pausiert …" steht rechts daneben statt dahinter
+- Nach dem Start ist der Startbildschirm auch für die Tastatur ausgeblendet (vorher blieben seine Knöpfe unsichtbar anwählbar)
+- Video-Export (`scripts/video-export/`) blendet die neuen Bedienelemente aus
 
 ## [1.2.1] - 2026-07-16
 
