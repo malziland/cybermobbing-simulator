@@ -1633,6 +1633,16 @@ function missingOnStage(keys) {
       narrowAfter.sec === narrow.before,
     '393 px wide: timeline is a progress display, a tap does not jump, no view picker'
   );
+  const phoneImpr = await phonePage.evaluate(function () {
+    var el = document.getElementById('impLinkGlobal');
+    var r = el.getBoundingClientRect();
+    var top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return { w: r.width, h: r.height, onTop: !!top && (top === el || el.contains(top)) };
+  });
+  check(
+    phoneImpr.w > 20 && phoneImpr.h > 10 && phoneImpr.onTop,
+    '393 px wide: the legal notice below the bar is there during the run and can be tapped'
+  );
   await phoneCtx.close();
 
   // ---------- Layout ----------
@@ -1955,6 +1965,66 @@ function missingOnStage(keys) {
     await ctx.close();
   }
 
+  console.log('E2E: the simulation starts without the view counter');
+  for (const mode of ['SDK host refused', 'SDK host does not answer', 'config.js missing']) {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1280, height: 720 },
+    });
+    await makeHermetic(ctx);
+    if (mode === 'SDK host refused') {
+      await ctx.route(/www\.gstatic\.com/, function (route) {
+        route.abort();
+      });
+    }
+    if (mode === 'SDK host does not answer') {
+      // The request is neither answered nor refused: it stays open for good
+      await ctx.route(/www\.gstatic\.com/, function () {});
+    }
+    if (mode === 'config.js missing') {
+      await ctx.route('**/js/config.js*', function (route) {
+        route.fulfill({ status: 404, contentType: 'text/plain', body: 'not found' });
+      });
+    }
+    const p = await ctx.newPage();
+    const modeErrors = [];
+    p.on('pageerror', function (err) {
+      modeErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10', { waitUntil: 'commit' });
+    await p.waitForSelector('#startBtn', { timeout: 5000 });
+    await p.click('#startBtn');
+    const started = await p.waitForSelector('#aWa.on', { timeout: 3000 }).then(
+      function () {
+        return true;
+      },
+      function () {
+        return false;
+      }
+    );
+    const state = await p.evaluate(function () {
+      return {
+        startGone: document.getElementById('start').classList.contains('gone'),
+        phone: !document.getElementById('phone').classList.contains('hidden'),
+        readyState: document.readyState,
+        counter:
+          typeof window.counterReady === 'undefined' ? 'not loaded' : String(window.counterReady),
+      };
+    });
+    check(
+      started && state.startGone && state.phone && modeErrors.length === 0,
+      mode +
+        ': the start button works, the phone appears (page is "' +
+        state.readyState +
+        '", counter ' +
+        state.counter +
+        ', page errors ' +
+        modeErrors.length +
+        ')'
+    );
+    await ctx.close();
+  }
+
   console.log('E2E: pause right after the start (real time)');
   {
     const ctx = await browser.newContext({
@@ -2230,6 +2300,441 @@ function missingOnStage(keys) {
     await ctx.close();
   }
 
+  console.log('E2E: gaps the deep audit found (2026-10-08)');
+  {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1280, height: 720 },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000 });
+    await p.evaluate(function () {
+      window.togglePause();
+    });
+    /** After a jump: is the photo of that app really there, with its picture? */
+    function photoState(id) {
+      var el = document.querySelector('#' + id + ' .real-photo');
+      if (!el) return { there: false, w: 0, h: 0, image: '' };
+      var r = el.getBoundingClientRect();
+      return { there: true, w: r.width, h: r.height, image: getComputedStyle(el).backgroundImage };
+    }
+    const igPhoto = await p.evaluate(function () {
+      window.simSeek(40);
+      return null;
+    });
+    void igPhoto;
+    const ig = await p.evaluate(photoState, 'igPh');
+    await p.evaluate(function () {
+      window.simSeek(70);
+    });
+    const tk = await p.evaluate(photoState, 'tkBg');
+    check(
+      ig.there &&
+        ig.w > 100 &&
+        ig.h > 100 &&
+        /photo/.test(ig.image) &&
+        tk.there &&
+        tk.w > 100 &&
+        tk.h > 100 &&
+        /photo/.test(tk.image),
+      'after a jump the photo is there in Instagram (' +
+        Math.round(ig.w) +
+        'x' +
+        Math.round(ig.h) +
+        ') and in TikTok (' +
+        Math.round(tk.w) +
+        'x' +
+        Math.round(tk.h) +
+        ')'
+    );
+    // A jump away from a spot with a notice takes the notice along
+    await p.evaluate(function () {
+      window.simSeek(18.5);
+    });
+    await p.waitForTimeout(80);
+    const noteOn = await p.evaluate(function () {
+      var el = document.getElementById('toast');
+      return {
+        show: el.classList.contains('show'),
+        opacity: parseFloat(getComputedStyle(el).opacity),
+      };
+    });
+    await p.evaluate(function () {
+      window.simSeek(10);
+    });
+    const noteOff = await p.evaluate(function () {
+      return document.getElementById('toast').classList.contains('show');
+    });
+    check(
+      noteOn.show && noteOn.opacity > 0.99 && !noteOff,
+      'a jump onto a notice shows it at once (opacity ' +
+        noteOn.opacity.toFixed(2) +
+        '), a jump away removes it'
+    );
+    // The clock of the notification scene is set again after a jump
+    const clocks = await p.evaluate(function () {
+      window.simSeek(85);
+      return {
+        home: document.getElementById('hsClock').textContent,
+        bar: document.getElementById('sbTime').textContent,
+      };
+    });
+    check(
+      /^\d\d:\d\d$/.test(clocks.home) && clocks.home === clocks.bar,
+      'after a jump the clock on the lock screen shows the time of the status bar (' +
+        clocks.home +
+        ')'
+    );
+    // A window change keeps the chat at its newest message
+    await p.evaluate(function () {
+      window.simSeek(24);
+    });
+    await p.setViewportSize({ width: 1280, height: 560 });
+    await p.waitForTimeout(150);
+    const below = await p.evaluate(function () {
+      var box = document.getElementById('wC').getBoundingClientRect();
+      var last = document.getElementById('wC').lastElementChild.getBoundingClientRect();
+      return Math.round(last.bottom - box.bottom);
+    });
+    check(
+      below <= 1,
+      'after the window got lower the newest chat message is still in sight (' +
+        below +
+        ' px below)'
+    );
+    await p.setViewportSize({ width: 1280, height: 720 });
+    await p.waitForTimeout(150);
+    check(
+      (await p.evaluate(function () {
+        return getComputedStyle(document.getElementById('ctlSeek')).touchAction;
+      })) === 'none',
+      'the timeline takes finger drags itself (touch-action: none)'
+    );
+    // Dragging in the phone view: a notice under the pointer is visible while held
+    const bar = await p.evaluate(function () {
+      var r = document.getElementById('ctlTrack').getBoundingClientRect();
+      return { left: r.left, width: r.width, y: r.top + r.height / 2, total: window.CTL_TOTAL };
+    });
+    const barX = function (second) {
+      return bar.left + (bar.width * second) / bar.total;
+    };
+    const frames = function () {
+      return new Promise(function (resolve) {
+        requestAnimationFrame(function () {
+          requestAnimationFrame(resolve);
+        });
+      });
+    };
+    await p.mouse.move(barX(5), bar.y);
+    await p.mouse.down();
+    await p.mouse.move(barX(12), bar.y, { steps: 4 });
+    await p.mouse.move(barX(18.6), bar.y, { steps: 4 });
+    await p.evaluate(frames);
+    const heldNote = await p.evaluate(function () {
+      var el = document.getElementById('toast');
+      return {
+        show: el.classList.contains('show'),
+        opacity: parseFloat(getComputedStyle(el).opacity),
+        sec: window.sec,
+      };
+    });
+    await p.mouse.up();
+    check(
+      heldNote.show && heldNote.opacity > 0.99,
+      'phone view: a notice is visible while the knob is held on it (' +
+        heldNote.sec.toFixed(1) +
+        ' s, opacity ' +
+        heldNote.opacity.toFixed(2) +
+        ')'
+    );
+    // Running: the pause key does nothing while dragging, and a drag that loses
+    // its pointer ends by itself instead of leaving the simulation held
+    await p.evaluate(function () {
+      window.simSeek(30);
+      window.togglePause();
+    });
+    await p.mouse.move(barX(32), bar.y);
+    await p.mouse.down();
+    await p.mouse.move(barX(40), bar.y, { steps: 4 });
+    await p.evaluate(frames);
+    const whileHeld = await p.evaluate(function () {
+      window.togglePause();
+      return { paused: window.simPaused, scrubbing: window.ctlScrubbing };
+    });
+    await p.evaluate(function () {
+      document
+        .getElementById('ctlSeek')
+        .dispatchEvent(new PointerEvent('pointercancel', { bubbles: true }));
+    });
+    const afterCancel = await p.evaluate(function () {
+      return { scrubbing: window.ctlScrubbing, dragging: window.ctlDragging, sec: window.sec };
+    });
+    const ranAfterCancel = await p
+      .waitForFunction(
+        function (from) {
+          return window.sec > from + 2;
+        },
+        afterCancel.sec,
+        { timeout: 3000 }
+      )
+      .then(
+        function () {
+          return true;
+        },
+        function () {
+          return false;
+        }
+      );
+    await p.mouse.up();
+    check(
+      whileHeld.scrubbing && !whileHeld.paused,
+      'while the knob is held the pause function is ignored, the simulation is held anyway'
+    );
+    check(
+      !afterCancel.scrubbing && !afterCancel.dragging && ranAfterCancel,
+      'a drag whose pointer is taken away ends by itself and the run continues'
+    );
+    await p.mouse.move(barX(50), bar.y);
+    await p.mouse.down();
+    await p.mouse.move(barX(60), bar.y, { steps: 4 });
+    await p.evaluate(frames);
+    const afterBlur = await p.evaluate(function () {
+      window.dispatchEvent(new Event('blur'));
+      return { scrubbing: window.ctlScrubbing, dragging: window.ctlDragging, sec: window.sec };
+    });
+    const ranAfterBlur = await p
+      .waitForFunction(
+        function (from) {
+          return window.sec > from + 2;
+        },
+        afterBlur.sec,
+        { timeout: 3000 }
+      )
+      .then(
+        function () {
+          return true;
+        },
+        function () {
+          return false;
+        }
+      );
+    await p.mouse.up();
+    check(
+      !afterBlur.scrubbing && !afterBlur.dragging && ranAfterBlur,
+      'leaving the window in the middle of a drag ends it, the run continues'
+    );
+    // Legal notice: keyboard focus goes into the dialog and comes back; nothing behind it can be used
+    await p.focus('#impLinkRun');
+    await p.keyboard.press('Enter');
+    const dlgOpen = await p.evaluate(function () {
+      return {
+        focus: document.activeElement ? document.activeElement.id : '',
+        barOff: document.getElementById('ctlBar').inert === true,
+        phoneOff: document.getElementById('phone').inert === true,
+      };
+    });
+    await axeScan(p, '#impModal', 'legal notice opened from the control bar');
+    await p.keyboard.press('Escape');
+    const dlgClosed = await p.evaluate(function () {
+      return {
+        focus: document.activeElement ? document.activeElement.id : '',
+        barOff: document.getElementById('ctlBar').inert === true,
+      };
+    });
+    check(
+      dlgOpen.focus === 'impCloseBtn' &&
+        dlgOpen.barOff &&
+        dlgOpen.phoneOff &&
+        dlgClosed.focus === 'impLinkRun' &&
+        !dlgClosed.barOff,
+      'legal notice: focus moves to its close button, the bar behind is switched off, focus returns afterwards (' +
+        dlgOpen.focus +
+        ' -> ' +
+        dlgClosed.focus +
+        ')'
+    );
+    // Paused on the help page: the "link copied" note still goes away
+    await p.evaluate(function () {
+      if (!window.simPaused) window.togglePause();
+      window.simSeek(window.CTL_TOTAL);
+    });
+    await p.waitForTimeout(100);
+    await p.click('#footerShareBtn');
+    const copiedOn = await p.evaluate(function () {
+      return document.getElementById('toast').classList.contains('show');
+    });
+    await p.waitForTimeout(3000);
+    const copiedOff = await p.evaluate(function () {
+      return {
+        show: document.getElementById('toast').classList.contains('show'),
+        paused: window.simPaused,
+      };
+    });
+    check(
+      copiedOn && !copiedOff.show && copiedOff.paused,
+      'paused on the help page: the note of the share button appears and is gone 3 s later'
+    );
+    await ctx.close();
+  }
+  {
+    // Projector view: after a jump the picture is there and nothing fades in
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1280, height: 720 },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10&beamer=1');
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+    const stagePhoto = await p.evaluate(function () {
+      window.togglePause();
+      window.simSeek(40);
+      return new Promise(function (resolve) {
+        // the stage mirrors the jump in a microtask
+        Promise.resolve().then(function () {
+          Promise.resolve().then(function () {
+            var el = document.querySelector('#stIgPh .real-photo');
+            var r = el ? el.getBoundingClientRect() : { width: 0, height: 0 };
+            var items = document.querySelectorAll('#stage .st-scene.on .st-item');
+            var still = document.querySelectorAll('#stage .st-scene.on .st-item.st-still');
+            resolve({
+              w: r.width,
+              h: r.height,
+              image: el ? getComputedStyle(el).backgroundImage : '',
+              items: items.length,
+              still: still.length,
+            });
+          });
+        });
+      });
+    });
+    check(
+      stagePhoto.w > 100 && stagePhoto.h > 100 && /photo/.test(stagePhoto.image),
+      'projector view: after a jump the picture of the scene is there (' +
+        Math.round(stagePhoto.w) +
+        'x' +
+        Math.round(stagePhoto.h) +
+        ')'
+    );
+    check(
+      stagePhoto.items > 0 && stagePhoto.still === stagePhoto.items,
+      'projector view: messages created by a jump stand at once, without a fade-in (' +
+        stagePhoto.still +
+        ' of ' +
+        stagePhoto.items +
+        ')'
+    );
+    await ctx.close();
+  }
+  for (const probe of [
+    ['', 'de'],
+    ['?lang=en', 'en'],
+  ]) {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1280, height: 720 },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/' + probe[0]);
+    await p.waitForSelector('#startBtn');
+    const lang = await p.evaluate(function () {
+      return document.documentElement.lang;
+    });
+    check(
+      lang === probe[1],
+      'page language for screen readers is "' +
+        lang +
+        '" with "' +
+        (probe[0] || 'no parameter') +
+        '"'
+    );
+    if (probe[1] === 'de') {
+      // The room for the disclaimer follows a window change
+      await p.setViewportSize({ width: 560, height: 1210 });
+      await p.waitForTimeout(250);
+      const gap = await p.evaluate(function () {
+        var credit = document.querySelector('.start-credit').getBoundingClientRect();
+        var disc = document.querySelector('.disclaimer').getBoundingClientRect();
+        return Math.round(disc.top - credit.bottom);
+      });
+      check(
+        gap >= 0,
+        'start screen narrowed from 1280 to 560 px: the disclaimer does not cover the line above it (' +
+          gap +
+          ' px apart)'
+      );
+    }
+    await ctx.close();
+  }
+  for (const size of [
+    [852, 393],
+    [667, 375],
+  ]) {
+    // Help page in a low window: every part can be brought into view and is then uncovered
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: size[0], height: size[1] },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000 });
+    await p.evaluate(function () {
+      window.simSeek(window.CTL_TOTAL);
+    });
+    await p.waitForTimeout(250);
+    const covered = await p.evaluate(function () {
+      var out = [];
+      ['#ctaLinks a', '#ctaHelpline', '#ctaMsg', '#footerShareBtn', '#footerReplayBtn'].forEach(
+        function (sel) {
+          var el = document.querySelector(sel);
+          if (!el) {
+            out.push(sel + ' missing');
+            return;
+          }
+          el.scrollIntoView({ block: 'center' });
+          var r = el.getBoundingClientRect();
+          var points = [
+            [r.left + r.width / 2, r.top + 2],
+            [r.left + r.width / 2, r.bottom - 2],
+          ];
+          points.forEach(function (pt) {
+            var top = document.elementFromPoint(pt[0], pt[1]);
+            if (!top || !(el === top || el.contains(top))) out.push(sel + ' covered');
+          });
+        }
+      );
+      return out;
+    });
+    check(
+      covered.length === 0,
+      size[0] +
+        'x' +
+        size[1] +
+        ': every part of the help page can be scrolled into view and is not covered' +
+        (covered.length ? ' - ' + covered.join(', ') : '')
+    );
+    await ctx.close();
+  }
+
   console.log('E2E: projector view - wider text does not cut messages off');
   {
     const ctx = await browser.newContext({
@@ -2281,6 +2786,42 @@ function missingOnStage(keys) {
         ' px in ' +
         clip.samples +
         ' samples)'
+    );
+    // The same after jumps: many messages arrive at once, the fit check must still hold
+    const jumpClip = await p.evaluate(async function () {
+      var worst = 0;
+      var at = -1;
+      var targets = 0;
+      for (var t = 2; t < 114; t += 0.5) {
+        window.simSeek(t);
+        await new Promise(function (resolve) {
+          requestAnimationFrame(function () {
+            requestAnimationFrame(resolve);
+          });
+        });
+        var lists = document.querySelectorAll('#stage .st-scene.on .st-list');
+        for (var i = 0; i < lists.length; i++) {
+          var live = lists[i].querySelectorAll('.st-item:not(.out)');
+          if (!live.length) continue;
+          var cut = lists[i].getBoundingClientRect().top - live[0].getBoundingClientRect().top;
+          if (cut > worst) {
+            worst = cut;
+            at = t;
+          }
+        }
+        targets++;
+      }
+      return { worst: worst, at: at, targets: targets, paused: window.simPaused };
+    });
+    check(
+      jumpClip.targets > 200 && jumpClip.worst <= 1.5,
+      'with 30% wider text no message is cut off after a jump either (worst ' +
+        jumpClip.worst.toFixed(1) +
+        ' px' +
+        (jumpClip.worst > 1.5 ? ' at ' + jumpClip.at + ' s' : '') +
+        ', ' +
+        jumpClip.targets +
+        ' targets)'
     );
     await ctx.close();
   }

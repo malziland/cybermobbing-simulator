@@ -416,6 +416,8 @@ function t(key, replacements) {
  * - data-i18n-html="key" sets innerHTML (for strings with HTML like <br> or <strong>)
  */
 function applyI18n() {
+  // Screen readers pick the voice by this attribute
+  document.documentElement.lang = TRANSLATIONS[currentLang] ? currentLang : 'de';
   document.querySelectorAll('[data-i18n]').forEach(function (el) {
     var key = el.getAttribute('data-i18n');
     el.textContent = t(key);

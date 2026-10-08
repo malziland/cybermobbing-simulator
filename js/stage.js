@@ -87,6 +87,12 @@ function stageFit() {
 }
 
 /**
+ * @type {boolean} True while a jump on the timeline is mirrored: set by
+ * simSeek() (controls.js) and cleared after the observers have run.
+ */
+var stageJumping = false;
+
+/**
  * @type {number} The projector view and the switches for it exist from this
  * window width on (CSS pixels, inclusive: 701 has them, 700 has not). Below,
  * the page is the phone version: a 16:9 stage would be tiny in an upright
@@ -218,6 +224,10 @@ function stagePush(list, item, max) {
   for (i = 0; i < faded.length; i++) list.removeChild(faded[i]);
   var items = list.querySelectorAll('.st-item');
   for (i = 0; i < items.length; i++) items[i].classList.add('old');
+  // Entries created by a jump on the timeline stand at once. A fade-in would
+  // start at height 0, and the fit check below would then measure the earlier
+  // entries of the same jump as empty and let them be cut off (wide fonts).
+  if (stageJumping) item.classList.add('st-still');
   // A typing indicator, if present, always stays below the newest message
   list.insertBefore(item, list.querySelector('.st-typing'));
   items = list.querySelectorAll('.st-item');

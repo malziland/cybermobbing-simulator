@@ -90,7 +90,13 @@ function go() {
   initAudio();
   simPaused = false;
   simTimers = [];
-  if (typeof incrementCounters === 'function') incrementCounters();
+  // The view counter must never keep the simulation from starting: its script
+  // comes last and may be missing (hanging SDK host) or fail
+  try {
+    if (typeof incrementCounters === 'function') incrementCounters();
+  } catch (e) {
+    if (typeof console !== 'undefined') console.warn('Counter not available:', e);
+  }
   document.getElementById('start').classList.add('gone');
   var disc = document.querySelector('.disclaimer');
   if (disc) disc.classList.add('hidden');
@@ -159,14 +165,17 @@ function shareSimulation() {
   toastEl.classList.remove('hidden');
   toastEl.textContent = t('ui.linkCopied');
   toastEl.classList.add('show');
-  simTimeout(function () {
-    toastEl.classList.remove('show');
+  // Not a scene step: the browser's own timer, so the note also goes away when
+  // the simulation is paused (the help page can be reached while paused)
+  var mine = ++toastSeq;
+  setTimeout(function () {
+    if (mine === toastSeq) toastEl.classList.remove('show');
   }, 2500);
 }
 
 // ========== DOM READY ==========
 /**
- * DOMContentLoaded handler -- wires up all interactive elements:
+ * Page start-up (initPage) -- wires up all interactive elements:
  *   - Start button -> go()
  *   - Share buttons -> shareSimulation()
  *   - Replay button -> page reload
@@ -176,7 +185,7 @@ function shareSimulation() {
  *   - Impressum modal (open/close/backdrop/Escape)
  *   - Applies i18n translations to the initial DOM
  */
-document.addEventListener('DOMContentLoaded', function () {
+function initPage() {
   bgMusic = document.getElementById('bgm');
   var impModal = document.getElementById('impModal');
   applyI18n();
@@ -195,6 +204,18 @@ document.addEventListener('DOMContentLoaded', function () {
   // During the run the legal notice pauses the simulation and lets it continue
   // when it is closed -- unless the simulation was already paused before.
   var impPausedSim = false;
+  // While the legal notice is open nothing behind it can be operated, and the
+  // keyboard focus is inside the dialog; it returns to where it came from
+  var impOpener = null;
+  var impBehind = ['start', 'ctlBar', 'phone', 'stage', 'aCta', 'limitPage'];
+  function impSetBehind(off) {
+    impBehind.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.inert = off;
+    });
+    var bar = document.querySelector('.impr-link-bar');
+    if (bar) bar.inert = off;
+  }
   function openImpressum() {
     var phone = document.getElementById('phone');
     var running = simStarted && !!phone && !phone.classList.contains('hidden');
@@ -213,10 +234,17 @@ document.addEventListener('DOMContentLoaded', function () {
           ? simTime.textContent
           : formatTime(now.getHours(), now.getMinutes());
     }
+    if (!impModal.classList.contains('show')) impOpener = document.activeElement;
     impModal.classList.add('show');
+    impSetBehind(true);
+    var closeBtn = document.getElementById('impCloseBtn');
+    if (closeBtn) closeBtn.focus();
   }
   function closeImpressum() {
     impModal.classList.remove('show');
+    impSetBehind(false);
+    if (impOpener && impOpener.focus && document.contains(impOpener)) impOpener.focus();
+    impOpener = null;
     if (impPausedSim) {
       impPausedSim = false;
       if (simPaused) togglePause();
@@ -342,4 +370,19 @@ document.addEventListener('DOMContentLoaded', function () {
       if (e.key === 'Escape' && impModal.classList.contains('show')) closeImpressum();
     });
   }
-});
+
+  // If the counter script has not arrived after 5 s (its SDK host hangs),
+  // take the "--" placeholders away; the script does the same once it runs
+  setTimeout(function () {
+    if (typeof viewCountLoaded !== 'undefined' && viewCountLoaded) return;
+    var boxes = document.querySelectorAll('.start-views, .fin-views');
+    for (var i = 0; i < boxes.length; i++) boxes[i].style.display = 'none';
+  }, 5000);
+}
+
+// In index.html this script stands at the end of the body: the page is parsed,
+// so it is wired up at once. Waiting for DOMContentLoaded would also wait for
+// the deferred Firebase SDK, and a hanging SDK host would leave the start
+// button dead. Elsewhere (test runner) the wiring waits for the DOM.
+if (document.getElementById('startBtn')) initPage();
+else document.addEventListener('DOMContentLoaded', initPage);

@@ -10,7 +10,7 @@
  * @requires i18n.js     - t() for all message text and interpolated counts
  */
 
-// ===== P2: INSTAGRAM (28-56s) =====
+// ===== P2: INSTAGRAM =====
 // Character speech patterns:
 // sara.xoxo: CAPS-mix, Emojis, dehnt Wörter
 // tim_0711: klein, tippfehler, Wörter weglassen

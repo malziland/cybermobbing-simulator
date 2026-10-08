@@ -332,9 +332,23 @@ QUnit.module(
           shown: document.querySelectorAll('#aCta .show').length,
         };
       }
+      // As on the live site: a logo and two links (the example config has neither logo nor second link)
+      var hadConfig = typeof helplineConfig !== 'undefined';
+      var origConfig = hadConfig ? helplineConfig : undefined;
+      window.helplineConfig = {
+        logo: 'logo.png',
+        logoAlt: 'Logo',
+        link: 'https://example.org/',
+        linkLabel: 'example.org',
+        infoLink: 'https://example.org/info',
+        infoLabel: 'Info',
+        slogan: 'Slogan',
+      };
       p6();
       simAdvance(600); // the fade-in step of the help page
       var first = state();
+      assert.equal(first.logo, 1, 'p6: one logo');
+      assert.equal(first.links, 2, 'p6: two links');
       assert.ok(first.cta && !first.phone && !first.pause && first.disclaimer, 'p6: help page up');
       assert.ok(first.shown >= 2, 'p6: its texts are shown (' + first.shown + ')');
 
@@ -346,6 +360,8 @@ QUnit.module(
       p6();
       simAdvance(600);
       assert.deepEqual(state(), first, 'a second run of p6 gives the same page, nothing doubled');
+      if (hadConfig) window.helplineConfig = origConfig;
+      else delete window.helplineConfig;
       simTimers = origTimers;
       simPaused = origPaused;
     });

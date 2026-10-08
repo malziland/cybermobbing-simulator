@@ -155,33 +155,37 @@ function simRestart() {
 }
 
 /**
- * Brings every fade inside the phone, the stage and the help page to its end state, so the
+ * Brings every fade inside the phone, the stage, the help page and the toast to its end state, so the
  * result of a jump is there at once. Phone entries start invisible and only
  * become visible through their fade-in; without this the phone would stay
  * empty for a moment after every jump. Runs as a microtask, i.e. after the
  * stage has mirrored the jump (its observers were queued before).
  */
 function ctlSettle() {
-  if (!document.getAnimations) return;
   Promise.resolve().then(function () {
-    var roots = ['phone', 'stage', 'aCta'].map(function (id) {
-      return document.getElementById(id);
-    });
-    // Read a layout value first: only then every new fade exists (Safari)
-    void document.body.offsetHeight;
-    document.getAnimations().forEach(function (animation) {
-      var target = animation.effect && animation.effect.target;
-      if (!target) return;
-      var inside = roots.some(function (root) {
-        return !!root && root.contains(target);
+    stageJumping = false;
+    if (document.getAnimations) {
+      var roots = ['phone', 'stage', 'aCta', 'toast'].map(function (id) {
+        return document.getElementById(id);
       });
-      if (!inside) return;
-      try {
-        animation.finish();
-      } catch (e) {
-        // Endless animations (typing dots) cannot be finished; they keep running
-      }
-    });
+      // Read a layout value first: only then every new fade exists (Safari)
+      void document.body.offsetHeight;
+      document.getAnimations().forEach(function (animation) {
+        var target = animation.effect && animation.effect.target;
+        if (!target) return;
+        var inside = roots.some(function (root) {
+          return !!root && root.contains(target);
+        });
+        if (!inside) return;
+        try {
+          animation.finish();
+        } catch (e) {
+          // Endless animations (typing dots) cannot be finished; they keep running
+        }
+      });
+    }
+    // Everything has its final height now: make sure no message is cut off
+    stageFitLists();
   });
 }
 
@@ -195,6 +199,8 @@ function ctlSettle() {
  */
 function simSeek(t, hold) {
   if (!simStarted) return;
+  // Tells the stage that what follows is a jump (cleared in ctlSettle())
+  stageJumping = true;
   var n = Number(t);
   var target = isNaN(n) ? 0 : Math.min(Math.max(n, 0), CTL_TOTAL);
   // The help page has no pause and nothing left to wait for: a jump into its
@@ -258,7 +264,9 @@ function ctlUpdate() {
   }
   var btn = document.getElementById('pauseBtn');
   if (btn) {
-    // Nothing to pause on the help page: the button stays in place, switched off
+    // Nothing to pause on the help page: the button stays in place, switched off.
+    // A keyboard focus on it moves on to the timeline instead of getting lost.
+    if (ended && !btn.disabled && document.activeElement === btn) seek.focus();
     btn.disabled = ended;
     btn.classList.toggle('paused', simPaused);
     btn.setAttribute('aria-label', t(simPaused ? 'ctl.resume' : 'ctl.pause'));
@@ -347,6 +355,11 @@ function ctlInit() {
   });
   seek.addEventListener('pointermove', function (e) {
     if (!ctlSeekAllowed()) return;
+    // The button was released where the page could not see it
+    if (ctlDragging && e.buttons === 0) {
+      dragLost();
+      return;
+    }
     var at = ctlTimeAt(e.clientX);
     if (ctlDragging) {
       if (Math.abs(e.clientX - downX) > 4) moved = true;
@@ -393,6 +406,13 @@ function ctlInit() {
   }
   seek.addEventListener('pointercancel', dragLost);
   seek.addEventListener('lostpointercapture', dragLost);
+  // Leaving the window or the tab in the middle of a drag: the release may
+  // never arrive, and a held simulation with a pause button that does nothing
+  // would be a dead end
+  window.addEventListener('blur', dragLost);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) dragLost();
+  });
   seek.addEventListener('pointerleave', function () {
     if (!ctlDragging) ctlTip(null, '');
   });

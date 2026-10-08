@@ -11,7 +11,7 @@
  * @requires i18n.js     - t() for all message text
  */
 
-// ===== P3: TIKTOK (56-78s) =====
+// ===== P3: TIKTOK =====
 // Escalation: doxxing with address and phone number
 // Character speech patterns:
 // lukas: cool, kurz, organisiert | sara: CAPS, übertreibt

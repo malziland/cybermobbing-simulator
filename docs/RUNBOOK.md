@@ -8,9 +8,11 @@ Stand: 2026-10-08
 npm run dev        # Firebase-Hosting-Emulator auf http://localhost:5000
 ```
 
-Voraussetzung: `js/config.js` vorhanden (`cp js/config.example.js js/config.js`
-und Werte eintragen); ohne die Datei läuft die Simulation trotzdem, nur der
-View-Counter blendet sich nach 5 s aus.
+Voraussetzung für den View-Counter: `js/config.js` vorhanden
+(`cp js/config.example.js js/config.js` und Werte eintragen). Ohne die Datei
+läuft die Simulation trotzdem, der View-Counter ist dann ausgeblendet. Dasselbe
+gilt, wenn das Firebase-SDK nicht lädt (siehe Störfall weiter unten); der
+Ablauftest prüft alle drei Fälle.
 
 ## Prüfen vor jedem Deploy
 
@@ -119,6 +121,14 @@ Bekannte Ursachen, in dieser Reihenfolge prüfen:
 3. **`js/config.js` fehlt oder enthält falsche Werte** (nur bei eigenem
    Deployment/Fork relevant).
 4. Firebase-Status prüfen: https://status.firebase.google.com
+
+## Störfall: „Simulation starten" tut nichts
+
+Bis v1.2.1 hing der Start am Firebase-SDK von `www.gstatic.com`: War der Host im
+Netz der Schule gesperrt oder antwortete er nicht, blieb der Startknopf ohne
+Wirkung. Seit v2.0.0 lädt das SDK als Letztes und der Zähler ist vom Start
+getrennt. Tritt der Fehler trotzdem auf: Browser-Konsole öffnen, die Fehlermeldung
+notieren und die Seite mit einem zweiten Browser gegenprüfen.
 
 ## Störfall: Limit-Seite erscheint unerwartet
 

@@ -19,6 +19,25 @@ QUnit.module(
       assert.ok(Math.abs(sec - 0.1) < 0.001, 'sec is 0.1 after one tick (actual: ' + sec + ')');
     });
 
+    QUnit.test('tick follows the wall clock when ticks arrive late', function (assert) {
+      var done = assert.async();
+      sec = 10;
+      tick(); // first tick after sec was set: one step
+      assert.ok(Math.abs(sec - 10.1) < 0.001, 'first tick adds one step (' + sec + ')');
+      // The browser delivers the next tick 300 ms late instead of after 100 ms
+      setTimeout(function () {
+        tick();
+        var passed = sec - 10.1;
+        assert.ok(
+          passed > 0.25 * SIM_SPEED && passed < 0.6 * SIM_SPEED,
+          'a tick 300 ms late moves the clock by about 0.3 s, not by 0.1 (' +
+            passed.toFixed(3) +
+            ')'
+        );
+        done();
+      }, 300);
+    });
+
     QUnit.test('tick moves the timeline to the elapsed share', function (assert) {
       sec = CTL_TOTAL / 2; // halfway
       tick();

@@ -25,7 +25,8 @@ Umschalter der Ansicht, Impressum.
 - Aufbau, Symbole und Größe sind in Handy- und Beamer-Ansicht gleich. In der
   Beamer-Ansicht ist die Leiste an der Bildfläche ausgerichtet und rein
   proportional (3,6 % der Flächenbreite hoch); in der Handy-Ansicht hat sie
-  dieselbe Formel mit einer Mindesthöhe von 40 CSS-Pixeln.
+  dieselbe Formel mit einer Mindesthöhe von 40 CSS-Pixeln, in der kurzen
+  Fassung bis 500 Pixel Fensterbreite fest 36.
 - Rot bedeutet in der Leiste nur „gewählt" oder „aktiv" (gewählte Ansicht,
   Pause, Ton aus). Impressum und Lautstärke-Regler sind dort weiß.
 - **Die Leiste zeigt keine Zeiten.** Der Titel verspricht 120 Sekunden, der

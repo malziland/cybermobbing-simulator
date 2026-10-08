@@ -5,7 +5,7 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
 /* Title block and footer share the height: the title block sits in the free
    space above the footer, the footer above the disclaimer. Nothing is pinned
    on top of anything else, so low windows cannot produce overlaps. */
-#start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:clamp(12px,4vh,48px) 16px calc(var(--ctl-impr)*1.25 + var(--disc-h,44px) + 40px);z-index:9000;background:#000;transition:opacity .8s,visibility 0s .8s}
+#start{position:fixed;inset:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:clamp(12px,4vh,48px) 16px calc(var(--ctl-impr)*1.25 + var(--disc-h,44px) + 40px);z-index:9000;background:#000;transition:opacity .8s,visibility 0s .8s}
 #start.gone{opacity:0;pointer-events:none;visibility:hidden}
 #start h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:700;text-align:center;margin-top:auto;margin-bottom:.5rem;letter-spacing:-.02em}
 #start h1 em{color:#fe2c55;font-style:normal}
@@ -106,7 +106,7 @@ body.sim-ended .ctl-play.hidden{display:flex;opacity:.3;pointer-events:none}
 /* While the knob is dragged the picture follows at once: every fade is cut to its
    end state. Not animation:none -- phone entries start invisible and only become
    visible through their fade-in. */
-body.scrubbing #phone *,body.scrubbing #stage *,body.scrubbing #aCta *{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important;transition-delay:0s!important}
+body.scrubbing #phone *,body.scrubbing #stage *,body.scrubbing #aCta *,body.scrubbing #toast{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important;transition-delay:0s!important}
 /* While the bar is shown it carries the legal notice link (wide windows) */
 body.sim-running .impr-link-bar,body.sim-ended .impr-link-bar{display:none}
 
@@ -306,6 +306,14 @@ body.sim-running .toast{bottom:calc(var(--bar-bottom) + var(--bar-h) + 10px)}
   z-index:2000;background:#000;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:16px;padding:40px 30px calc(var(--ctl-impr)*1.25 + var(--disc-h,44px) + 18px);
+  /* Low windows (a phone held sideways): the page can be scrolled instead of
+     being cut off at the top or hidden under the disclaimer */
+  overflow-y:auto;justify-content:safe center;
+}
+@media (max-height:480px){
+  .cta-screen{gap:8px;padding-top:12px}
+  .cta-logo img{height:28px}
+  .fin-buttons{gap:6px}
 }
 /* After a run the control bar stays on the help page: the disclaimer sits above it */
 body.sim-ended .cta-screen{padding-bottom:calc(var(--bar-bottom) + var(--bar-h) + var(--disc-h,44px) + 24px)}
@@ -326,7 +334,7 @@ body.sim-ended .disclaimer{bottom:calc(var(--bar-bottom) + var(--bar-h) + 6px)}
 }
 .cta-links.show{opacity:1;transform:translateY(0)}
 .cta-links a{
-  display:flex;align-items:center;gap:5px;
+  display:flex;align-items:center;gap:5px;min-height:24px;
   font-size:clamp(.75rem,1.8vw,.85rem);color:rgba(255,255,255,.5);
   text-decoration:none;transition:color .2s;
 }
@@ -507,13 +515,12 @@ body.sim-ended .disclaimer{bottom:calc(var(--bar-bottom) + var(--bar-h) + 6px)}
 .imp-block p{font-size:.9rem;line-height:1.55;color:#999;margin-bottom:3px}
 .imp-block p:last-child{margin-bottom:0}
 .imp-block strong{color:#e5e5e7}
-.imp-block a{color:#fe2c55;text-decoration:none}
-.imp-block a:hover{text-decoration:underline}
+.imp-block a{color:#fe2c55;text-decoration:underline;text-underline-offset:.15em}
 
 .imp-close-btn{
   display:block;margin:20px auto 0;
   padding:12px 36px;border:none;border-radius:50px;
-  background:#fe2c55;color:#fff;
+  background:#e0264d;color:#fff;
   font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;
   transition:transform .15s;
 }
@@ -658,6 +665,8 @@ body.stage-live .phone{
    An item that is pushed out fades and collapses, so it takes no space. */
 .st-item{flex-shrink:0;margin-top:calc(var(--u)*1);max-height:calc(var(--u)*26);overflow:hidden;transition:opacity .4s,max-height .4s,margin .4s,padding .4s;animation:stIn .4s ease backwards}
 .st-item.old{opacity:.5}
+/* Created by a jump on the timeline: stands at once (js/stage.js, stageJumping) */
+.st-item.st-still{animation:none}
 .st-item.out{opacity:0;max-height:0;margin-top:0;padding-top:0;padding-bottom:0}
 @keyframes stIn{from{opacity:0;max-height:0;margin-top:0;padding-top:0;padding-bottom:0;transform:translateY(calc(var(--u)*2))}}
 .st-b{border-radius:calc(var(--u)*1.5);padding:calc(var(--u)*1) calc(var(--u)*1.6) calc(var(--u)*1.2);line-height:1.17;font-weight:500}
