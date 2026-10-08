@@ -38,6 +38,20 @@ QUnit.module(
       }, 300);
     });
 
+    QUnit.test('a long gap between two ticks is not counted as simulation time', function (assert) {
+      sec = 10;
+      tick();
+      assert.ok(Math.abs(sec - 10.1) < 0.001, 'first tick adds one step');
+      // The computer slept: the last tick was seen long ago, the anchor even longer
+      tickAnchor.seen -= TICK_GAP_MAX + 1000;
+      tickAnchor.at -= TICK_GAP_MAX + 1000;
+      tick();
+      assert.ok(
+        Math.abs(sec - 10.2) < 0.01,
+        'after the gap the clock adds one step, not the gap (' + sec + ')'
+      );
+    });
+
     QUnit.test('tick moves the timeline to the elapsed share', function (assert) {
       sec = CTL_TOTAL / 2; // halfway
       tick();

@@ -28,9 +28,35 @@ const ALLOWED_FILES = [
   'sitemap.xml',
   'LICENSE',
 ];
-const ALLOWED_FOLDERS = ['css/', 'js/', 'assets/'];
-/** Without these the page does not work as intended. */
-const REQUIRED = ['index.html', 'css/styles.css', 'js/main.js', 'js/config.js', 'assets/bgm.mp3'];
+/** Folders of the page, each with the file types that belong there. */
+const ALLOWED_FOLDERS = {
+  'css/': ['.css'],
+  'js/': ['.js'],
+  'assets/': ['.png', '.jpg', '.svg', '.mp3'],
+};
+
+/**
+ * Without these the page does not work as intended: js/config.js (not in the
+ * repository), and everything index.html and the stylesheet load from the page
+ * itself -- scripts, icons, pictures, music.
+ */
+function requiredFiles() {
+  const required = ['index.html', 'js/config.js'];
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const css = fs.readFileSync(path.join(ROOT, 'css', 'styles.css'), 'utf8');
+  const refs = [];
+  let m;
+  const attr = /(?:src|href)="([^"#]+)"/g;
+  while ((m = attr.exec(html))) refs.push(m[1]);
+  const url = /url\(['"]?([^'")]+)['"]?\)/g;
+  while ((m = url.exec(css))) refs.push(m[1].replace(/^\.\.\//, ''));
+  refs.forEach(function (ref) {
+    if (/^(?:[a-z]+:|\/\/)/i.test(ref)) return; // other hosts, mailto:, data:
+    const file = ref.replace(/[?#].*$/, '').replace(/^\//, '');
+    if (file && !required.includes(file)) required.push(file);
+  });
+  return required;
+}
 
 /** Finds the file selection of the installed Firebase CLI. */
 function loadListFiles() {
@@ -64,8 +90,12 @@ function loadListFiles() {
 /** True if the path is part of the page. */
 function allowed(file) {
   if (file.split('/').some((part) => part.startsWith('.'))) return false;
+  // A link could point anywhere outside the project
+  if (fs.lstatSync(path.join(ROOT, file)).isSymbolicLink()) return false;
   if (ALLOWED_FILES.includes(file)) return true;
-  return ALLOWED_FOLDERS.some((folder) => file.startsWith(folder));
+  return Object.keys(ALLOWED_FOLDERS).some(
+    (folder) => file.startsWith(folder) && ALLOWED_FOLDERS[folder].includes(path.extname(file))
+  );
 }
 
 function main() {
@@ -86,7 +116,16 @@ function main() {
     return 0;
   }
   const foreign = files.filter((file) => !allowed(file));
-  const missing = REQUIRED.filter((file) => !files.includes(file));
+  const required = requiredFiles();
+  if (required.length < 20) {
+    console.error(
+      'deploy-files: only ' +
+        required.length +
+        ' required files found in index.html -- check failed'
+    );
+    return 2;
+  }
+  const missing = required.filter((file) => !files.includes(file));
   foreign.slice(0, 20).forEach((file) => console.error('  NOT PART OF THE PAGE  ' + file));
   if (foreign.length > 20) console.error('  ... and ' + (foreign.length - 20) + ' more');
   missing.forEach((file) => console.error('  MISSING               ' + file));
@@ -102,7 +141,13 @@ function main() {
     );
     return 1;
   }
-  console.log('deploy-files: ' + files.length + ' files, all part of the page');
+  console.log(
+    'deploy-files: ' +
+      files.length +
+      ' files, all part of the page; all ' +
+      required.length +
+      ' files the page loads are among them'
+  );
   return 0;
 }
 

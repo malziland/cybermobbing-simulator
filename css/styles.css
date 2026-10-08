@@ -494,7 +494,7 @@ body.sim-ended .disclaimer{bottom:calc(var(--bar-bottom) + var(--bar-h) + 6px)}
 .imp-scroll h2{
   color:#fff;font-size:1.6rem;font-weight:700;margin:16px 0 4px;
 }
-.imp-subtitle{color:#666;font-size:.9rem;margin-bottom:20px}
+.imp-subtitle{color:#777;font-size:.9rem;margin-bottom:20px}
 
 .imp-notice{
   padding:14px 16px;

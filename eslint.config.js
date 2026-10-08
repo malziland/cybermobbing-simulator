@@ -58,6 +58,7 @@ const appGlobals = {
   sec: 'writable',
   tick: 'writable',
   tickAnchor: 'writable',
+  TICK_GAP_MAX: 'writable',
   clockStart: 'writable',
   clockInt: 'writable',
   clockBaseH: 'writable',

@@ -15,7 +15,19 @@ BASE="${1:-https://cybermobbing.web.app}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 2
 
-sum() { shasum -a 256 | cut -d' ' -f1; }
+if command -v shasum > /dev/null 2>&1; then
+  sum() { shasum -a 256 | cut -d' ' -f1; }
+elif command -v sha256sum > /dev/null 2>&1; then
+  sum() { sha256sum | cut -d' ' -f1; }
+else
+  echo "RESULT: neither shasum nor sha256sum found -- the check itself failed"
+  exit 2
+fi
+# Two empty checksums would compare as equal: make sure the tool really answers
+if [ "$(printf 'x' | sum | wc -c | tr -d ' ')" -lt 64 ]; then
+  echo "RESULT: the checksum tool gives no checksum -- the check itself failed"
+  exit 2
+fi
 
 # What the page consists of: the same list the deployment gate works with
 FILES=$(node scripts/deploy-files.js --list) || {

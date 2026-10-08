@@ -237,8 +237,12 @@ function initPage() {
     if (!impModal.classList.contains('show')) impOpener = document.activeElement;
     impModal.classList.add('show');
     impSetBehind(true);
+    // The close button stands at the end of the text. Focusing it must not
+    // scroll there: the notice opens at its beginning.
     var closeBtn = document.getElementById('impCloseBtn');
-    if (closeBtn) closeBtn.focus();
+    if (closeBtn) closeBtn.focus({ preventScroll: true });
+    var impScroll = impModal.querySelector('.imp-scroll');
+    if (impScroll) impScroll.scrollTop = 0;
   }
   function closeImpressum() {
     impModal.classList.remove('show');

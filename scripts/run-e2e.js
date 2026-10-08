@@ -351,6 +351,30 @@ function missingOnStage(keys) {
     }),
     'impressum opens on Enter'
   );
+  /** Where the legal notice stands after opening: its text must begin at the top. */
+  function impTop() {
+    var scroll = document.querySelector('#impModal .imp-scroll');
+    var head = scroll.querySelector('h2').getBoundingClientRect();
+    var box = scroll.getBoundingClientRect();
+    return {
+      scrolled: Math.round(scroll.scrollTop),
+      room: Math.round(scroll.scrollHeight - scroll.clientHeight),
+      headSeen: head.top >= box.top - 1 && head.bottom <= box.bottom + 1,
+      focus: document.activeElement ? document.activeElement.id : '',
+    };
+  }
+  const impAtStart = await page.evaluate(impTop);
+  check(
+    impAtStart.room > 100 &&
+      impAtStart.scrolled === 0 &&
+      impAtStart.headSeen &&
+      impAtStart.focus === 'impCloseBtn',
+    'the legal notice opens at its beginning, heading in sight, focus on the close button (scrolled ' +
+      impAtStart.scrolled +
+      ' of ' +
+      impAtStart.room +
+      ' px)'
+  );
   const impStart = await page.evaluate(function () {
     var now = new Date();
     var shown = document.getElementById('impTime').textContent;
@@ -2156,6 +2180,66 @@ function missingOnStage(keys) {
       'counter: when the daily limit is reached, the limit page replaces the start screen'
     );
     await ctx.close();
+
+    // The counter script arrives late (slow SDK host) and the start is clicked before that
+    const lateCtx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1280, height: 720 },
+    });
+    await makeHermetic(lateCtx);
+    await lateCtx.route(
+      function (url) {
+        return url.pathname === '/' || url.pathname === '/index.html';
+      },
+      function (route) {
+        route.fulfill({ contentType: 'text/html; charset=utf-8', body: indexNoSri });
+      }
+    );
+    await lateCtx.route(/www\.gstatic\.com\/.*firebase-app-compat\.js/, function (route) {
+      setTimeout(function () {
+        route.fulfill({ contentType: 'text/javascript; charset=utf-8', body: sdkStub });
+      }, 900);
+    });
+    await lateCtx.route(/www\.gstatic\.com\/.*firebase-database-compat\.js/, function (route) {
+      route.fulfill({ contentType: 'text/javascript; charset=utf-8', body: '/* stand-in */' });
+    });
+    const late = await lateCtx.newPage();
+    late.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await late.goto('http://127.0.0.1:' + server.port + '/?testspeed=10', { waitUntil: 'commit' });
+    await late.waitForSelector('#startBtn', { timeout: 5000 });
+    await late.click('#startBtn');
+    const early = await late.evaluate(function () {
+      return {
+        started: window.simStarted === true,
+        counterThere: typeof window.incrementCounters === 'function',
+      };
+    });
+    await late
+      .waitForFunction(
+        function () {
+          return window.__fb && window.__fb.tx.length >= 2;
+        },
+        { timeout: 4000 }
+      )
+      .catch(function () {});
+    await late.waitForTimeout(300);
+    const lateTx = await late.evaluate(function () {
+      return window.__fb ? window.__fb.tx.slice().sort() : null;
+    });
+    check(
+      early.started &&
+        !early.counterThere &&
+        !!lateTx &&
+        lateTx.length === 2 &&
+        /^daily\//.test(lateTx[0]) &&
+        lateTx[1] === 'views=42',
+      'counter: a start before the counter script arrived is counted once when it arrives (' +
+        (lateTx ? lateTx.length + ' writes' : 'no counter') +
+        ')'
+    );
+    await lateCtx.close();
   }
 
   console.log('E2E: pause right after the start (real time)');
@@ -2690,10 +2774,13 @@ function missingOnStage(keys) {
     await p.focus('#impLinkRun');
     await p.keyboard.press('Enter');
     const dlgOpen = await p.evaluate(function () {
+      var scroll = document.querySelector('#impModal .imp-scroll');
       return {
         focus: document.activeElement ? document.activeElement.id : '',
         barOff: document.getElementById('ctlBar').inert === true,
         phoneOff: document.getElementById('phone').inert === true,
+        scrolled: Math.round(scroll.scrollTop),
+        room: Math.round(scroll.scrollHeight - scroll.clientHeight),
       };
     });
     await axeScan(p, '#impModal', 'legal notice opened from the control bar');
@@ -2708,9 +2795,11 @@ function missingOnStage(keys) {
       dlgOpen.focus === 'impCloseBtn' &&
         dlgOpen.barOff &&
         dlgOpen.phoneOff &&
+        dlgOpen.room > 100 &&
+        dlgOpen.scrolled === 0 &&
         dlgClosed.focus === 'impLinkRun' &&
         !dlgClosed.barOff,
-      'legal notice: focus moves to its close button, the bar behind is switched off, focus returns afterwards (' +
+      'legal notice: opens at its beginning, focus moves to its close button, the bar behind is switched off, focus returns afterwards (' +
         dlgOpen.focus +
         ' -> ' +
         dlgClosed.focus +

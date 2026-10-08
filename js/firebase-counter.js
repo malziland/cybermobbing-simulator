@@ -133,6 +133,11 @@ if (counterReady) {
   hideViewCounters();
 }
 
+// This script arrives after the page is usable. If the simulation was started
+// in the meantime, go() found no counter yet: count that start now. The
+// per-day marker in incrementCounters() keeps it at one count.
+if (typeof simStarted !== 'undefined' && simStarted) incrementCounters();
+
 /**
  * Starts a live countdown timer showing the time remaining until midnight,
  * when the daily limit resets. Automatically reloads the page at midnight.

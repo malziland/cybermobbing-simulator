@@ -20,11 +20,18 @@ var tmr;
 var sec = 0;
 
 /**
- * @type {{tmr: (number|undefined), at: number, sec: number, last: number}|null}
+ * @type {{tmr: (number|undefined), at: number, sec: number, last: number, seen: number}|null}
  * Where tick() started counting: the interval it belongs to, the wall-clock
- * time and the simulation second at that moment.
+ * time and the simulation second at that moment, and when it last ran.
  */
 var tickAnchor = null;
+
+/**
+ * @type {number} A gap between two ticks longer than this, in ms, does not
+ * count as simulation time: the computer was asleep, and the scene timers
+ * did not run either.
+ */
+var TICK_GAP_MAX = 5000;
 
 /**
  * Clock tick, called every 100ms by setInterval. Moves sec on and lets the
@@ -36,15 +43,22 @@ var tickAnchor = null;
  * them in a covered window, while the scene timers keep to real time. Counting
  * ticks let the timeline fall behind the scenes. The count starts anew
  * whenever the interval is restarted (start, resume, jump) or sec was set
- * from outside; the first tick after that adds one step of 0.1 s.
+ * from outside, or after a gap longer than TICK_GAP_MAX; the first tick after
+ * that adds one step of 0.1 s.
  */
 function tick() {
   var now = Date.now();
-  if (!tickAnchor || tickAnchor.tmr !== tmr || tickAnchor.last !== sec) {
-    tickAnchor = { tmr: tmr, at: now - 100 / SIM_SPEED, sec: sec, last: sec };
+  if (
+    !tickAnchor ||
+    tickAnchor.tmr !== tmr ||
+    tickAnchor.last !== sec ||
+    now - tickAnchor.seen > TICK_GAP_MAX
+  ) {
+    tickAnchor = { tmr: tmr, at: now - 100 / SIM_SPEED, sec: sec, last: sec, seen: now };
   }
   sec = tickAnchor.sec + ((now - tickAnchor.at) * SIM_SPEED) / 1000;
   tickAnchor.last = sec;
+  tickAnchor.seen = now;
   if (sec >= CTL_TOTAL) clearInterval(tmr);
   ctlUpdate();
 }
