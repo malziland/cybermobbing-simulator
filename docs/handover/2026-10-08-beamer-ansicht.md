@@ -1,217 +1,178 @@
-# Übergabe: Beamer-Ansicht, Ton-Regler, Steuerleiste mit Zeitleiste
+# Übergabe: Version 2.0.0 — Beamer-Ansicht, Steuerleiste mit Zeitleiste, Auslieferung nur der Seite
 
-Datum: 2026-10-08 · Ablauf: `/aendern`, Modus FEATURE, Stufe STANDARD
+Datum: 2026-10-09 · Abläufe: `/aendern` (FEATURE, danach AUDIT-REMEDIATION),
+`/release` · Stufe SCHWER (öffentlich erreichbare Fläche, Auslieferkette)
 Zweig: `feat/beamer-ansicht` · Vergleichsanker: `5364d4b` (`main`, v1.2.1)
-Commits: `3de601b` (Beamer-Ansicht), `1ded32f` (Ton, einheitlicher Aufbau),
-`ddccf72` (größere Pause, größeres Impressum), `c7a8106` (Steuerleiste,
-Zeitleiste, Befunde der Abnahme), `152c990` (Platzprüfung vor dem Einblenden),
-`f282e19` (Doku). Geprüfter Stand der Beweise unten: `f282e19`.
-Nicht gepusht, nicht zusammengeführt, nicht ausgeliefert.
+
+Die Zahlen aller Läufe stehen an genau einer Stelle: `docs/VERIFICATION.md`.
+Diese Übergabe nennt die Prüfungen beim Namen und verweist dorthin.
 
 ## 1. Scope und Akzeptanzkriterien
 
-Scope: eine zweite, umschaltbare Darstellung des unveränderten Ablaufs für Beamer
-und große Räume, vollständig für alle Szenen; dazu ein Ton-Regler und eine
-durchgehende Steuerleiste mit Zeitleiste zum Vor- und Zurückspringen. Lokal
-testbar bis zur Auslieferungsreife, ohne Auslieferung.
+Scope: eine zweite Darstellung des unveränderten Ablaufs für Beamer und große
+Räume; ein Ton-Regler; eine Steuerleiste mit Zeitleiste zum Springen und Ziehen,
+bis zur letzten Seite; eine Handy-Fassung für schmale Fenster; Kontaktadresse
+und Uhrzeit im Impressum; Behebung der Befunde zweier Audits; Auslieferung nur
+der Seite selbst.
 
-| Nr. | Kriterium | Beleg |
+| Nr. | Kriterium | Prüfung im Ablauftest (`scripts/run-e2e.js`) oder in QUnit |
 |---|---|---|
-| 1 | Ohne Beamer-Ansicht bleibt der Ablauf, wie er war | bestehende Tests grün; Ablauftest „phone view is the default, stage hidden" |
-| 2 | Ansicht am Startbildschirm per Tastatur wählbar, WCAG AA | „projector option reachable via Tab", „all four view buttons carry an accessible name", axe-Scan „start screen with projector switch on" |
+| 1 | Ohne Beamer-Ansicht läuft der Ablauf wie zuvor | „phone view is the default, stage hidden", „CTA screen appears after full simulation" |
+| 2 | Ansicht am Startbildschirm per Tastatur wählbar | „Tab runs through the start screen in reading order", axe-Scan des Startbildschirms |
 | 3 | `?beamer=1` schaltet ein, nur genau dieser Wert | QUnit „stageFromUrl() accepts exactly beamer=1" |
-| 4 | Umschalten im Lauf ohne Sprung (Taste B, Leiste) | „switching does not touch the running timers", „holding the B key toggles once, not on every repeat" |
-| 5 | Jeder Szenentext erscheint groß | „all 33 messages appeared", „all 9 notices appeared", Sticker, Tipp-Anzeige, Schlusszeilen, Zähler |
-| 6 | Höchstens zwei Nachrichten (drei Mitteilungen) gleichzeitig; nichts wird abgeschnitten | QUnit „stagePush() keeps at most STAGE_MAX_ITEMS", „stageFitList() pushes the older message out …"; Ablauftest „with 30% wider text no live message is cut off" |
-| 7 | Gleiche Proportionen in jeder Fenstergröße und Zoomstufe | Ablauftest, 6 Größen |
-| 8 | Handy steht vollständig sichtbar links neben Bild und Text | „stage is shown with the phone beside it" (geprüft am obersten Element in der Handymitte), „phone beside the stage is 49% …" |
-| 9 | Bild und Zahlen sitzen in WhatsApp, Instagram und TikTok an derselben Stelle | „picture and counters sit at the same place …", 6 Größen |
-| 10 | Ton aus und ein, Lautstärke regelbar, per Tastatur | QUnit-Modul „volume"; „M key switches the sound off", „two steps down on the slider …" |
-| 11 | Eine Steuerleiste, in beiden Ansichten gleich, überdeckt nichts | „control bar is 3.6% of the stage width high, inside the stage, clear of the phone" (6 Größen), „the bar sits at exactly the same place in phone view and projector view" (3 Größen), „bar, phone and legal notice do not overlap …" (5 Größen) |
-| 12 | Springen vor und zurück; danach derselbe Stand wie ohne Sprung | „jump to … s: phone shows the same entries as a normal run" (5 Ziele, vor und zurück gemischt), „all six scene marks sit exactly on the scene switches" |
-| 13 | Nach einem Sprung zeigen Handy und rechte Seite dasselbe | „jump to … s: stage shows the same scene and the same newest message as the phone" (5 Ziele), „after a jump and resume the run continues, phone and stage stay together" |
-| 14 | Springen per Maus und Tastatur; im Pausezustand bleibt es pausiert | „click inside the TikTok part jumps to its start", „dragging to 0:40 lands there", „keyboard: arrow +5 s, Page Up next scene, Home …", „stays paused at that second, no camera flash" |
-| 15 | Am Handy (bis einschließlich 500 Pixel Breite) nur Anzeige | „393 px wide: timeline is a progress display, a tap does not jump, no view picker" |
-| 16 | Startbildschirm ohne Überlappung | „start screen has no overlaps", 7 Größen |
-| 17 | Zweisprachig, kein neuer `localStorage`-Wert, Teilen ohne `?beamer=1` | QUnit i18n-Tests, „shareSimulation() passes the link on without the projector switch"; `grep -c 'localStorage\.'` in `js/stage.js`, `js/audio.js`, `js/controls.js`: je 0, Positivkontrolle `js/i18n.js`: 1 |
+| 4 | Jeder Szenentext erscheint groß; höchstens zwei Nachrichten, nichts abgeschnitten | „all 33 messages appeared", „all 9 notices appeared", „with 30% wider text no live message is cut off …", „… after a jump either" |
+| 5 | Gleiche Proportionen in jeder Fenstergröße und Zoomstufe | „phone beside the stage is 49% …" in sechs Größen |
+| 6 | Ton aus und ein, Lautstärke, kein Geräusch am Regler vorbei | QUnit-Modul „volume", „every sound ends at the master gain, none goes past it" |
+| 7 | Eine Leiste, in beiden Ansichten gleich, ohne Zeiten | „the bar sits at exactly the same place …", „the bar shows no time" |
+| 8 | Klick landet an der geklickten Stelle, nahe einer Marke auf der Marke | „a click lands where it was made", „a click before the knob inside the same scene …", „a click one second next to a mark lands on the mark"; QUnit „ctlSnap() …" |
+| 9 | Beim Ziehen läuft das Bild mit, Handy und Beamer-Ansicht zeigen dasselbe, jeder Eintrag sichtbar | „while dragging, phone and stage already show the spot under the pointer, every entry visible", „while the knob is held the simulation stands still" |
+| 10 | Nach einem Sprung derselbe Stand wie ohne Sprung, sofort sichtbar | „jump to … s: phone shows the same entries as a normal run", „… every entry can be seen at once", „… the music jumps along" (je fünf Ziele) |
+| 11 | Marken stimmen mit den Szenenwechseln überein, letzte Seite eingeschlossen | „all seven marks sit exactly on the switches, the help page included" |
+| 12 | Letzte Seite ist Teil der Zeitleiste; von dort zurück ohne Neustart | „dragging into the last part shows the help page …", „from the help page one click goes back into the run …", „at the end the bar is full and the clock stops …" |
+| 13 | Tasten auf der Leiste | „keyboard: arrows right/up +5 s, left/down -5 s, Page Up next and Page Down previous scene, End the help page, Home the start" |
+| 14 | Schmale Fenster: Handy-Fassung bis 700 Pixel, Regler ab 901, Springen ab 501 | „… view tiles are shown/hidden, projector view is on/off" (sieben Proben), „…: view switch, volume slider, jumping on, timeline takes N% of the bar" (15 Größen), „700 px wide: the projector view gives way …" |
+| 15 | Impressum pausiert und setzt fort; zeigt die Uhrzeit der Simulation; Kontaktadresse | „opening the legal notice during the run pauses it", „closing it lets the run continue by itself", „if the run was paused before …", „… shows the same time as the phone", „legal notice gives info@malziland.at …" |
+| 16 | Nichts überdeckt sich: Startbildschirm, Lauf, letzte Seite | „start screen has no overlaps" (zwölf Größen), „bar, phone and legal notice do not overlap" (15), „help page with the bar has no overlaps" (acht), „every part of the help page can be scrolled into view" (zwei) |
+| 17 | Start ohne Zähler | „SDK host refused …", „SDK host does not answer …", „config.js missing …" |
+| 18 | Ausgeliefert wird nur die Seite | `node scripts/deploy-files.js` (Sperre vor dem Deploy), `bash scripts/verify-live.sh` (Prüfung danach) |
 
 ## 2. Beweise
 
-Format: Befehl · wogegen · Ergebnis wörtlich · Stand.
+Läufe, Zahlen und Stände: `docs/VERIFICATION.md`.
 
-| Befehl | Wogegen | Ergebnis | Stand |
-|---|---|---|---|
-| `npm run lint` | `f282e19`, Arbeitsbaum ohne Abweichung | Rückgabewert 0 | 2026-10-08 21:21 CEST |
-| `npm run test` | wie oben | Rückgabewert 0, „QUnit: 2209/2209 assertions passed, 0 failed" | 2026-10-08 21:21 CEST |
-| `npm run test:e2e` | wie oben | Rückgabewert 0, „E2E: all checks passed", 130 Zeilen „ok", 0 Zeilen „FAIL" | 2026-10-08 21:22 CEST |
-| QUnit mit `?seed=true`: ganze Suite und die Module „controls (timeline)", „stage (projector view)", „volume" je allein | wie oben | „2209/2209", „70/70", „127/127", „37/37", je „0 fehlgeschlagen" | 2026-10-08 21:23 CEST |
-| Ausgangszustand: dieselben drei Befehle | `5364d4b` | Rückgabewerte 0; „QUnit: 1723/1723 assertions passed, 0 failed"; Ablauftest 15 Zeilen „ok" | 2026-10-08 19:20 CEST |
-| Gegenprobe A: 13 Stellen im Produktcode zurückgebaut, Tests unverändert (falsche Marke, Springen überall erlaubt, Beamer-Ansicht beim Neustart nicht neu angehängt, Handy-Bildschirm nicht zurückgesetzt, keine Platzprüfung, kein Nachscrollen, Tastenwiederholung, Teilen mit Zusatz, Blitz beim Springen, Timer immer scharf, Fußbereich wieder fest, Handy hinter der Fläche, Leiste mit Mindesthöhe) | Inhalt von `c7a8106` | QUnit Rückgabewert 1, 3 Tests rot; Ablauftest Rückgabewert 1, 32 Zeilen „FAIL". **Zwei Rückbauten blieben unentdeckt:** Tastenwiederholung und Platzprüfung | 2026-10-08 |
-| Gegenprobe B nach Schärfung der zwei Tests: dieselben zwei Rückbauten | Inhalt von `152c990` | Rückgabewert 1, 2 Zeilen „FAIL": „holding the B key toggles once, not on every repeat", „with 30% wider text no live message is cut off at the top (worst 60.3 px in 666 samples)"; aus dem Commit wiederhergestellt, 0 Abweichungen | 2026-10-08 |
-| Frühere Gegenproben (Mitleser je Szene, Schrift-Einheit, Handy-Skalierung, Stummschaltung, Bildposition, Größe von Pause und Impressum) | Zwischenstände bis `ddccf72` | je Rückgabewert 1 mit den passenden Zeilen „FAIL", danach wiederhergestellt | 2026-10-08 |
-| Sprungdauer, gemessen mit `performance.now()` um `simSeek()` | Zwischenstand vor `c7a8106`, Chromium 1920×1080 | 1,3 bis 8,7 ms für sieben Sprünge vor und zurück | 2026-10-08 |
-| Volllauf mit Sprüngen in anderen Browser-Techniken (Wegwerfskript) | `f282e19`, WebKit 26.5 und Firefox 151.0, 1920×1080 | je vier Sprünge „ok" (gleiche Szene, gleiche neueste Nachricht, pausiert, Zielzeit), 5 bis 19 ms; Leiste 3,6 % der Flächenbreite, in der Fläche, unter dem Handy, Teile überlappen nicht; Volllauf ohne abgeschnittene Nachricht; 0 Seitenfehler | 2026-10-08 |
-| Sichtprüfung: 15 Bilder (alle Szenen in der Beamer-Ansicht, Handy-Ansicht groß und am Laptop, zwei Handygrößen, 4:3-Fenster, Startbildschirm in drei Größen) | Inhalt von `c7a8106`, Chromium | angesehen; entspricht dem vom Betreiber gesehenen Schaubild; 0 Seitenfehler | 2026-10-08 |
+Gegenproben (Rückbau einer Stelle im Produktcode in einer Kopie, Tests
+unverändert, die zuständige Prüfung muss rot werden):
 
-Der Befund aus Gegenprobe A ist der Grund für `152c990`: Der geschärfte Test
-zeigte, dass die ältere Nachricht bei viel breiterem Text bis zu 60 Pixel
-abgeschnitten wurde, weil die Platzprüfung erst nach dem Einblenden lief.
+- Runde 1, 32 Rückbauten am Stand `b54d710`: alle 32 von den Tests gemeldet, 31
+  an der erwarteten Prüfung, einer (Uhr stoppt zu früh) an zwei anderen.
+- Runde 2, 25 Rückbauten am Stand `48de3d7`, darunter die zehn folgenreichen
+  Stellen, die das tiefe Audit als unbemerkt gemeldet hatte: Ergebnis in
+  `docs/VERIFICATION.md`.
+- Einzeln: Hinweis-Zeitgeber (QUnit rot, zwei Zusicherungen), Sperre vor dem
+  Deploy (mit der alten Ausschlussliste Rückgabewert 1, 133 von 166 Dateien
+  gehören nicht zur Seite), Suche nach Schlüsseln (erfundene Schlüssel im echten
+  Format: Rückgabewert 1, zwei Funde).
 
-Nicht belegt: der Pipeline-Lauf (es wurde nichts gepusht), die Lesbarkeit im
-echten Saal und der Klang. Beim Ton sind nur die eingestellten Werte gemessen,
-gehört hat ihn niemand. Windows wurde nicht geprüft; die Platzprüfung ist dafür
-mit künstlich verbreitertem Text getestet, nicht mit einer Windows-Schrift.
+Lehre aus dem Abend: Drei Fehler fand der Betreiber, nicht die Tests (leeres
+Handy beim Ziehen, überdeckte Zeile am Startbildschirm, Stummel-Zeitleiste im
+schmalen Fenster). Ursache war jedes Mal dieselbe: Die Prüfung maß, ob etwas
+vorhanden ist, nicht ob man es sieht, oder sie ließ die mittleren Fenstergrößen
+aus. Beides ist jetzt Regel in `AGENTS.md` und in den Prüfungen umgesetzt.
 
-## 3. Getroffene Vorgaben und Auffälligkeiten
+## 3. Befunde der Audits
 
-Vom Betreiber entschieden (2026-10-08):
+Zwei Berichte liegen in `docs/audit/`, je mit einem datierten Nachtrag, der zu
+jedem Befund den Stand und den Nachweis nennt:
 
-- Handy bleibt in der Beamer-Ansicht links sichtbar.
-- Wahl der Ansicht über zwei Vorschaubilder statt eines Schalters.
-- Steuerleiste nach gezeigtem Schaubild, mit Zeitleiste zum Springen.
-- Pause und Impressum in beiden Ansichten größer.
-- Tasten B und M bleiben; die Abweichung von WCAG 2.1.4 steht in ADR-0007.
-- Die sieben Befunde der Abnahme werden mit dem Umbau der Leiste behoben.
+- `2026-10-08-kurz-1c498c1.md`: elf Befunde, keine der Stufen P0 und P1.
+- `2026-10-08-tief-7c49271.md`: ein Befund P1 (versteckte Ordner auf der
+  Live-Seite, Bestand seit 2026-07-16), zwei P2, elf P3.
 
-Von mir gesetzt, noch nicht bestätigt:
+Kurzfassung des Standes: Der P1-Befund und beide P2-Befunde sind behoben. Offen
+bleiben zwei Punkte als Entscheidung (Abschnitt 6, Punkte 2 und 3) und ein
+Restpunkt, der nicht prüfbar war (Abschnitt 6, Punkt 6).
 
-- Schriftgröße der Nachrichten `--st-text: 3.5` (Großbuchstaben rund 4,4 % der
-  Flächenhöhe); zwei Nachrichten, drei Mitteilungen gleichzeitig; Handy 49 % der
-  Flächenbreite hoch.
-- Leiste: 3,6 % der Flächenbreite hoch, in der Handy-Ansicht mindestens 40
-  CSS-Pixel, am Handy 36. Im Schaubild war die Leiste am Handy 40 hoch und saß am
-  kleinen Handy 2 Pixel unter dem Rahmen; angekündigt war „etwas flacher".
-- Zeitleiste endet bei 2:00; der Schlusstext läuft danach weiter.
-- Auch Sprünge nach vorn laufen über den Neustart.
-- Ton: Einstellung wird nicht gespeichert; am Handy nur der Knopf.
-- In sehr niedrigen Fenstern (unter 620 Pixel Höhe) entfällt die Hinweiszeile
-  unter den Kacheln am Startbildschirm.
-- „Eigenständige Version" ausgelegt als eigener Zweig, nicht als eigene Datei.
+## 4. Entscheidungen, die ich getroffen habe
 
-Abweichung vom gezeigten Stand, die zu einer Runde Nacharbeit führte: Die erste
-Umsetzung ließ das Handy weg, obwohl die Vorschau es zeigte, ohne Rückfrage.
-Korrigiert in `3de601b`.
+Der Betreiber hat am Abend des 2026-10-08 gebeten, offene Entscheidungen selbst
+zu treffen und bis zum Morgen auszuliefern. Jede steht hier, damit er sie
+nachlesen und ändern kann.
 
-Auffälligkeiten außerhalb des Auftrags, nicht verändert:
-
-- Zweimal in etwa 60 Läufen hing das Laden der Seite im Testbrowser länger als
-  30 bzw. 60 Sekunden und brach ab; die Wiederholung lief jeweils sofort. Ursache
-  nicht ermittelt. Die Seite lädt zwei Skripte von `gstatic.com` ohne `async`
-  mitten im Seitenaufbau; ein direkter Abruf danach antwortete in 0,2 bis 0,3
-  Sekunden.
-- `ffmpeg` auf dem Rechner des Betreibers startet nicht („Library not loaded:
-  /opt/homebrew/opt/x265/lib/libx265.215.dylib"). `scripts/video-export` braucht
-  es; die dortige CSS-Anpassung ist deshalb nicht durch einen Export geprüft.
-- `js/scenes/p1-whatsapp.js` beschreibt im Kopfkommentar, dass Leon den Screenshot
-  macht; der angezeigte Text nennt Sara. Die Zeitangaben in den Kopfkommentaren
-  von `p4-homescreen.js`, `p4b-messages.js` und `p5-finale.js` (78–93, 93–112,
-  112–130 s) weichen von den Timern ab (80–95, 95–114, 114–134 s).
-- Der axe-Scan erfasst die Bedienelemente im Lauf nicht, obwohl ADR-0005 den
-  Pause-Knopf unter den Flächen mit WCAG AA führt.
-
-Auf dem Rechner des Betreibers verändert, außerhalb des Repositorys: Für den Lauf
-in Firefox wurde die passende Testversion nachgeladen
-(`npx playwright install firefox`, rund 99 MB im Zwischenspeicher der
-Testwerkzeuge). In `~/.claude/skills/audit-familie/LEHREN.md` steht ein Abschnitt
-mit den Lehren dieses Laufs.
-
-## 4. Aufräumen nach Abnahme
-
-Der Betreiber will die alte Bedien-Lösung erst entfernen lassen, wenn er mit der
-neuen zufrieden ist. Sichtbar ist sie nicht mehr. Diese Reste stehen noch:
-
-| Rest | Fundstelle | Warum er noch steht |
+| Entscheidung | Warum | Rückweg |
 |---|---|---|
-| Pausentext „Pausiert – tippe um fortzufahren" | `index.html` (`#pauseOverlay`, `.pause-text`); Texte `ui.paused` in `js/i18n.js` (de, en) | `togglePause()` in `js/audio.js` und `go()` in `js/main.js` setzen an ihm die Klasse `hidden`; `js/main.js` hängt einen Klick daran |
-| Fortschrittsstrich | `index.html` (`.tbar`, `#tf`, `#tl`) | `tick()` in `js/timer.js` schreibt Breite und Text hinein |
-| Regel zum Verstecken | `css/styles.css`: `.pause-overlay,.tbar{display:none}` | hält beide unsichtbar |
-| Tests | `tests/test-audio.js`, `tests/test-timer.js`, `tests/test-main.js`, `tests/test-runner.html`, `scripts/run-e2e.js` | benutzen `pauseOverlay`, `tf`, `tl` als Fixture oder als Anzeige für „pausiert" |
+| Version 2.0.0 | Vorgabe des Betreibers | — |
+| Schmale Fassung bis einschließlich 700 Pixel Fensterbreite (keine Beamer-Ansicht, keine Umschalter), Lautstärke-Regler in der Handy-Ansicht erst ab 901 | Die Zeitleiste war im schmalen Fenster 0 bis 71 Pixel breit; 700 statt eines höheren Werts, damit alte Beamer (800 × 600, 1024 × 768 bei 125 %) die Beamer-Ansicht behalten | `STAGE_MIN_WIDTH` in `js/stage.js` und zwei Zeilen in `css/styles.css` |
+| Springen bleibt bis 500 Pixel gesperrt, die Sperre hängt an der Fensterbreite | So war es dokumentiert; ein quer gehaltenes Handy darf damit springen | ADR-0008, Bedingung für Neubewertung |
+| Zeitleiste reicht bis 140 Sekunden, die letzte Seite beginnt bei 134 | Die Leiste blieb bei 2:00 stehen, während der Schlusstext lief; die letzte Seite braucht ein Stück zum Anklicken | `CTL_TOTAL`, `CTL_SCENES` |
+| Klick rastet nur innerhalb von 1,5 Sekunden neben einer Marke ein | Sonst lässt sich der Anfang einer Szene kaum treffen | `CTL_SNAP` |
+| Hinweise stehen ihre volle Zeit oder bis der nächste sie ablöst | Altfehler: Drei Hinweise waren nur eine halbe Sekunde zu sehen, auch am Beamer | `toast()` in `js/helpers.js` |
+| Kontaktadresse auch in `llms.txt`, `SECURITY.md`, `CONTRIBUTING.md` und der Issue-Vorlage umgestellt | Der Auftrag nannte das Impressum; derselbe Fakt stand an sechs Stellen | je eine Zeile |
+| Ausgeliefert wird nur die Seite; Doku, Tests und Skripte nicht mehr | Bis v1.2.1 war das ganze Projektverzeichnis abrufbar, samt `.git/` | `hosting.ignore`, `scripts/deploy-files.js` |
+| Das Firebase-SDK lädt als Letztes; die Seite wartet beim Start nicht mehr darauf | Altfehler: In einem Netz, das den Host sperrt oder hängen lässt, tat „Simulation starten" nichts | Reihenfolge der Skripte in `index.html`, `initPage()` in `js/main.js` |
+| Uhr der Leiste nach echter Zeit | Sie ging in Firefox und WebKit 4 bis 6 % nach | `tick()` in `js/timer.js` |
+| Startbildschirm und letzte Seite enden oberhalb des Hinweistexts und lassen sich in niedrigen Fenstern rollen | Am quer gehaltenen Handy lief der Inhalt unter dem Hinweistext durch | `css/styles.css`, `#start` und `.cta-screen` |
+| Impressum übernimmt den Tastaturfokus; dahinter ist nichts bedienbar | Befund des tiefen Audits zur Barrierefreiheit | `openImpressum()` in `js/main.js` |
+| Unbenutztes entfernt: `.fin-msg`, `startMusic()` | Auftrag „ohne Altlasten"; beide schon am Anker ohne Verwendung | — |
+| Tiefes Audit vor der Auslieferung abgewartet, danach eine Nachprüfung der Behebungen | Regel des Projekts für größere Releases; es fand den P1-Befund | — |
+| Kein Eintrag unter „Releases" auf GitHub, nur Tag und CHANGELOG | wie bei v1.2.0 und v1.2.1 | `gh release create` |
+| Datenschutztext im Impressum nicht verändert | Rechtstext des Betreibers; siehe Abschnitt 6, Punkt 2 | — |
+| Alte Hosting-Releases nicht gelöscht | Löschen in der Cloud-Konsole war nicht freigegeben, und der schnelle Rückweg bleibt so für den ersten Tag erhalten; siehe Abschnitt 6, Punkt 1 | — |
 
-Aufräumen heißt: `togglePause()`, `go()` und `tick()` von diesen Zugriffen
-befreien, die Elemente, die zwei Texte und die Regel entfernen, die Tests auf den
-Zustand der Leiste umstellen.
+## 5. Auffälligkeiten außerhalb des Auftrags
 
-## 5. Offene Punkte
+- Auf GitHub liegen drei offene Zweige von Dependabot (Aktualisierungen für
+  GitHub Actions, npm, `scripts/video-export`). Nicht angefasst.
+- `ffmpeg` auf dem Rechner des Betreibers startet nicht („Library not loaded:
+  /opt/homebrew/opt/x265/lib/libx265.215.dylib"). Der Video-Export ist angepasst,
+  aber nicht ausgeführt.
+- Zweimal am Abend hing das Laden der Seite im Testbrowser länger als 30
+  Sekunden. Das tiefe Audit hat die Ursache gefunden: Die Seite wartete auf das
+  Firebase-SDK (jetzt behoben).
+- Im Testbrowser nachgeladen: die Firefox-Version von Playwright (rund 99 MB im
+  Zwischenspeicher der Testwerkzeuge).
 
-1. **Entscheidung: Abnahme der Steuerleiste und der Zeitleiste.** Empfehlung: im
-   Vollbild in beiden Ansichten ausprobieren, zu Szenen springen, Ton anhören.
-   Ohne Entscheidung bleiben der Zweig und die Reste aus Abschnitt 4 liegen.
-2. **Entscheidung: Kacheln „Handy" und „Beamer" am Startbildschirm auf Handys.**
-   Sie sind dort noch sichtbar, die Leiste zeigt den Umschalter auf Handys nicht.
-   Empfehlung: am Handy weglassen. Ohne Entscheidung bleibt die Unstimmigkeit.
-3. **Entscheidung: Zielraum für die Schriftgröße.** Mit dem jetzigen Wert reicht
-   es nach der Regel Abstand ÷ 200 für 15 m bei 3 m breiter Leinwand. Beispiel
-   knapp darunter: 14 m bei 3 m Leinwand, erfüllt. Beispiel knapp darüber: 15 m
-   bei 2,5 m Leinwand, nicht erfüllt; dafür müsste der Wert auf etwa 4,2 steigen,
-   dann passt bei langen Nachrichten nur noch eine. Empfehlung: Wert lassen, im
-   größten Raum prüfen. Ohne Entscheidung bleibt 3.5.
-4. **Entscheidung: Übernahme und Auslieferung.** Zusammenführen nach `main`,
-   Versionsnummer, Push und Deploy brauchen eine Freigabe. Ohne Freigabe bleibt
-   die Live-Seite auf v1.2.1.
-5. **Jetzt nicht prüfbar: Lesbarkeit im Saal, Klang, Windows.** Geht erst mit
-   echtem Beamer, echtem Abstand, Lautsprechern und einem Schulrechner.
-6. **Jetzt nicht prüfbar: Pipeline.** Läuft erst nach einem Push.
+## 6. Offene Punkte
 
-## 6. Eingang für das nächste Audit
+1. **Entscheidung: alte Hosting-Releases löschen.** Die Releases vor v2.0.0
+   enthalten `.git/` und `.claude/settings.local.json`. Abrufbar sind sie nicht
+   mehr, ein Rollback über die Konsole stellte sie aber wieder ins Netz.
+   Empfehlung: löschen, sobald v2.0.0 einen Tag läuft (Firebase-Konsole →
+   Hosting → Release-Verlauf → je Release „Löschen"). Ohne Entscheidung bleibt
+   dieser Rückweg eine Falle.
+2. **Entscheidung: ein Satz im Datenschutztext stimmt nicht.** Das Impressum
+   sagt, die Seite lege zwei Werte im Browserspeicher ab, darunter die gewählte
+   Sprache. Gemessen wird die Sprache nie gespeichert, nur gelesen. Empfehlung:
+   den Satz auf den einen Wert kürzen und den Lesezugriff entfernen. Ohne
+   Entscheidung bleibt die Aussage zu weit gefasst (zu Ungunsten niemandes).
+3. **Entscheidung: Springen und Beamer-Ansicht am quer gehaltenen Handy.** Beides
+   ist dort möglich; die Knöpfe sind in der Beamer-Ansicht dann 17 bis 18 Pixel
+   groß. Empfehlung des Audits: beides zusätzlich an „Gerät ohne Maus" hängen,
+   nach dem ersten Workshop. Ohne Entscheidung bleibt es, wie in ADR-0007 und
+   ADR-0008 begründet.
+4. **Entscheidung: Schriftgröße der Beamer-Ansicht.** `--st-text: 3.5` reicht
+   nach der Regel Abstand ÷ 200 für 15 m bei 3 m breiter Leinwand. Beispiel knapp
+   darunter: 14 m, erfüllt. Knapp darüber: 15 m bei 2,5 m Leinwand, nicht
+   erfüllt. Empfehlung: im größten Raum ansehen. Ohne Entscheidung bleibt 3.5.
+5. **Entscheidung: die drei Zweige von Dependabot.** Empfehlung: nach diesem
+   Release einzeln ansehen und übernehmen. Ohne Entscheidung veralten die
+   Werkzeuge weiter.
+6. **Jetzt nicht prüfbar: Lesbarkeit im Saal, Klang, Windows, echtes Safari und
+   Firefox, Loslassen der Maus außerhalb des Fensters.** Gemessen ist in den
+   Testbrowsern ohne Bildschirm. Prüfbar am ersten Einsatzort.
 
-- Vergleichsanker: `5364d4b` → `f282e19`.
-- Neu: `js/stage.js`, `js/controls.js`; Abschnitt „VOLUME" und die Funktionen
-  `simFreezeTimers()`, `simAdvance()` in `js/audio.js`; Abschnitte „CONTROL BAR"
-  und „PROJECTOR VIEW" sowie der Startbildschirm in `css/styles.css`; Leiste und
-  Gerüst der Beamer-Ansicht in `index.html`; Verdrahtung in `js/main.js`;
-  `tests/test-stage.js`, `tests/test-volume.js`, `tests/test-controls.js`;
-  erweiterter Ablauftest.
-- Entschieden und nicht neu zu diskutieren: `docs/adr/ADR-0007`,
-  `docs/adr/ADR-0008`, darunter die Abweichung von WCAG 2.1.4.
-- Geändertes Bestandsverhalten: `simTimeout()` plant einen Timer nicht mehr, wenn
-  pausiert ist oder gesprungen wird; alle Geräusche laufen über `audioOut()`; die
-  Musik-Lautstärke setzt `applyVolume()`; `flash()` bleibt beim Springen aus;
-  `tick()` und `togglePause()` rufen `ctlUpdate()`.
-- Neue Angriffsfläche zum Ansehen: der Link-Zusatz `?beamer=1` (wird nur als
-  Ja/Nein ausgewertet); das Nachzeichnen von Handy-Inhalten per `innerHTML` in
-  `js/stage.js` und das Zurücksetzen des Handy-Bildschirms per `innerHTML` in
-  `simRestart()` (Quelle ist in beiden Fällen der eigene Seiteninhalt und die
-  eigenen Übersetzungstexte).
+## 7. Eingang für das nächste Audit
 
-## 7. Empfehlung
-
-Vor einer Auslieferung ein `/audit` in der Tiefe KURZ: Es ist neuer Code auf
-einer öffentlich erreichbaren Seite, der beim letzten Audit nicht geprüft wurde,
-und er greift in die Zeitsteuerung ein.
+- Vergleichsanker: Tag `v2.0.0`; Berichte in `docs/audit/` samt Nachträgen.
+- Entschieden und nicht neu zu diskutieren: ADR-0007, ADR-0008, die Tabelle in
+  Abschnitt 4, der Vorfall in `docs/SECURITY-MODEL.md`.
+- Ansehen: ob die alten Hosting-Releases gelöscht sind; ob die Pipeline nach
+  jedem Push grün war; die Sperre `scripts/deploy-files.js` hängt an einer
+  inneren Funktion der Firebase-CLI (`lib/listFiles.js`) und endet mit
+  Rückgabewert 2, falls die sich ändert.
+- Nicht gemessen und deshalb zuerst: echte Geräte (Abschnitt 6, Punkt 6).
 
 ## 8. Abnahme
 
-**Unabhängig abgenommen ist bisher nur `3de601b`**, durch eine Instanz, die den
-Code nicht geschrieben hat (lesend, mit eigenen Messungen an einer Kopie des
-Commit-Inhalts). Ihre sieben Befunde sind in `c7a8106` behoben:
-
-| Nr. | Befund an `3de601b` | Behebung | Prüfung, die es absichert |
-|---|---|---|---|
-| 1 | Startbildschirm überlappt in niedrigen Fenstern | Fußbereich steht im Fluss statt fest über dem Titelblock | „start screen has no overlaps", 7 Größen; in Gegenprobe A rot |
-| 2 | Wechsel von Beamer auf Handy verliert die Chat-Position | `stageScrollPhone()` nach jedem Wechsel und bei Größenänderung | „after switching to the phone view the newest message is inside the chat"; in Gegenprobe A rot (176 px) |
-| 3 | Vier Tests ohne Beweiskraft | Teilen-Test ruft `shareSimulation()` auf; Sichtbarkeit des Handys über das oberste Element in der Handymitte; Pixelhöhe gegen das Stylesheet; Taste B bei offenem Impressum und Adresszeile nach Taste B geprüft | je in Gegenprobe A rot, soweit zurückgebaut |
-| 4 | Video-Export zeigt die neuen Bedienelemente | Ausblendliste und Titelblock im Export-CSS angepasst | nicht ausgeführt, `ffmpeg` startet nicht |
-| 5 | Start-Kacheln unsichtbar anwählbar; Taste B bei gehaltener Taste; Umschalter fehlt bis 500 Pixel | Startbildschirm nach dem Start auch für die Tastatur ausgeblendet; Wiederholungen ignoriert; das Fehlen bis 500 Pixel ist dokumentiert (ADR-0007, ADR-0008, README) | „start screen is hidden for the keyboard …", „holding the B key toggles once …" |
-| 6 | Doku passt an drei Stellen nicht | Verweis in `docs/VERIFICATION.md` zeigt auf diese Datei; Pixelhöhe steht in zwei statt drei Stellen und wird verglichen; „ohne Sprung" stimmt seit Befund 2 | „pixel height of the phone in the stylesheet matches STAGE_PHONE_PX" |
-| 7 | Textspalte ohne Reserve bei breiterer Schrift | Platzprüfung vor dem Einblenden; die ältere Nachricht weicht | „with 30% wider text no live message is cut off"; in Gegenprobe B rot (60,3 px) |
-
-Alles nach `3de601b` sowie diese Übergabe sind **selbst abgenommen**. Ihre
-Vollständigkeit gilt als unbestätigt, bis eine andere Instanz sie prüft.
+- `3de601b`: unabhängig abgenommen (sieben Befunde, behoben).
+- `1c498c1`: Audit KURZ durch eine Instanz, die den Code nicht geschrieben hat.
+- `7c49271`: Audit TIEF, ebenso; dabei wurden die Behebungen des Kurz-Audits
+  nachgemessen (acht behoben, zwei teilbehoben, eine als Entscheidung offen).
+- Behebungen nach `7c49271`: Nachprüfung durch eine weitere Instanz, Ergebnis im
+  Nachtrag des tiefen Berichts.
+- Diese Übergabe und `docs/VERIFICATION.md`: selbst abgenommen. Ihre
+  Vollständigkeit gilt als unbestätigt, bis ein späterer Lauf sie prüft.
 
 ## 9. Rückmeldung an die Familie
 
-- Fehlende Regel, mit Schaden belegt: Eine gezeigte Vorschau bindet. Vor der
-  Umsetzung wird die Liste der sichtbaren Abweichungen zur letzten Vorschau als
-  Entscheidungsfrage vorgelegt. Beleg: eine Runde Nacharbeit am 2026-10-08.
-- Mehrdeutig: Die Grenzwert-Nachfrage bei gestalterischen Stellgrößen. Hier
-  vorbelegt und als offene Entscheidung geführt statt angehalten.
-- Fehlerklasse ohne Regel: Ein Testserver ohne Verbot der Zwischenspeicherung.
-  Der Browser mischte alte und neue Dateien, „Simulation starten" tat nichts.
-  Aufgefallen beim Betreiber, nicht in den Tests.
-- Fehlerklasse ohne Regel: Eine Gegenprobe mit ungerader Wiederholung. Drei
-  Tastenereignisse endeten im selben Zustand wie eines, der Test blieb bei
-  entferntem Schutz grün.
-- Fehlerklasse ohne Regel: Eigene Hilfsbefehle in zsh (leeres `PIPESTATUS`,
-  Dateiliste in einer Variablen wird nicht getrennt, Skript bricht nach der
-  ersten von drei Dateien ab). Seither: erst alle Anker prüfen, dann schreiben;
-  Folgebefehle an den Rückgabewert koppeln; Sicherung über einen Commit.
+- Mit Schaden belegt: Ein Ausschlussmuster, das richtig aussieht, hat drei
+  Monate lang `.git/` ausgeliefert. Eine Negativliste braucht eine Prüfung der
+  tatsächlichen Dateiliste vor dem Deploy und eine Probe verbotener Pfade danach.
+- Mit Schaden belegt: Prüfen, ob etwas vorhanden ist, statt ob man es sieht. Drei
+  Fehler fand der Betreiber, nicht die Tests.
+- Fehlerklasse ohne Regel: Eine Gegenprobe mit einem bekannten Beispielwert kann
+  stumm bleiben, weil das Werkzeug ihn als harmlos kennt (gitleaks und die
+  Beispiel-Schlüssel von AWS).
+- Fehlerklasse ohne Regel: Ein Testserver, der weniger kann als der echte (keine
+  Teilabrufe), lässt eine Prüfung grundlos rot werden oder grundlos grün.
+- Aufwand ohne Ertrag: keiner. Das tiefe Audit hat den wichtigsten Befund des
+  Abends geliefert.

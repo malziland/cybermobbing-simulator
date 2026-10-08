@@ -2025,6 +2025,139 @@ function missingOnStage(keys) {
     await ctx.close();
   }
 
+  console.log('E2E: view counter with a stand-in for the Firebase SDK');
+  {
+    // The real SDK never runs in these tests (no traffic to the live database). A small
+    // stand-in with the same calls records what the counter script does with it. The page
+    // pins the SDK by checksum, so the test serves index.html without those attributes.
+    const sdkStub =
+      'window.__fb = window.__fb || { init: 0, tx: [], on: [], once: [] };' +
+      'window.firebase = {' +
+      '  initializeApp: function () { window.__fb.init++; },' +
+      '  database: function () { return { ref: function (path) { return {' +
+      '    transaction: function (fn) { window.__fb.tx.push(path + "=" + fn(41)); return Promise.resolve(); },' +
+      '    on: function (ev, cb) { window.__fb.on.push(path); setTimeout(function () { cb({ val: function () { return 1234; } }); }, 0); },' +
+      '    once: function (ev, cb) { window.__fb.once.push(path); var v = Number(new URLSearchParams(location.search).get("daily") || 0);' +
+      '      setTimeout(function () { cb({ val: function () { return v; } }); }, 0); }' +
+      '  }; } }; }' +
+      '};';
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1280, height: 720 },
+    });
+    await makeHermetic(ctx);
+    const rawIndex = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    const indexNoSri = rawIndex
+      .replace(/ integrity="[^"]*"/g, '')
+      .replace(/ crossorigin="anonymous"/g, '');
+    await ctx.route(
+      function (url) {
+        return url.pathname === '/' || url.pathname === '/index.html';
+      },
+      function (route) {
+        route.fulfill({ contentType: 'text/html; charset=utf-8', body: indexNoSri });
+      }
+    );
+    await ctx.route(/www\.gstatic\.com\/.*firebase-app-compat\.js/, function (route) {
+      route.fulfill({ contentType: 'text/javascript; charset=utf-8', body: sdkStub });
+    });
+    await ctx.route(/www\.gstatic\.com\/.*firebase-database-compat\.js/, function (route) {
+      route.fulfill({ contentType: 'text/javascript; charset=utf-8', body: '/* stand-in */' });
+    });
+    const p = await ctx.newPage();
+    const stubErrors = [];
+    p.on('pageerror', function (err) {
+      stubErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+    await p
+      .waitForFunction(
+        function () {
+          return document.getElementById('viewCountStart').textContent !== '--';
+        },
+        { timeout: 5000 }
+      )
+      .catch(function () {});
+    const shown = await p.evaluate(function () {
+      return {
+        start: document.getElementById('viewCountStart').textContent,
+        ready: window.counterReady,
+        init: window.__fb ? window.__fb.init : -1,
+        boxHidden: getComputedStyle(document.querySelector('.start-views')).display === 'none',
+      };
+    });
+    check(
+      shown.ready === true && shown.init === 1 && shown.start === '1.234' && !shown.boxHidden,
+      'counter: with the SDK there, the number of views is shown on the start screen (' +
+        shown.start +
+        ')'
+    );
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000 });
+    // Jumps, the help page and the way back must not count again
+    await p.evaluate(function () {
+      window.togglePause();
+      window.simSeek(60);
+      window.simSeek(window.CTL_TOTAL);
+      window.simSeek(20);
+      window.simSeek(window.CTL_TOTAL);
+    });
+    const counted = await p.evaluate(function () {
+      return {
+        tx: window.__fb.tx.slice().sort(),
+        today: new Date().toISOString().slice(0, 10),
+        end: document.getElementById('viewCount').textContent,
+      };
+    });
+    check(
+      counted.tx.length === 2 &&
+        counted.tx[0] === 'daily/' + counted.today + '=42' &&
+        counted.tx[1] === 'views=42' &&
+        counted.end === '1.234',
+      'counter: one start counts exactly once, +1 on /views and on /daily/<today>; jumps and the help page do not count again (' +
+        counted.tx.join(', ') +
+        ')'
+    );
+    // Same browser, same day: a second visit does not count
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000 });
+    const second = await p.evaluate(function () {
+      return window.__fb.tx.length;
+    });
+    check(
+      second === 0 && stubErrors.length === 0,
+      'counter: a second start in the same browser on the same day does not count (' +
+        second +
+        ' writes)'
+    );
+    // Daily limit reached: the limit page replaces the start screen
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10&daily=1000000');
+    const limit = await p
+      .waitForFunction(
+        function () {
+          return (
+            document.getElementById('limitPage').classList.contains('show') &&
+            document.getElementById('start').classList.contains('hidden')
+          );
+        },
+        { timeout: 5000 }
+      )
+      .then(
+        function () {
+          return true;
+        },
+        function () {
+          return false;
+        }
+      );
+    check(
+      limit,
+      'counter: when the daily limit is reached, the limit page replaces the start screen'
+    );
+    await ctx.close();
+  }
+
   console.log('E2E: pause right after the start (real time)');
   {
     const ctx = await browser.newContext({
