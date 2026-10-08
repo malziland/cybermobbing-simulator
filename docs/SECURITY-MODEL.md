@@ -1,6 +1,6 @@
 # Sicherheits- und Datenmodell
 
-Stand: 2026-07-16 · Skizze als Referenz für Entwicklung und Audit (kein vollständiges Threat Model)
+Stand: 2026-10-09 · Skizze als Referenz für Entwicklung und Audit (kein vollständiges Threat Model)
 
 ## Systemüberblick
 
@@ -11,7 +11,7 @@ Firebase Realtime Database (RTDB) für den anonymen View-Counter.
 ```
 Browser ──(HTTPS, statisch)──> Firebase Hosting (Google Ireland Ltd)
 Browser ──(HTTPS/WSS)────────> Firebase RTDB: /views (+1), /daily/<YYYY-MM-DD> (+1, lesend fürs Limit)
-Browser ──(lokal)────────────> localStorage: sim_lang, cms_last_count
+Browser ──(lokal)────────────> localStorage: cms_last_count (geschrieben), sim_lang (nur gelesen)
 ```
 
 ## Schützenswerte Güter (Assets)
@@ -22,9 +22,12 @@ Browser ──(lokal)────────────> localStorage: sim_lan
 4. **Integrität der ausgelieferten Seite** (kein Defacement/XSS).
 
 Es gibt **keine personenbezogenen Daten**: keine Cookies, kein Tracking, keine
-IP-Speicherung durch die App; die beiden localStorage-Werte (`sim_lang`,
-`cms_last_count`) bleiben auf dem Endgerät und sind personenunabhängig
-(offengelegt im Impressum, CHANGELOG 1.1.3).
+IP-Speicherung durch die App. Im localStorage schreibt die App nur
+`cms_last_count` (Tagesmarke gegen Doppelzählung); der Wert bleibt auf dem
+Endgerät und ist personenunabhängig (offengelegt im Impressum, CHANGELOG 1.1.3).
+`sim_lang` wird nur gelesen und von der App nie geschrieben; das Impressum
+spricht noch von einer gespeicherten Sprache (gemessen am 2026-10-08,
+Entscheidung über den Text liegt beim Betreiber).
 
 ## Rollen und Vertrauensgrenzen
 
@@ -44,11 +47,29 @@ IP-Speicherung durch die App; die beiden localStorage-Werte (`sim_lang`,
 | XSS / Fremdskripte | Strikte CSP (`default-src 'none'`, kein `'unsafe-inline'` für Skripte, ADR-0002), `X-Frame-Options: DENY`, `frame-ancestors 'none'` | `firebase.json` |
 | Manipuliertes CDN-SDK | Firebase-SDK per SRI-Integritäts-Hash gepinnt | `index.html` |
 | Secrets im Repo | `js/config.js` ist gitignored; `config.example.js` enthält nur Platzhalter; Secret-Scan in CI | `.gitignore`, CI |
+| Dateien auf der Live-Seite, die dort nicht hingehören | `hosting.ignore` schließt alles außer der Seite aus; die Sperre `scripts/deploy-files.js` (läuft als `hosting.predeploy`) bricht jeden Deploy ab, dessen Dateiliste etwas anderes enthält; `scripts/verify-live.sh` prüft nach dem Deploy, dass versteckte Ordner, Doku, Tests und Werkzeugdateien nicht abrufbar sind | `firebase.json`, `docs/RUNBOOK.md` |
+| Ausfall des Zählers hält die Simulation auf | Das Firebase-SDK lädt als Letztes und verzögert; ohne SDK oder ohne `js/config.js` gibt es keinen Zähler, die Simulation startet trotzdem | `index.html`, `js/firebase-counter.js`, Ablauftest |
 
 Hinweis: Der Firebase-`apiKey` in `config.js` ist per Design ein öffentlicher
 Identifikator, kein Geheimnis — die Zugriffskontrolle leisten die RTDB-Regeln.
 Er wird trotzdem nicht committet, damit Forks zwingend ihr eigenes Projekt
 konfigurieren.
+
+## Vorfälle
+
+**2026-07-16 bis zur Auslieferung von v2.0.0: versteckte Ordner öffentlich abrufbar.**
+Das Muster `"**/.*"` in `hosting.ignore` trifft nur Einträge, deren letzter
+Namensteil mit einem Punkt beginnt, nicht die Dateien in Punkt-Ordnern. Die
+Live-Seite lieferte deshalb `.git/` (Verlauf samt lokaler Stände),
+`.claude/settings.local.json` (lokale Befehlsfreigaben, mit Heimpfaden) und
+`.github/` aus, dazu Doku, Tests und Skripte. Gefunden im Audit vom 2026-10-08
+(SEC-2026-10-08-01), an der Live-Seite nachgemessen am 2026-10-09 00:02 Uhr
+(je HTTP 200). Zugangsdaten wurden in diesen Dateien nicht gefunden (gitleaks
+über beide Dateien und über die Historie ohne Fund; `.git/config` ohne
+eingebettete Zugangsdaten); das Repository ist öffentlich, `js/config.js` war
+nie Teil davon. Behoben mit v2.0.0: Ausschlussliste, Sperre vor dem Deploy,
+Prüfung nach dem Deploy (siehe Tabelle oben). Offen: Die früheren
+Hosting-Releases enthalten die Dateien weiter, siehe `docs/RUNBOOK.md`, Rollback.
 
 ## Bewusst akzeptierte Risiken
 

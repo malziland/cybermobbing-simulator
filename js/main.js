@@ -4,10 +4,12 @@
  *   share functionality, and DOM-ready event binding.
  *   Loaded last; wires up all UI buttons and kicks off the scene chain.
  * @requires i18n.js           - t() for all UI text, applyI18n() for initial DOM translation
- * @requires audio.js          - initAudio(), simPaused, simTimers, togglePause(), bgMusic
+ * @requires audio.js          - initAudio(), simPaused, simTimers, togglePause(), bgMusic,
+ *                               applyVolume(), setVolume(), toggleMute()
  * @requires helpers.js        - mkPhoto-internal helpers (setLayer), toast()
  * @requires timer.js          - sec, tmr, tick(), startClock()
  * @requires firebase-counter.js - incrementCounters() (optional, checked with typeof)
+ * @requires stage.js          - projector view: stageInit(), stageSet(), stageToggle(), stageUrl()
  * @requires scenes/p1-whatsapp.js - p1() scene entry
  */
 
@@ -78,8 +80,8 @@ function mkPhoto(el, h) {
  * Simulation initialization sequence. Called when the user clicks the start button.
  * Resets pause state and timers, increments the Firebase view counter (if available),
  * hides the start screen, shows the phone UI, builds the photo overlays for
- * Instagram and TikTok scenes, then after a brief delay starts the progress bar,
- * phone clock, and the first scene (p1 WhatsApp).
+ * Instagram and TikTok scenes, then after a brief delay starts the clock,
+ * the phone clock, and the first scene (p1 WhatsApp).
  */
 var simStarted = false;
 function go() {
@@ -88,13 +90,17 @@ function go() {
   initAudio();
   simPaused = false;
   simTimers = [];
-  if (typeof incrementCounters === 'function') incrementCounters();
+  // The view counter must never keep the simulation from starting: its script
+  // comes last and may be missing (hanging SDK host) or fail
+  try {
+    if (typeof incrementCounters === 'function') incrementCounters();
+  } catch (e) {
+    if (typeof console !== 'undefined') console.warn('Counter not available:', e);
+  }
   document.getElementById('start').classList.add('gone');
   var disc = document.querySelector('.disclaimer');
   if (disc) disc.classList.add('hidden');
   document.getElementById('pauseBtn').classList.remove('hidden');
-  document.getElementById('pauseBtn').textContent = t('ui.pause');
-  document.getElementById('pauseOverlay').classList.add('hidden');
   document.getElementById('phone').classList.remove('hidden');
   mkPhoto(document.getElementById('igPh'));
   mkPhoto(document.getElementById('tkBg'));
@@ -104,6 +110,10 @@ function go() {
   // clearable via simTimers like every other scheduled scene step
   simTimeout(function () {
     sec = 0;
+    // A pause and resume during this start delay has already started both
+    // intervals (togglePause); without clearing them the clock would run twice
+    if (typeof tmr !== 'undefined') clearInterval(tmr);
+    if (typeof clockInt !== 'undefined') clearInterval(clockInt);
     tmr = setInterval(tick, 100 / SIM_SPEED);
     startClock();
     p1();
@@ -119,7 +129,8 @@ function go() {
  * and shows a confirmation toast.
  */
 function shareSimulation() {
-  var url = window.location.href;
+  // Never pass on the projector switch: a shared link should open the phone view
+  var url = stageUrl(window.location.href, false);
   var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   if (isMobile && navigator.share) {
@@ -154,22 +165,27 @@ function shareSimulation() {
   toastEl.classList.remove('hidden');
   toastEl.textContent = t('ui.linkCopied');
   toastEl.classList.add('show');
-  simTimeout(function () {
-    toastEl.classList.remove('show');
+  // Not a scene step: the browser's own timer, so the note also goes away when
+  // the simulation is paused (the help page can be reached while paused)
+  var mine = ++toastSeq;
+  setTimeout(function () {
+    if (mine === toastSeq) toastEl.classList.remove('show');
   }, 2500);
 }
 
 // ========== DOM READY ==========
 /**
- * DOMContentLoaded handler -- wires up all interactive elements:
+ * Page start-up (initPage) -- wires up all interactive elements:
  *   - Start button -> go()
  *   - Share buttons -> shareSimulation()
  *   - Replay button -> page reload
- *   - Pause button + overlay -> togglePause()
+ *   - Pause button -> togglePause()
+ *   - Projector view pickers (start screen, in-run) and B key -> stageSet() / stageToggle()
+ *   - Sound control (mute button, volume slider, M key) -> toggleMute() / setVolume()
  *   - Impressum modal (open/close/backdrop/Escape)
  *   - Applies i18n translations to the initial DOM
  */
-document.addEventListener('DOMContentLoaded', function () {
+function initPage() {
   bgMusic = document.getElementById('bgm');
   var impModal = document.getElementById('impModal');
   applyI18n();
@@ -185,11 +201,58 @@ document.addEventListener('DOMContentLoaded', function () {
     if (discEl) discEl.textContent += ' ' + t('disclaimer.helplineLogo');
   }
 
+  // During the run the legal notice pauses the simulation and lets it continue
+  // when it is closed -- unless the simulation was already paused before.
+  var impPausedSim = false;
+  // While the legal notice is open nothing behind it can be operated, and the
+  // keyboard focus is inside the dialog; it returns to where it came from
+  var impOpener = null;
+  var impBehind = ['start', 'ctlBar', 'phone', 'stage', 'aCta', 'limitPage'];
+  function impSetBehind(off) {
+    impBehind.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.inert = off;
+    });
+    var bar = document.querySelector('.impr-link-bar');
+    if (bar) bar.inert = off;
+  }
   function openImpressum() {
+    var phone = document.getElementById('phone');
+    var running = simStarted && !!phone && !phone.classList.contains('hidden');
+    if (running && !simPaused && !impModal.classList.contains('show')) {
+      togglePause();
+      impPausedSim = simPaused;
+    }
+    // The legal notice is drawn as a phone too. Its status bar shows the time
+    // of the phone in the simulation, or the real time outside the run.
+    var impTime = document.getElementById('impTime');
+    var simTime = document.getElementById('sbTime');
+    if (impTime) {
+      var now = new Date();
+      impTime.textContent =
+        running && simTime && simTime.textContent
+          ? simTime.textContent
+          : formatTime(now.getHours(), now.getMinutes());
+    }
+    if (!impModal.classList.contains('show')) impOpener = document.activeElement;
     impModal.classList.add('show');
+    impSetBehind(true);
+    // The close button stands at the end of the text. Focusing it must not
+    // scroll there: the notice opens at its beginning.
+    var closeBtn = document.getElementById('impCloseBtn');
+    if (closeBtn) closeBtn.focus({ preventScroll: true });
+    var impScroll = impModal.querySelector('.imp-scroll');
+    if (impScroll) impScroll.scrollTop = 0;
   }
   function closeImpressum() {
     impModal.classList.remove('show');
+    impSetBehind(false);
+    if (impOpener && impOpener.focus && document.contains(impOpener)) impOpener.focus();
+    impOpener = null;
+    if (impPausedSim) {
+      impPausedSim = false;
+      if (simPaused) togglePause();
+    }
   }
 
   // Start button
@@ -198,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function () {
     startBtn.addEventListener('click', function () {
       if (bgMusic) {
         bgMusic.loop = true;
-        bgMusic.volume = 0.4;
+        applyVolume();
         bgMusic.play().catch(function () {});
       }
       go();
@@ -211,6 +274,18 @@ document.addEventListener('DOMContentLoaded', function () {
   if (startShareBtn) startShareBtn.addEventListener('click', shareSimulation);
   if (footerShareBtn) footerShareBtn.addEventListener('click', shareSimulation);
 
+  // The disclaimer at the bottom wraps onto up to five lines in narrow windows.
+  // Start screen and help page keep exactly its measured height free
+  // (--disc-h in css/styles.css), so nothing slides underneath it.
+  var discEl = document.querySelector('.disclaimer');
+  function discRoom() {
+    var h = discEl ? discEl.offsetHeight : 0;
+    if (h > 0) document.documentElement.style.setProperty('--disc-h', h + 'px');
+  }
+  discRoom();
+  window.addEventListener('resize', discRoom);
+  if (discEl && typeof ResizeObserver !== 'undefined') new ResizeObserver(discRoom).observe(discEl);
+
   // Replay button
   var replayBtn = document.getElementById('footerReplayBtn');
   if (replayBtn)
@@ -218,26 +293,76 @@ document.addEventListener('DOMContentLoaded', function () {
       window.location.reload();
     });
 
+  // Projector view (ADR-0007): the two view pickers (start screen and in-run),
+  // the B key and the link suffix ?beamer=1. The choice is kept in the address
+  // bar only. Every picker button carries data-view="phone" or "beamer".
+  ctlInit();
+  stageInit();
+  stageSet(stageFromUrl(window.location.search));
+  var viewLabels = { phone: t('ui.viewPhoneLong'), beamer: t('ui.viewBeamerLong') };
+  var viewGroups = document.querySelectorAll('.view-pick, .ctl-view');
+  for (var g = 0; g < viewGroups.length; g++) {
+    viewGroups[g].setAttribute('aria-label', t('ui.viewLabel'));
+  }
+  var viewButtons = document.querySelectorAll('[data-view]');
+  for (var v = 0; v < viewButtons.length; v++) {
+    viewButtons[v].setAttribute('aria-label', viewLabels[viewButtons[v].getAttribute('data-view')]);
+    viewButtons[v].addEventListener('click', function () {
+      stageSet(this.getAttribute('data-view') === 'beamer');
+      stageRemember();
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'b' && e.key !== 'B') return;
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (impModal && impModal.classList.contains('show')) return;
+    // No projector view in a narrow window, so nothing to switch
+    if (!stageFits()) return;
+    stageToggle();
+    stageRemember();
+  });
+
+  // Sound control: mute button, volume slider and the M key
+  var soundGroup = document.querySelector('.ctl-sound');
+  var soundBtn = document.getElementById('soundBtn');
+  var volSlider = document.getElementById('volSlider');
+  if (soundGroup) soundGroup.setAttribute('aria-label', t('ui.sound'));
+  if (soundBtn) soundBtn.addEventListener('click', toggleMute);
+  if (volSlider) {
+    volSlider.setAttribute('aria-label', t('ui.volume'));
+    volSlider.addEventListener('input', function () {
+      setVolume(this.value / 100);
+    });
+  }
+  applyVolume();
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'm' && e.key !== 'M') return;
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (impModal && impModal.classList.contains('show')) return;
+    toggleMute();
+  });
+
   // Pause
   var pauseBtn = document.getElementById('pauseBtn');
-  var pauseOverlay = document.getElementById('pauseOverlay');
   if (pauseBtn) pauseBtn.addEventListener('click', togglePause);
-  if (pauseOverlay) pauseOverlay.addEventListener('click', togglePause);
 
   // Impressum links
-  var impLinkGlobal = document.getElementById('impLinkGlobal');
   var impCloseBtn = document.getElementById('impCloseBtn');
-  if (impLinkGlobal) {
-    impLinkGlobal.addEventListener('click', openImpressum);
+  // Two links open the legal notice: the one below start and help screen,
+  // and the one inside the control bar during the run
+  ['impLinkGlobal', 'impLinkRun'].forEach(function (id) {
+    var link = document.getElementById(id);
+    if (!link) return;
+    link.addEventListener('click', openImpressum);
     // span[role=button] gets no synthetic click on Enter/Space like a real
     // <button> does -- required for keyboard operability (WCAG 2.1.1)
-    impLinkGlobal.addEventListener('keydown', function (e) {
+    link.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         openImpressum();
       }
     });
-  }
+  });
   if (impCloseBtn) impCloseBtn.addEventListener('click', closeImpressum);
 
   // Impressum modal: close on backdrop click and Escape key
@@ -249,4 +374,19 @@ document.addEventListener('DOMContentLoaded', function () {
       if (e.key === 'Escape' && impModal.classList.contains('show')) closeImpressum();
     });
   }
-});
+
+  // If the counter script has not arrived after 5 s (its SDK host hangs),
+  // take the "--" placeholders away; the script does the same once it runs
+  setTimeout(function () {
+    if (typeof viewCountLoaded !== 'undefined' && viewCountLoaded) return;
+    var boxes = document.querySelectorAll('.start-views, .fin-views');
+    for (var i = 0; i < boxes.length; i++) boxes[i].style.display = 'none';
+  }, 5000);
+}
+
+// In index.html this script stands at the end of the body: the page is parsed,
+// so it is wired up at once. Waiting for DOMContentLoaded would also wait for
+// the deferred Firebase SDK, and a hanging SDK host would leave the start
+// button dead. Elsewhere (test runner) the wiring waits for the DOM.
+if (document.getElementById('startBtn')) initPage();
+else document.addEventListener('DOMContentLoaded', initPage);

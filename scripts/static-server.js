@@ -1,6 +1,9 @@
 /**
  * Minimal static file server for the test runners (no dependencies).
  * Serves the repository root on an ephemeral localhost port.
+ * Answers byte ranges like the live hosting does: without them a browser
+ * cannot jump inside the music file, and the timeline tests would measure
+ * a behaviour the live page does not have.
  */
 'use strict';
 
@@ -38,9 +41,28 @@ function createStaticServer(root) {
         res.end('not found');
         return;
       }
-      res.writeHead(200, {
-        'Content-Type': MIME[path.extname(filePath)] || 'application/octet-stream',
-      });
+      const type = MIME[path.extname(filePath)] || 'application/octet-stream';
+      const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+      if (range && (range[1] || range[2])) {
+        // "a-b", "a-" (to the end) or "-n" (the last n bytes)
+        const last = data.length - 1;
+        const start = range[1] ? Number(range[1]) : Math.max(data.length - Number(range[2]), 0);
+        const end = range[1] && range[2] ? Math.min(Number(range[2]), last) : last;
+        if (start > end || start > last) {
+          res.writeHead(416, { 'Content-Range': 'bytes */' + data.length });
+          res.end();
+          return;
+        }
+        res.writeHead(206, {
+          'Content-Type': type,
+          'Accept-Ranges': 'bytes',
+          'Content-Range': 'bytes ' + start + '-' + end + '/' + data.length,
+          'Content-Length': end - start + 1,
+        });
+        res.end(data.subarray(start, end + 1));
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': type, 'Accept-Ranges': 'bytes' });
       res.end(data);
     });
   });

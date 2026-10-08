@@ -15,13 +15,34 @@ var TRANSLATIONS = {
     'ui.start': 'Simulation starten',
     'ui.share': 'Simulation teilen',
     'ui.replay': 'Nochmal',
-    'ui.pause': 'II',
-    'ui.resume': '\u25B8',
-    'ui.paused': 'Pausiert \u2014 tippe um fortzufahren',
     'ui.impressum': 'Impressum',
     'ui.close': 'Schlie\u00DFen',
     'ui.linkCopied': 'Link kopiert!',
     'ui.messages': 'Nachrichten',
+    'ui.viewLabel': 'Ansicht',
+    'ui.viewPhone': 'Handy',
+    'ui.viewBeamer': 'Beamer',
+    'ui.viewPhoneLong': 'Handy-Ansicht',
+    'ui.viewBeamerLong': 'Beamer-Ansicht',
+    'ui.beamerHint': 'Beamer: f\u00FCr gro\u00DFe R\u00E4ume \u00B7 Taste B schaltet um',
+    'ui.sound': 'Ton',
+    'ui.soundMute': 'Ton ausschalten',
+    'ui.soundUnmute': 'Ton einschalten',
+    'ui.volume': 'Lautst\u00E4rke',
+
+    // ===== CONTROL BAR =====
+    'ctl.label': 'Steuerung',
+    'ctl.timeline': 'Zeitleiste',
+    'ctl.pause': 'Pause',
+    'ctl.resume': 'Fortsetzen',
+    'ctl.paused': 'Pausiert',
+    'ctl.wa': 'WhatsApp',
+    'ctl.ig': 'Instagram',
+    'ctl.tk': 'TikTok',
+    'ctl.hs': 'Mitteilungen',
+    'ctl.im': 'Nachrichten',
+    'ctl.fin': 'Schluss',
+    'ctl.help': 'Hilfe',
     'ui.credit':
       'Ein <a href="https://github.com/malziland/cybermobbing-simulator" target="_blank">Open-Source</a>-Bildungsprojekt von malziland',
 
@@ -42,7 +63,7 @@ var TRANSLATIONS = {
     'imp.privacyHosting':
       'Das Hosting erfolgt \u00FCber Google Firebase (Google Ireland Ltd). Es gelten die <a href="https://firebase.google.com/terms" target="_blank">Firebase-Nutzungsbedingungen</a> und die <a href="https://policies.google.com/privacy" target="_blank">Google-Datenschutzerkl\u00E4rung</a>.',
     'imp.privacyContact':
-      'Bei Fragen zum Datenschutz: <a href="mailto:info@malzi.me">info@malzi.me</a>',
+      'Bei Fragen zum Datenschutz: <a href="mailto:info@malziland.at">info@malziland.at</a>',
 
     // ===== SHARE =====
     'share.title': 'Cybermobbing-Simulation',
@@ -66,7 +87,7 @@ var TRANSLATIONS = {
     'limit.availableIn': 'Wieder verf\u00FCgbar in:',
     'limit.note': 'Cybermobbing h\u00F6rt leider nicht auf,<br>nur weil man wegschaut.',
 
-    // ===== WHATSAPP (P1: 0-28s) =====
+    // ===== WHATSAPP (P1) =====
     'wa.groupName': 'Klasse 3B \uD83C\uDFEB',
     'wa.groupMembers': 'Marco, Sara, Tim, Tom +19',
     'wa.inputPlaceholder': 'Nachricht',
@@ -82,7 +103,7 @@ var TRANSLATIONS = {
     'wa.toastEditing': '\u270F\uFE0F Sara bearbeitet das Foto...',
     'wa.toastPosted': '\uD83D\uDCE4 Sara hat es auf Instagram gepostet',
 
-    // ===== INSTAGRAM (P2: 28-56s) =====
+    // ===== INSTAGRAM (P2) =====
     'ig.likesZero': '0 \u201EGef\u00E4llt mir\u201C-Angaben',
     'ig.likesCount': '{count} \u201EGef\u00E4llt mir\u201C-Angaben',
     'ig.commentsCount': 'Alle {count} Kommentare ansehen',
@@ -100,7 +121,7 @@ var TRANSLATIONS = {
     'ig.toastReaction': '\uD83C\uDFAC lukas.der.echte macht ein Reaktionsvideo...',
     'ig.toastTiktok': '\uD83D\uDCE4 Neues TikTok-Video mit deinem Foto ver\u00F6ffentlicht',
 
-    // ===== TIKTOK (P3: 56-78s) =====
+    // ===== TIKTOK (P3) =====
     'tk.label': 'Reaktionsvideo \u00B7 @marco_2012',
     'tk.commentsHeader': 'Kommentare',
     'tk.navStart': 'Start',
@@ -121,7 +142,7 @@ var TRANSLATIONS = {
     'tk.toastReport': '\u23F3 Deine Meldung wird gepr\u00FCft',
     'tk.toastVideos': '\uD83D\uDCF8 3 weitere Videos mit deinem Foto erstellt',
 
-    // ===== HOMESCREEN (P4: 78-93s) =====
+    // ===== HOMESCREEN (P4) =====
     'hs.n1': '<strong>Marco</strong>: \u201Ealter wenn ich den morgen seh \uD83D\uDE02\u201C',
     'hs.n2': '<strong>+38 Likes</strong> auf das Foto von dir',
     'hs.n3': '<strong>hype.page</strong> hat deinen vollen Namen gepostet',
@@ -132,14 +153,14 @@ var TRANSLATIONS = {
     'hs.n7': '<strong>Neuer Kommentar</strong>: \u201El\u00F6sch dich einfach \uD83D\uDC80\u201C',
     'hs.n8': '<strong>aggro.44</strong> hat ein Meme aus deinem Foto gemacht',
 
-    // ===== MESSAGES (P4b: 93-112s) =====
+    // ===== MESSAGES (P4b) =====
     'im.mama': 'Tom, Schatz? Alles ok bei dir? \u2764\uFE0F',
     'im.tom': 'Mama, ich halt das nicht mehr aus.',
     'im.contactName': 'Mama \u2764\uFE0F',
     'im.label': 'iMessage',
     'im.back': 'Zur\u00FCck',
 
-    // ===== FINALE (P5: 112-120s) =====
+    // ===== FINALE (P5) =====
     'fin.line1': 'Das waren 120 Sekunden.',
     'fin.line2': 'F\u00FCr Tom geht das seit 3 Wochen.',
     'fin.line3': 'Jeden Tag.',
@@ -171,13 +192,34 @@ var TRANSLATIONS = {
     'ui.start': 'Start Simulation',
     'ui.share': 'Share Simulation',
     'ui.replay': 'Replay',
-    'ui.pause': 'II',
-    'ui.resume': '\u25B8',
-    'ui.paused': 'Paused \u2014 tap to continue',
     'ui.impressum': 'Legal Notice',
     'ui.close': 'Close',
     'ui.linkCopied': 'Link copied!',
     'ui.messages': 'Messages',
+    'ui.viewLabel': 'View',
+    'ui.viewPhone': 'Phone',
+    'ui.viewBeamer': 'Projector',
+    'ui.viewPhoneLong': 'Phone view',
+    'ui.viewBeamerLong': 'Projector view',
+    'ui.beamerHint': 'Projector: for large rooms \u00B7 press B to switch',
+    'ui.sound': 'Sound',
+    'ui.soundMute': 'Mute sound',
+    'ui.soundUnmute': 'Unmute sound',
+    'ui.volume': 'Volume',
+
+    // ===== CONTROL BAR =====
+    'ctl.label': 'Controls',
+    'ctl.timeline': 'Timeline',
+    'ctl.pause': 'Pause',
+    'ctl.resume': 'Resume',
+    'ctl.paused': 'Paused',
+    'ctl.wa': 'WhatsApp',
+    'ctl.ig': 'Instagram',
+    'ctl.tk': 'TikTok',
+    'ctl.hs': 'Notifications',
+    'ctl.im': 'Messages',
+    'ctl.fin': 'Ending',
+    'ctl.help': 'Help',
     'ui.credit':
       'An <a href="https://github.com/malziland/cybermobbing-simulator" target="_blank">open-source</a> education project by malziland',
 
@@ -197,7 +239,8 @@ var TRANSLATIONS = {
       'The site stores two purely functional values in browser localStorage: the selected language and a daily marker that prevents the same browser from incrementing the view counter multiple times. Both values stay on your device, contain no personal data and are never transmitted.',
     'imp.privacyHosting':
       'Hosting is provided by Google Firebase (Google Ireland Ltd). The <a href="https://firebase.google.com/terms" target="_blank">Firebase Terms of Service</a> and <a href="https://policies.google.com/privacy" target="_blank">Google Privacy Policy</a> apply.',
-    'imp.privacyContact': 'For privacy questions: <a href="mailto:info@malzi.me">info@malzi.me</a>',
+    'imp.privacyContact':
+      'For privacy questions: <a href="mailto:info@malziland.at">info@malziland.at</a>',
 
     // ===== SHARE =====
     'share.title': 'Cyberbullying Simulation',
@@ -373,6 +416,8 @@ function t(key, replacements) {
  * - data-i18n-html="key" sets innerHTML (for strings with HTML like <br> or <strong>)
  */
 function applyI18n() {
+  // Screen readers pick the voice by this attribute
+  document.documentElement.lang = TRANSLATIONS[currentLang] ? currentLang : 'de';
   document.querySelectorAll('[data-i18n]').forEach(function (el) {
     var key = el.getAttribute('data-i18n');
     el.textContent = t(key);

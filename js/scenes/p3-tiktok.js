@@ -1,6 +1,6 @@
 /**
  * @file p3-tiktok.js
- * @description Scene 3: TikTok video with comments (56-78s).
+ * @description Scene 3: TikTok video with comments.
  *   This is the escalation scene. The edited photo becomes a TikTok video.
  *   View/like/share counters climb rapidly. Comments escalate from mockery
  *   to doxxing (noah.x posts address and phone number) and direct threats.
@@ -11,7 +11,7 @@
  * @requires i18n.js     - t() for all message text
  */
 
-// ===== P3: TIKTOK (56-78s) =====
+// ===== P3: TIKTOK =====
 // Escalation: doxxing with address and phone number
 // Character speech patterns:
 // lukas: cool, kurz, organisiert | sara: CAPS, übertreibt

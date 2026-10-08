@@ -1,15 +1,18 @@
 /**
  * @file timer.js
- * @description Progress bar timer and simulated phone clock display.
- *   Drives two visual elements: a progress bar that fills over 120 seconds,
- *   and a phone status-bar clock that uses the user's real local time.
+ * @description Simulation clock and simulated phone clock display.
+ *   Counts the elapsed simulation seconds (the control bar in controls.js
+ *   shows them as its timeline) and drives the phone status-bar clock,
+ *   which uses the user's real local time.
  *   Both are paused/resumed via togglePause() in audio.js.
  * @requires audio.js - simPaused flag, togglePause() manages tmr and clockInt
+ * @requires audio.js - SIM_SPEED
+ * @requires controls.js - CTL_TOTAL, ctlUpdate() (only used at run time)
  */
 
 // ========== TIMER ==========
 
-/** @type {number|undefined} Interval ID for the progress bar tick */
+/** @type {number|undefined} Interval ID for the clock tick */
 // eslint-disable-next-line no-unassigned-vars -- assigned from main.js/audio.js (cross-file global)
 var tmr;
 
@@ -17,18 +20,47 @@ var tmr;
 var sec = 0;
 
 /**
- * Progress bar tick handler, called every 100ms by setInterval.
- * Increments sec by 0.1, updates the progress bar width as a percentage of 120s,
- * and updates the text label. Self-terminates at 130s to allow a brief overrun
- * for final scene timing.
+ * @type {{tmr: (number|undefined), at: number, sec: number, last: number, seen: number}|null}
+ * Where tick() started counting: the interval it belongs to, the wall-clock
+ * time and the simulation second at that moment, and when it last ran.
+ */
+var tickAnchor = null;
+
+/**
+ * @type {number} A gap between two ticks longer than this, in ms, does not
+ * count as simulation time: the computer was asleep, and the scene timers
+ * did not run either.
+ */
+var TICK_GAP_MAX = 5000;
+
+/**
+ * Clock tick, called every 100ms by setInterval. Moves sec on and lets the
+ * timeline in the control bar follow. Stops itself at the end of the timeline
+ * (CTL_TOTAL), a few seconds after the help page came up.
+ *
+ * sec follows the wall clock, not the number of ticks: browsers deliver
+ * interval ticks late (measured 4 to 6 % in Firefox and WebKit) and throttle
+ * them in a covered window, while the scene timers keep to real time. Counting
+ * ticks let the timeline fall behind the scenes. The count starts anew
+ * whenever the interval is restarted (start, resume, jump) or sec was set
+ * from outside, or after a gap longer than TICK_GAP_MAX; the first tick after
+ * that adds one step of 0.1 s.
  */
 function tick() {
-  sec += 0.1;
-  document.getElementById('tf').style.width = Math.min((sec / 120) * 100, 100) + '%';
-  if (sec <= 120) {
-    document.getElementById('tl').textContent = Math.floor(sec) + 's / 120s';
+  var now = Date.now();
+  if (
+    !tickAnchor ||
+    tickAnchor.tmr !== tmr ||
+    tickAnchor.last !== sec ||
+    now - tickAnchor.seen > TICK_GAP_MAX
+  ) {
+    tickAnchor = { tmr: tmr, at: now - 100 / SIM_SPEED, sec: sec, last: sec, seen: now };
   }
-  if (sec >= 130) clearInterval(tmr);
+  sec = tickAnchor.sec + ((now - tickAnchor.at) * SIM_SPEED) / 1000;
+  tickAnchor.last = sec;
+  tickAnchor.seen = now;
+  if (sec >= CTL_TOTAL) clearInterval(tmr);
+  ctlUpdate();
 }
 
 /** @type {number} Wall-clock timestamp when the clock was started/resumed (ms) */

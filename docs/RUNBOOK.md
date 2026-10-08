@@ -1,6 +1,6 @@
 # RUNBOOK — Betrieb, Deployment, Rollback
 
-Stand: 2026-07-16
+Stand: 2026-10-08
 
 ## Lokale Vorschau
 
@@ -8,17 +8,29 @@ Stand: 2026-07-16
 npm run dev        # Firebase-Hosting-Emulator auf http://localhost:5000
 ```
 
-Voraussetzung: `js/config.js` vorhanden (`cp js/config.example.js js/config.js`
-und Werte eintragen); ohne die Datei läuft die Simulation trotzdem, nur der
-View-Counter blendet sich nach 5 s aus.
+Voraussetzung für den View-Counter: `js/config.js` vorhanden
+(`cp js/config.example.js js/config.js` und Werte eintragen). Ohne die Datei
+läuft die Simulation trotzdem, der View-Counter ist dann ausgeblendet. Dasselbe
+gilt, wenn das Firebase-SDK nicht lädt (siehe Störfall weiter unten); der
+Ablauftest prüft alle drei Fälle.
 
 ## Prüfen vor jedem Deploy
 
+Alle fünf müssen mit Rückgabewert 0 enden; gelesen wird der Rückgabewert, nicht
+die Ausgabe:
+
 ```bash
-npm run lint       # ESLint + Prettier-Check
-npm run test       # QUnit-Suite headless (Playwright/Chromium)
-npm run test:e2e   # End-to-End + Accessibility (axe-core)
+npm run lint                        # ESLint + Prettier-Check
+npm run test                        # QUnit-Suite headless (Playwright/Chromium)
+npm run test:e2e                    # End-to-End + Accessibility (axe-core)
+npm audit --audit-level=high        # Abhängigkeiten (auch in scripts/video-export)
+gitleaks git --redact .             # Geheimnisse in der gesamten Historie
 ```
+
+Dieselben Prüfungen laufen als Pflicht-Checks der Pipeline auf jedem Pull
+Request und jedem Push auf `main` (`.github/workflows/ci.yml`). Dort laufen die
+Layout-Prüfungen des Ablauftests mit Linux-Schriften; ein grüner Lauf am Mac
+ersetzt das nicht.
 
 ## Deployment
 
@@ -28,9 +40,50 @@ Nur nach ausdrücklicher Freigabe des Betreibers:
 npm run deploy     # führt automatisch vorher scripts/cache-bust.sh aus
 ```
 
-Release-Ablauf: CHANGELOG-Abschnitt finalisieren → Version in `package.json`
-erhöhen → **annotierten** Tag setzen (`git tag -a vX.Y.Z -m "…"`, ADR-0001) →
-pushen (`git push && git push --tags`) → deployen.
+`scripts/cache-bust.sh` schreibt einen frischen Stempel in `index.html`
+(`?v=…`). Diese Änderung gehört zum ausgelieferten Stand und wird nach dem
+Deploy committet.
+
+**Was ausgeliefert wird:** nur die Seite selbst, also `index.html`, `css/`,
+`js/`, `assets/`, `favicon.svg`, `llms.txt`, `robots.txt`, `sitemap.xml` und
+`LICENSE`. Alles andere bleibt im Repository; die Liste `hosting.ignore` in
+`firebase.json` schließt es aus.
+
+Diese Liste ist eine Negativliste, und ein fehlender Eintrag veröffentlicht einen
+ganzen Ordner. Deshalb steht davor eine Sperre: `scripts/deploy-files.js` läuft
+bei jedem Deploy automatisch (`hosting.predeploy` in `firebase.json`), ermittelt
+mit der Dateiauswahl der Firebase-CLI selbst, was hochgeladen würde, und bricht
+den Deploy ab, sobald eine Datei dabei ist, die nicht zur Seite gehört. Wer eine
+neue Datei anlegt, die die Seite braucht und die nicht unter `css/`, `js/` oder
+`assets/` liegt, trägt sie in diesem Skript ein; wer eine neue Werkzeugdatei
+anlegt, trägt sie in `hosting.ignore` ein. Von Hand prüfen:
+`node scripts/deploy-files.js` (Rückgabewert 0) oder mit `--list` die Dateien
+ansehen.
+
+Hintergrund (Vorfall, siehe `docs/SECURITY-MODEL.md`): Bis v1.2.1 lieferte die
+Live-Seite auch `.git/`, `.claude/settings.local.json`, `.github/`, `docs/`,
+`tests/` und `scripts/` aus.
+
+Release-Ablauf, in dieser Reihenfolge:
+
+1. Prüfungen oben grün, CHANGELOG-Abschnitt „Unveröffentlicht" fertig.
+2. Zweig hochladen, Pull Request, Pipeline grün, nach `main` zusammenführen.
+3. Von `main` aus deployen (`npm run deploy`). Die Sperre
+   `scripts/deploy-files.js` läuft dabei von selbst; bricht sie ab, wird nicht
+   an ihr vorbei ausgeliefert.
+4. Beweisen, dass die Live-Seite den Stand zeigt: `bash scripts/verify-live.sh`.
+   Das Skript ruft jede Datei der Seite von https://cybermobbing.web.app ab und
+   vergleicht ihre Prüfsumme mit der lokalen (`js/config.js` nur über die
+   Prüfsumme, nie über den Inhalt). Es prüft auch, dass versteckte Ordner,
+   Doku, Tests und Werkzeugdateien nicht abrufbar sind. Nach dem Deploy muss es mit
+   Rückgabewert 0 enden. Unmittelbar vor dem Deploy muss es mit 1 enden, weil
+   live noch der vorige Stand liegt; das ist der Beleg, dass die Prüfung
+   anschlagen kann.
+5. Erst danach die Stempel setzen, in einem Commit: Version in `package.json`
+   und `package-lock.json`, CHANGELOG-Überschrift mit Version und Datum, der
+   Cache-Stempel in `index.html`. Darauf den **annotierten** Tag
+   (`git tag -a vX.Y.Z -m "…"`, ADR-0001), dann Commit und Tag hochladen. Ein
+   Tag vor dem Deploy behauptet eine Auslieferung, die es noch nicht gibt.
 
 ## Rollback
 
@@ -40,6 +93,11 @@ Zwei Wege, je nach Situation:
    Hosting → Release-Verlauf → gewünschtes früheres Release → „Rollback".
    Stellt exakt die zuvor ausgelieferten Dateien wieder her; Code im Repo
    bleibt unverändert.
+   **Achtung bei Releases vor v2.0.0:** Sie enthalten `.git/` und
+   `.claude/settings.local.json`. Ein Rollback auf sie stellt diese Dateien
+   wieder öffentlich ins Netz. Nur als Notmaßnahme, und danach sofort über
+   Weg 2 neu ausliefern. Sobald v2.0.0 einen Tag stabil läuft, die älteren
+   Releases im Release-Verlauf löschen; dann gilt für sie nur noch Weg 2.
 2. **Code-Rollback über Git-Tag:**
    ```bash
    git worktree add /tmp/rollback vX.Y.Z   # alten Stand isoliert auschecken
@@ -81,6 +139,14 @@ Bekannte Ursachen, in dieser Reihenfolge prüfen:
    Deployment/Fork relevant).
 4. Firebase-Status prüfen: https://status.firebase.google.com
 
+## Störfall: „Simulation starten" tut nichts
+
+Bis v1.2.1 hing der Start am Firebase-SDK von `www.gstatic.com`: War der Host im
+Netz der Schule gesperrt oder antwortete er nicht, blieb der Startknopf ohne
+Wirkung. Seit v2.0.0 lädt das SDK als Letztes und der Zähler ist vom Start
+getrennt. Tritt der Fehler trotzdem auf: Browser-Konsole öffnen, die Fehlermeldung
+notieren und die Seite mit einem zweiten Browser gegenprüfen.
+
 ## Störfall: Limit-Seite erscheint unerwartet
 
 `/daily/<heutiges-UTC-Datum>` in der RTDB-Konsole prüfen. Steht der Wert
@@ -96,15 +162,22 @@ kein Handlungsdruck). Bei Bedarf in der Firebase-Konsole Einträge löschen, die
 
 ## Tastatur-Smoketest (UI-Profil, manuell)
 
-Prozedur (Rahmen-UI gemäß ADR-0005), Dauer ~3 Minuten:
+Prozedur (Rahmen-UI gemäß ADR-0005), Dauer ~4 Minuten, in einem Fenster ab
+901 Pixel Breite:
 
 1. Seite laden, nur Tastatur verwenden.
-2. `Tab` durch den Startbildschirm: Reihenfolge Start → Teilen →
-   Open-Source-Link → Impressum; Fokus muss sichtbar sein.
+2. `Tab` durch den Startbildschirm: Reihenfolge Start → Handy → Beamer →
+   Teilen → Open-Source-Link → Impressum; Fokus muss sichtbar sein.
 3. Impressum mit `Enter` öffnen, mit `Escape` schließen.
 4. Start-Button mit `Enter` auslösen; Simulation startet.
-5. Pause-Button mit `Tab` erreichen, mit `Enter` pausieren und fortsetzen.
-6. Nach Ende (oder mit `?testspeed=10` beschleunigt): CTA-Ansicht — Teilen-,
-   Nochmal-Button und Hilfsangebot-Links per `Tab` erreichbar und auslösbar.
+5. `Tab` durch die Steuerleiste: Pause → Zeitleiste → Ton → Lautstärke →
+   Handy → Beamer → Impressum. Mit `Enter` pausieren und fortsetzen.
+6. Auf der Zeitleiste: Pfeil rechts und links (fünf Sekunden vor und zurück),
+   Bild auf (nächste Szene), Ende (letzte Seite), Pos1 (Anfang).
+7. Impressum in der Leiste mit `Enter` öffnen: Die Simulation pausiert und läuft
+   nach `Escape` weiter.
+8. Nach Ende (oder mit `?testspeed=10` beschleunigt): Seite mit den
+   Hilfsangeboten — Teilen-, Nochmal-Button und Hilfsangebot-Links per `Tab`
+   erreichbar und auslösbar; die Leiste steht weiter unten.
 
 Letztes Ergebnis: siehe docs/VERIFICATION.md (Zeile „Tastatur-Smoketest").

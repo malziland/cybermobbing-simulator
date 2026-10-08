@@ -6,34 +6,44 @@
  *   shows a countdown to midnight. View counts are displayed live via Firebase
  *   .on('value') listeners.
  * @requires config.js - firebaseConfig object and DAILY_LIMIT constant
+ *
+ * The simulation must work without this counter: if the SDK did not load
+ * (blocked host) or config.js is missing, counterReady is false and every
+ * function here does nothing. This script is loaded last and deferred.
  */
 
 // ========== FIREBASE VIEW COUNTER + DAILY LIMIT ==========
 
-// Initialize Firebase app with credentials from config.js
-firebase.initializeApp(firebaseConfig);
+/** @type {boolean} False without the SDK or without config.js: then there is no counter */
+var counterReady = typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined';
 
-var db = firebase.database();
-
-/** @type {firebase.database.Reference} Reference to /views (total all-time count) */
-var viewsRef = db.ref('views');
+/** @type {firebase.database.Reference|null} Reference to /views (total all-time count) */
+var viewsRef = null;
 
 /** @type {string} Today's date as YYYY-MM-DD, used as the daily counter key */
 var today = new Date().toISOString().slice(0, 10);
 
-/** @type {firebase.database.Reference} Reference to /daily/<today> (today's count) */
-var dailyRef = db.ref('daily/' + today);
+/** @type {firebase.database.Reference|null} Reference to /daily/<today> (today's count) */
+var dailyRef = null;
 
-// On page load, check if today's limit has been reached
-dailyRef.once('value', function (snapshot) {
-  var todayCount = snapshot.val() || 0;
+if (counterReady) {
+  // Initialize Firebase app with credentials from config.js
+  firebase.initializeApp(firebaseConfig);
+  var db = firebase.database();
+  viewsRef = db.ref('views');
+  dailyRef = db.ref('daily/' + today);
 
-  if (todayCount >= DAILY_LIMIT) {
-    document.getElementById('start').classList.add('hidden');
-    document.getElementById('limitPage').classList.add('show');
-    startLimitTimer();
-  }
-});
+  // On page load, check if today's limit has been reached
+  dailyRef.once('value', function (snapshot) {
+    var todayCount = snapshot.val() || 0;
+
+    if (todayCount >= DAILY_LIMIT) {
+      document.getElementById('start').classList.add('hidden');
+      document.getElementById('limitPage').classList.add('show');
+      startLimitTimer();
+    }
+  });
+}
 
 /**
  * Per-browser deduplication: a browser increments the counter at most once
@@ -69,6 +79,7 @@ function markCountedToday() {
  * Skips the increment entirely if this browser has already counted today.
  */
 function incrementCounters() {
+  if (!counterReady) return;
   if (hasCountedToday()) return;
   markCountedToday();
   viewsRef
@@ -98,25 +109,34 @@ function hideViewCounters() {
   for (var i = 0; i < boxes.length; i++) boxes[i].style.display = 'none';
 }
 
-viewsRef.on(
-  'value',
-  function (snapshot) {
-    viewCountLoaded = true;
-    var count = snapshot.val() || 0;
-    var formatted = count.toLocaleString('de-DE');
-    var el = document.getElementById('viewCount');
-    var el2 = document.getElementById('viewCountStart');
-    if (el) el.textContent = formatted;
-    if (el2) el2.textContent = formatted;
-  },
-  function () {
-    hideViewCounters();
-  }
-);
+if (counterReady) {
+  viewsRef.on(
+    'value',
+    function (snapshot) {
+      viewCountLoaded = true;
+      var count = snapshot.val() || 0;
+      var formatted = count.toLocaleString('de-DE');
+      var el = document.getElementById('viewCount');
+      var el2 = document.getElementById('viewCountStart');
+      if (el) el.textContent = formatted;
+      if (el2) el2.textContent = formatted;
+    },
+    function () {
+      hideViewCounters();
+    }
+  );
 
-setTimeout(function () {
-  if (!viewCountLoaded) hideViewCounters();
-}, 5000);
+  setTimeout(function () {
+    if (!viewCountLoaded) hideViewCounters();
+  }, 5000);
+} else {
+  hideViewCounters();
+}
+
+// This script arrives after the page is usable. If the simulation was started
+// in the meantime, go() found no counter yet: count that start now. The
+// per-day marker in incrementCounters() keeps it at one count.
+if (typeof simStarted !== 'undefined' && simStarted) incrementCounters();
 
 /**
  * Starts a live countdown timer showing the time remaining until midnight,

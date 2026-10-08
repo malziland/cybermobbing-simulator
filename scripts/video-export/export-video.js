@@ -33,11 +33,10 @@ const VIEW_H = 4680;
 const PHONE_SCALE = Math.max(VIEW_W / PHONE_W, VIEW_H / PHONE_H);
 const OUT_W = VIEW_W;
 const OUT_H = VIEW_H;
-// Die Simulation läuft tatsächlich länger als 120s:
-//   0-112s: WhatsApp -> Instagram -> TikTok -> Homescreen -> Messages
-//   112-132s: Dramatic Text (p5)
-//   132s+: CTA mit Helpline-Logo (p6)
-// Mit Puffer → 165s reichen für komplettes Finale.
+// Die Simulation läuft länger als 120 s: Nach den fünf App-Szenen folgen der
+// Schlusstext (p5) und die Seite mit den Hilfsangeboten (p6). Wann welche Szene
+// beginnt, steht nur in CTL_SCENES (js/controls.js). Aufgenommen wird bis kurz
+// vor die Hilfsangebote plus Puffer, zusammen 165 s; das reicht für das Finale.
 const SIM_SECONDS = 132;
 const TAIL_SECONDS = 33;
 const TOTAL_SECONDS = SIM_SECONDS + TAIL_SECONDS;
@@ -128,8 +127,19 @@ html, body { margin: 0 !important; padding: 0 !important; background: #000 !impo
   border-radius: 0 !important;
   box-shadow: none !important;
 }
+/* Der Startbildschirm verteilt seinen Platz seit der Beamer-Ansicht selbst
+   (Titelblock oben, Fußbereich unten). Ohne Fußbereich muss der Titelblock
+   hier wieder mittig stehen. */
+#start { justify-content: center !important; padding: 0 !important; }
+#start h1 { margin-top: 0 !important; }
+/* Die Seite mit den Hilfsangeboten endet sonst oberhalb von Steuerleiste und
+   Hinweistext. Beides ist hier ausgeblendet, also gilt der feste Abstand. */
+.cta-screen { padding-bottom: 80px !important; }
 /* UI-Elemente ausblenden, die für das Workshop-Backup nicht gebraucht werden */
 #startBtn,
+#start .view-pick,
+#start .beamer-hint,
+.ctl-bar,
 #start .start-footer,
 .fin-actions,
 .cta-links,

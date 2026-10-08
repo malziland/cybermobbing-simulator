@@ -86,6 +86,18 @@
   <h1 data-i18n-html="ui.titleHtml">Wie Cybermobbing<br><em>viral geht</em></h1>
   <p class="sub1" data-i18n="ui.subtitle">120-Sekunden-Simulation</p>
   <button id="startBtn"><span aria-hidden="true">&#9654;&#xFE0E;</span> <span data-i18n="ui.start">Simulation starten</span></button>
+  <!-- View picker: two miniature previews instead of one more pill button (ADR-0007) -->
+  <div class="view-pick" role="group" aria-label="Ansicht">
+    <button type="button" class="view-opt" id="viewPhoneBtn" data-view="phone" aria-pressed="true">
+      <span class="view-ico view-ico-phone" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="view-name" data-i18n="ui.viewPhone">Handy</span>
+    </button>
+    <button type="button" class="view-opt" id="viewBeamerBtn" data-view="beamer" aria-pressed="false">
+      <span class="view-ico view-ico-beamer" aria-hidden="true"><em></em><b></b><i></i><i></i></span>
+      <span class="view-name" data-i18n="ui.viewBeamer">Beamer</span>
+    </button>
+  </div>
+  <p class="beamer-hint" data-i18n="ui.beamerHint">Beamer: f&uuml;r gro&szlig;e R&auml;ume &middot; Taste B schaltet um</p>
   <div class="start-footer">
     <button class="start-share" id="startShareBtn">
       <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -125,7 +137,7 @@
 <div id="impModal" class="imp-modal" role="dialog" aria-modal="true" aria-label="Impressum">
   <div class="imp-phone">
     <div class="imp-statusbar">
-      <span>21:34</span>
+      <span id="impTime"></span>
       <span class="imp-statusbar-label" data-i18n="imp.title">Impressum</span>
     </div>
     <div class="imp-scroll">
@@ -140,7 +152,7 @@
         <p><strong>malziland - learning | training | consulting e.U.</strong></p>
         <p>Inhaber: Christoph Krieger</p>
         <p>Tassilostra&szlig;e 22, 4501 Neuhofen an der Krems, &Ouml;sterreich</p>
-        <p><a href="mailto:info@malzi.me">info@malzi.me</a></p>
+        <p><a href="mailto:info@malziland.at">info@malziland.at</a></p>
       </div>
 
       <div class="imp-block">
@@ -160,7 +172,7 @@
         <p data-i18n="imp.privacyCounter">Der View-Counter speichert ausschlie&szlig;lich eine anonyme Z&auml;hlzahl ohne Bezug zu einzelnen Besuchern. Eine Zuordnung zu Personen ist nicht m&ouml;glich.</p>
         <p data-i18n="imp.privacyLocalStorage">Die Seite legt zwei rein funktionale Werte im lokalen Browserspeicher (localStorage) ab: die gew&auml;hlte Sprache und eine Tagesmarke, damit derselbe Browser den View-Counter nicht mehrfach erh&ouml;ht. Beide Werte bleiben auf deinem Ger&auml;t, enthalten keine personenbezogenen Daten und werden nicht &uuml;bertragen.</p>
         <p data-i18n-html="imp.privacyHosting">Das Hosting erfolgt &uuml;ber Google Firebase (Google Ireland Ltd). Es gelten die <a href="https://firebase.google.com/terms" target="_blank">Firebase-Nutzungsbedingungen</a> und die <a href="https://policies.google.com/privacy" target="_blank">Google-Datenschutzerkl&auml;rung</a>.</p>
-        <p data-i18n-html="imp.privacyContact">Bei Fragen zum Datenschutz: <a href="mailto:info@malzi.me">info@malzi.me</a></p>
+        <p data-i18n-html="imp.privacyContact">Bei Fragen zum Datenschutz: <a href="mailto:info@malziland.at">info@malziland.at</a></p>
       </div>
 
       <button class="imp-close-btn" id="impCloseBtn" data-i18n="ui.close">Schlie&szlig;en</button>
@@ -169,14 +181,34 @@
   </div>
 </div>
 
-<!-- PAUSE -->
-<button id="pauseBtn" class="pause-btn hidden">II</button>
-<div id="pauseOverlay" class="pause-overlay hidden">
-  <div class="pause-text" data-i18n="ui.paused">Pausiert &mdash; tippe um fortzufahren</div>
+<!-- CONTROL BAR: pause, scene name, timeline, sound, view, legal notice (js/controls.js, ADR-0008) -->
+<div class="ctl-bar" id="ctlBar" role="group" aria-label="Steuerung">
+  <button id="pauseBtn" class="ctl-play hidden" type="button">
+    <svg class="ico-pause" aria-hidden="true" viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="4.5" height="15" rx=".7"/><rect x="14" y="4.5" width="4.5" height="15" rx=".7"/></svg>
+    <svg class="ico-play" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 4.6v14.8a.6.6 0 00.92.5l11.3-7.4a.6.6 0 000-1L8.42 4.1a.6.6 0 00-.92.5z"/></svg>
+  </button>
+  <span class="ctl-scene" id="ctlScene"></span>
+  <div class="ctl-seek" id="ctlSeek" role="slider" tabindex="0" aria-label="Zeitleiste" aria-valuemin="0" aria-valuemax="140" aria-valuenow="0">
+    <div class="ctl-track" id="ctlTrack"><div class="ctl-fill"></div></div>
+    <div class="ctl-knob"></div>
+    <span class="ctl-tip" id="ctlTip"></span>
+  </div>
+  <i class="ctl-sep"></i>
+  <div class="ctl-sound" role="group" aria-label="Ton">
+    <button type="button" id="soundBtn" aria-label="Ton ausschalten">
+      <svg class="ico-on" aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>
+      <svg class="ico-off" aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>
+    </button>
+    <input type="range" id="volSlider" min="0" max="100" step="5" value="100" aria-label="Lautst&auml;rke">
+  </div>
+  <i class="ctl-sep"></i>
+  <div class="ctl-view" role="group" aria-label="Ansicht">
+    <button type="button" id="runPhoneBtn" data-view="phone" aria-pressed="true"><span class="view-ico view-ico-phone" aria-hidden="true"><i></i><i></i><i></i></span></button>
+    <button type="button" id="runBeamerBtn" data-view="beamer" aria-pressed="false"><span class="view-ico view-ico-beamer" aria-hidden="true"><em></em><b></b><i></i><i></i></span></button>
+  </div>
+  <i class="ctl-sep"></i>
+  <span class="ctl-impr" id="impLinkRun" tabindex="0" role="button" data-i18n="ui.impressum">Impressum</span>
 </div>
-
-<!-- TIMER BAR -->
-<div class="tbar"><div class="fill" id="tf"></div><div class="lbl" id="tl"></div></div>
 <div class="flash" id="fl"></div>
 <div class="toast" id="toast"></div>
 
@@ -311,6 +343,106 @@
   </div>
 </div>
 
+<!-- PROJECTOR VIEW: large mirror of the phone scenes, filled by js/stage.js (ADR-0007).
+     The phone itself stays visible at the left edge; the stage keeps that strip free. -->
+<div class="stage" id="stage">
+  <div class="st-frame">
+
+    <!-- WHATSAPP -->
+    <div class="st-scene st-wa" id="stWa" data-app="aWa">
+      <div class="st-head">
+        <div class="st-av st-av-wa">3B</div>
+        <div class="st-title" data-i18n="wa.groupName">Klasse 3B &#127979;</div>
+        <div class="st-sub" data-i18n="wa.groupMembers">Marco, Sara, Tim, Tom +19</div>
+      </div>
+      <div class="st-media" id="stWaMedia"><div class="st-photo st-photo-wa"><div id="stWaPh"></div></div></div>
+      <div class="st-col">
+        <div class="st-list" id="stWaList"></div>
+        <div class="st-sys" id="stWaSys"></div>
+      </div>
+    </div>
+
+    <!-- INSTAGRAM -->
+    <div class="st-scene st-ig" id="stIg" data-app="aIg">
+      <div class="st-head">
+        <div class="st-av st-av-ig"><i></i></div>
+        <div class="st-title">sara.xoxo</div>
+        <div class="st-counts">
+          <span class="st-cnt"><svg class="st-heart" id="stIgHeart" aria-hidden="true" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span id="stIgLk">0</span></span>
+          <span class="st-cnt"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span id="stIgCn">0</span></span>
+        </div>
+      </div>
+      <div class="st-media on">
+        <div class="st-photo st-photo-ig"><div id="stIgPh"></div></div>
+        <div class="st-meta"><div id="stIgVw"></div><div id="stIgCc"></div></div>
+      </div>
+      <div class="st-col"><div class="st-list" id="stIgList"></div></div>
+    </div>
+
+    <!-- TIKTOK -->
+    <div class="st-scene st-tk" id="stTk" data-app="aTk">
+      <div class="st-head">
+        <div class="st-title">@lukas.der.echte</div>
+        <div class="st-counts">
+          <span class="st-cnt"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span id="stTkLk">0</span></span>
+          <span class="st-cnt"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><span id="stTkCm">0</span></span>
+          <span class="st-cnt"><svg class="st-ico-line" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><span id="stTkSh">0</span></span>
+        </div>
+      </div>
+      <div class="st-media on">
+        <div class="st-photo st-photo-tk"><div id="stTkPh"></div></div>
+        <div class="st-meta">
+          <div data-i18n="tk.label">Reaktionsvideo &middot; @marco_2012</div>
+          <div data-i18n-html="tk.botDesc">I can't &#128128;&#128128; <span class="tag">#school</span> <span class="tag">#exposed</span> <span class="tag">#fy</span></div>
+        </div>
+      </div>
+      <div class="st-col">
+        <div class="st-list" id="stTkList"></div>
+        <div class="st-sys" id="stTkRpt"></div>
+      </div>
+    </div>
+
+    <!-- HOMESCREEN -->
+    <div class="st-scene st-hs" id="stHs" data-app="aHs">
+      <div class="st-hs-top">
+        <div class="st-hs-time"><div class="st-clock" id="stHsClock"></div><div class="st-date" id="stHsDate"></div></div>
+        <div class="st-dock">
+          <div class="st-app"><img src="assets/icons/whatsapp.png" alt=""><div class="st-bdg" id="stXW">23</div><div class="st-app-nm">WhatsApp</div></div>
+          <div class="st-app"><img src="assets/icons/instagram.png" alt=""><div class="st-bdg" id="stXI">186</div><div class="st-app-nm">Instagram</div></div>
+          <div class="st-app"><img src="assets/icons/tiktok.png" alt=""><div class="st-bdg" id="stXT">4.2k</div><div class="st-app-nm">TikTok</div></div>
+          <div class="st-app"><img src="assets/icons/messages.png" alt=""><div class="st-bdg" id="stXN">47</div><div class="st-app-nm" data-i18n="ui.messages">Nachrichten</div></div>
+          <div class="st-app"><img src="assets/icons/snapchat.png" alt=""><div class="st-bdg" id="stXS">12</div><div class="st-app-nm">Snapchat</div></div>
+        </div>
+      </div>
+      <div class="st-col st-col-full"><div class="st-list" id="stHsList"></div></div>
+    </div>
+
+    <!-- MESSAGES (Tom -> Mama) -->
+    <div class="st-scene st-im" id="stIm" data-app="aIm">
+      <div class="st-head">
+        <div class="st-title" data-i18n="im.contactName">Mama &#10084;&#65039;</div>
+        <div class="st-sub" data-i18n="im.label">iMessage</div>
+      </div>
+      <div class="st-col st-col-full"><div class="st-list" id="stImList"></div></div>
+    </div>
+
+    <!-- FINAL: dramatic text -->
+    <div class="st-scene st-fn" id="stFn" data-app="aFn">
+      <div class="st-fl" id="stFA" data-i18n="fin.line1">Das waren 120 Sekunden.</div>
+      <div class="st-fn-gap"></div>
+      <div class="st-fl" id="stFB" data-i18n="fin.line2">F&uuml;r Tom geht das seit 3 Wochen.</div>
+      <div class="st-fl" id="stFC" data-i18n="fin.line3">Jeden Tag.</div>
+      <div class="st-fl" id="stFC2" data-i18n="fin.line4">Auch nachts.</div>
+      <div class="st-fn-gap"></div>
+      <div class="st-fl" id="stFE" data-i18n-html="fin.line5">Alle haben es gesehen<br>und morgen in der Schule<br>geht es weiter.</div>
+    </div>
+
+    <!-- Notices ("... hat einen Screenshot gemacht") get their own row -->
+    <div class="st-note" id="stNote"></div>
+
+  </div>
+</div>
+
 <!-- CTA: fullscreen call to action (outside phone frame) -->
 <!-- Logo, slogan and link are loaded from helplineConfig in config.js -->
 <div class="cta-screen hidden" id="aCta">
@@ -340,10 +472,6 @@
 <!-- BACKGROUND MUSIC -->
 <audio id="bgm" preload="auto" src="assets/bgm.mp3"></audio>
 
-<!-- FIREBASE SDK -->
-<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js" integrity="sha384-Ufq88lVebSanA6Y271YEbcklp6Nb9pT26KQ/eBdyjEjvge1iB15DbPg9GhDXSPKV" crossorigin="anonymous"></script>
-<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-database-compat.js" integrity="sha384-pu7BGxa50f7nbHNKziqkWBwKW6FlXRwc4r9AWKj9eXdv4amdRLshYSmnoNFELtJz" crossorigin="anonymous"></script>
-
 <!-- APP SCRIPTS -->
 <script src="js/i18n.js?v=1784223914"></script>
 <script src="js/audio.js?v=1784223914"></script>
@@ -355,9 +483,16 @@
 <script src="js/scenes/p4-homescreen.js?v=1784223914"></script>
 <script src="js/scenes/p4b-messages.js?v=1784223914"></script>
 <script src="js/scenes/p5-finale.js?v=1784223914"></script>
+<script src="js/stage.js?v=1784223914"></script>
+<script src="js/controls.js?v=1784223914"></script>
 <script src="js/config.js?v=1784223914"></script>
-<script src="js/firebase-counter.js?v=1784223914"></script>
 <script src="js/main.js?v=1784223914"></script>
+
+<!-- VIEW COUNTER: the Firebase SDK comes from a foreign host. It is loaded last and
+     deferred, so the simulation above works even if that host is blocked or hangs. -->
+<script defer src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js" integrity="sha384-Ufq88lVebSanA6Y271YEbcklp6Nb9pT26KQ/eBdyjEjvge1iB15DbPg9GhDXSPKV" crossorigin="anonymous"></script>
+<script defer src="https://www.gstatic.com/firebasejs/12.16.0/firebase-database-compat.js" integrity="sha384-pu7BGxa50f7nbHNKziqkWBwKW6FlXRwc4r9AWKj9eXdv4amdRLshYSmnoNFELtJz" crossorigin="anonymous"></script>
+<script defer src="js/firebase-counter.js?v=1784223914"></script>
 
 </body>
 </html>

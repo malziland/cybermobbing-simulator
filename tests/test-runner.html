@@ -11,8 +11,6 @@
   <div id="qunit-fixture"></div>
 
   <!-- DOM fixtures needed by timer tests -->
-  <div id="tf" style="width:0"></div>
-  <div id="tl"></div>
   <div id="sbTime">21:34</div>
   <div id="hsClock">21:34</div>
 
@@ -31,6 +29,10 @@
   <script src="../js/scenes/p4-homescreen.js"></script>
   <script src="../js/scenes/p4b-messages.js"></script>
   <script src="../js/scenes/p5-finale.js"></script>
+  <!-- Projector view (depends on helpers; mkPhoto from main.js is used at init time) -->
+  <script src="../js/stage.js"></script>
+  <!-- Control bar and timeline (depends on audio, timer, helpers, stage) -->
+  <script src="../js/controls.js"></script>
   <!-- Main (depends on everything above) -->
   <script src="../js/main.js"></script>
 
@@ -41,6 +43,9 @@
   <script src="test-main.js"></script>
   <script src="test-audio.js"></script>
   <script src="test-scenes.js"></script>
+  <script src="test-stage.js"></script>
+  <script src="test-volume.js"></script>
+  <script src="test-controls.js"></script>
 
 </body>
 </html>

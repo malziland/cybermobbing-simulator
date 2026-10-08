@@ -17,12 +17,9 @@ QUnit.module(
       fixture.innerHTML =
         '<div id="start"></div>' +
         '<div id="pauseBtn" class="hidden"></div>' +
-        '<div id="pauseOverlay"></div>' +
         '<div id="phone" class="hidden"></div>' +
         '<div id="igPh"></div>' +
         '<div id="tkBg"></div>' +
-        '<div id="tf" style="width:0"></div>' +
-        '<div id="tl"></div>' +
         '<div id="sbTime">21:34</div>' +
         '<div id="hsClock">21:34</div>';
 
@@ -125,12 +122,9 @@ QUnit.module(
       fixture.innerHTML =
         '<div id="start"></div>' +
         '<div id="pauseBtn" class="hidden"></div>' +
-        '<div id="pauseOverlay"></div>' +
         '<div id="phone" class="hidden"></div>' +
         '<div id="igPh"></div>' +
         '<div id="tkBg"></div>' +
-        '<div id="tf" style="width:0"></div>' +
-        '<div id="tl"></div>' +
         '<div id="sbTime">21:34</div>' +
         '<div id="hsClock">21:34</div>';
 
@@ -155,12 +149,9 @@ QUnit.module(
       fixture.innerHTML =
         '<div id="start"></div>' +
         '<div id="pauseBtn" class="hidden"></div>' +
-        '<div id="pauseOverlay"></div>' +
         '<div id="phone" class="hidden"></div>' +
         '<div id="igPh"></div>' +
         '<div id="tkBg"></div>' +
-        '<div id="tf" style="width:0"></div>' +
-        '<div id="tl"></div>' +
         '<div id="sbTime">21:34</div>' +
         '<div id="hsClock">21:34</div>';
 

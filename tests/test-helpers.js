@@ -63,6 +63,34 @@ QUnit.module('helpers', function () {
     assert.ok(el.classList.contains('show'), 'Toast has "show" class');
   });
 
+  QUnit.test(
+    'a toast stays for its own time when an earlier one runs out meanwhile',
+    function (assert) {
+      document.getElementById('qunit-fixture').innerHTML = '<div id="toast"></div>';
+      var el = document.getElementById('toast');
+      var origTimers = simTimers;
+      var origPaused = simPaused;
+      simTimers = [];
+      simPaused = true; // timers only wait in the list, simAdvance() runs them
+      toast('first', 2000 * SIM_SPEED);
+      simAdvance(1500);
+      toast('second', 2000 * SIM_SPEED);
+      simAdvance(600); // 2.1 s: the timer of the first toast has run out by now
+      assert.ok(
+        el.classList.contains('show'),
+        'the second toast is still up 0.6 s after it appeared'
+      );
+      assert.equal(el.textContent, 'second', 'and it is the second one');
+      simAdvance(1300); // 3.4 s: 1.9 s of its own two seconds
+      assert.ok(el.classList.contains('show'), 'still up shortly before its own time is over');
+      simAdvance(200); // 3.6 s
+      assert.notOk(el.classList.contains('show'), 'gone after its own two seconds');
+      assert.equal(simTimers.length, 0, 'no timer left behind');
+      simTimers = origTimers;
+      simPaused = origPaused;
+    }
+  );
+
   QUnit.test('flash() adds go class to flash element', function (assert) {
     var fixture = document.getElementById('qunit-fixture');
     fixture.innerHTML = '<div id="fl"></div>';

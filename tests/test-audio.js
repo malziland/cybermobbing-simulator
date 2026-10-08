@@ -39,9 +39,6 @@ QUnit.module(
       var fixture = document.getElementById('qunit-fixture');
       fixture.innerHTML =
         '<div id="pauseBtn"></div>' +
-        '<div id="pauseOverlay" class="hidden"></div>' +
-        '<div id="tf" style="width:0"></div>' +
-        '<div id="tl"></div>' +
         '<div id="sbTime">21:34</div>' +
         '<div id="hsClock">21:34</div>';
 
@@ -69,9 +66,6 @@ QUnit.module(
       var fixture = document.getElementById('qunit-fixture');
       fixture.innerHTML =
         '<div id="pauseBtn"></div>' +
-        '<div id="pauseOverlay" class="hidden"></div>' +
-        '<div id="tf" style="width:0"></div>' +
-        '<div id="tl"></div>' +
         '<div id="sbTime">21:34</div>' +
         '<div id="hsClock">21:34</div>';
 
@@ -137,9 +131,6 @@ QUnit.module(
       var fixture = document.getElementById('qunit-fixture');
       fixture.innerHTML =
         '<div id="pauseBtn"></div>' +
-        '<div id="pauseOverlay" class="hidden"></div>' +
-        '<div id="tf" style="width:0"></div>' +
-        '<div id="tl"></div>' +
         '<div id="sbTime">21:34</div>' +
         '<div id="hsClock">21:34</div>';
 
@@ -158,14 +149,12 @@ QUnit.module(
     });
 
     QUnit.test(
-      'togglePause() changes pauseBtn text to resume text, then back to pause',
+      'togglePause() switches the pause button to the play symbol and back',
       function (assert) {
         var fixture = document.getElementById('qunit-fixture');
         fixture.innerHTML =
-          '<div id="pauseBtn"></div>' +
-          '<div id="pauseOverlay" class="hidden"></div>' +
-          '<div id="tf" style="width:0"></div>' +
-          '<div id="tl"></div>' +
+          '<button id="pauseBtn"><svg class="ico-pause"></svg><svg class="ico-play"></svg></button>' +
+          '<div id="ctlSeek"></div>' +
           '<div id="sbTime">21:34</div>' +
           '<div id="hsClock">21:34</div>';
 
@@ -177,10 +166,21 @@ QUnit.module(
         var btn = document.getElementById('pauseBtn');
 
         togglePause(); // pause
-        assert.equal(btn.textContent, t('ui.resume'), 'Pause button shows resume text when paused');
+        assert.ok(btn.classList.contains('paused'), 'paused: the button is marked, CSS shows play');
+        assert.equal(
+          btn.getAttribute('aria-label'),
+          t('ctl.resume'),
+          'paused: it offers to resume'
+        );
+        assert.equal(btn.querySelectorAll('svg').length, 2, 'both symbols are still in the button');
 
         togglePause(); // resume
-        assert.equal(btn.textContent, t('ui.pause'), 'Pause button shows pause text when resumed');
+        assert.notOk(
+          btn.classList.contains('paused'),
+          'running: the mark is gone, CSS shows pause'
+        );
+        assert.equal(btn.getAttribute('aria-label'), t('ctl.pause'), 'running: it offers to pause');
+        assert.equal(btn.querySelectorAll('svg').length, 2, 'both symbols are still in the button');
 
         // Clean up
         if (typeof tmr !== 'undefined') clearInterval(tmr);
@@ -195,9 +195,6 @@ QUnit.module(
         var fixture = document.getElementById('qunit-fixture');
         fixture.innerHTML =
           '<div id="pauseBtn"></div>' +
-          '<div id="pauseOverlay" class="hidden"></div>' +
-          '<div id="tf" style="width:0"></div>' +
-          '<div id="tl"></div>' +
           '<div id="sbTime">21:34</div>' +
           '<div id="hsClock">21:34</div>';
 

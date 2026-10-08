@@ -6,9 +6,12 @@
  * @requires audio.js   - simTimeout()
  * @requires helpers.js  - sw()
  * @requires i18n.js     - text content is in the HTML, not injected here
+ *
+ * When each scene starts is listed once, in CTL_SCENES (js/controls.js); the
+ * E2E run checks that list against the timers of the scenes.
  */
 
-// ===== P5: DRAMATIC TEXT (112-130s) =====
+// ===== P5: DRAMATIC TEXT =====
 
 /**
  * Runs the dramatic text sequence. Each statement fades in after a deliberate
@@ -120,4 +123,34 @@ function p6() {
     helplineEl.classList.add('show');
     document.getElementById('ctaMsg').classList.add('show');
   }, 500);
+}
+
+/**
+ * Takes the help page back, so that a jump on the timeline can return into
+ * the run (simRestart() in controls.js). Counterpart of p6(): whatever p6()
+ * changes outside the phone screen has to be undone here.
+ */
+function p6Reset() {
+  var cta = document.getElementById('aCta');
+  if (cta) cta.classList.add('hidden');
+  var phone = document.getElementById('phone');
+  if (phone) phone.classList.remove('hidden');
+  var pauseBtn = document.getElementById('pauseBtn');
+  if (pauseBtn) pauseBtn.classList.remove('hidden');
+  var disc = document.querySelector('.disclaimer');
+  if (disc) disc.classList.add('hidden');
+
+  // p6() fills these two anew every time it runs
+  var logoEl = document.getElementById('ctaLogo');
+  if (logoEl) {
+    logoEl.textContent = '';
+    logoEl.classList.add('hidden');
+  }
+  var linksEl = document.getElementById('ctaLinks');
+  if (linksEl) linksEl.textContent = '';
+
+  ['ctaLogo', 'ctaLinks', 'ctaHelpline', 'ctaMsg'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('show');
+  });
 }

@@ -1,6 +1,6 @@
 /**
  * @file audio.js
- * @description Web Audio API sound engine and pausable timeout system.
+ * @description Web Audio API sound engine, volume control and pausable timeout system.
  *   Provides synthesized notification sounds for each platform (WhatsApp, Instagram,
  *   TikTok, iMessage), a camera shutter effect, typing indicator audio, and background
  *   music control. Also implements a custom pausable timer system ({@link simTimeout})
@@ -14,12 +14,87 @@
 /** @type {AudioContext} Shared Web Audio context used by all sound functions */
 var ax;
 
+// ========== VOLUME ==========
+
+/** @type {number} Volume of the background music at full master volume */
+var BGM_BASE_VOLUME = 0.4;
+
+/** @type {number} Master volume from 0 (silent) to 1 (full), set with the slider */
+var simVolume = 1;
+
+/** @type {boolean} True while the sound is switched off */
+var simMuted = false;
+
+/** @type {GainNode|undefined} Master gain that all synthesized sounds run through */
+var axOut;
+
 /**
- * Initializes the shared AudioContext. Must be called from a user gesture (click)
- * to satisfy browser autoplay policies.
+ * Returns the node sounds connect to: the master gain of the current context,
+ * or the plain destination if there is none for it (e.g. after the context
+ * was replaced in tests).
+ * @returns {AudioNode} Output node for synthesized sounds
+ */
+function audioOut() {
+  return axOut && axOut.context === ax ? axOut : ax.destination;
+}
+
+/**
+ * Applies volume and mute state to both sound paths (the master gain for the
+ * synthesized sounds, the <audio> element for the music) and to the sound
+ * control in the page. iOS ignores `volume` on media elements; there only
+ * muting affects the music.
+ */
+function applyVolume() {
+  if (axOut) axOut.gain.value = simMuted ? 0 : simVolume;
+  if (bgMusic) {
+    bgMusic.volume = BGM_BASE_VOLUME * simVolume;
+    bgMusic.muted = simMuted;
+  }
+  var silent = simMuted || simVolume === 0;
+  var btn = document.getElementById('soundBtn');
+  if (btn) {
+    btn.classList.toggle('muted', silent);
+    btn.setAttribute('aria-label', t(silent ? 'ui.soundUnmute' : 'ui.soundMute'));
+  }
+  var slider = document.getElementById('volSlider');
+  if (slider) slider.value = String(Math.round(simVolume * 100));
+}
+
+/**
+ * Sets the master volume. Moving the slider above zero also switches the
+ * sound back on.
+ * @param {number} v - Volume from 0 (silent) to 1 (full); out-of-range values are clamped
+ */
+function setVolume(v) {
+  var n = Number(v);
+  simVolume = isNaN(n) ? 0 : Math.min(1, Math.max(0, n));
+  if (simVolume > 0) simMuted = false;
+  applyVolume();
+}
+
+/**
+ * Switches the sound off or back on without losing the chosen volume. If the
+ * slider stands at zero, switching on raises it to half so there is sound.
+ */
+function toggleMute() {
+  if (simMuted || simVolume === 0) {
+    simMuted = false;
+    if (simVolume === 0) simVolume = 0.5;
+  } else {
+    simMuted = true;
+  }
+  applyVolume();
+}
+
+/**
+ * Initializes the shared AudioContext and its master gain. Must be called
+ * from a user gesture (click) to satisfy browser autoplay policies.
  */
 function initAudio() {
   ax = new (window.AudioContext || window.webkitAudioContext)();
+  axOut = ax.createGain();
+  axOut.connect(ax.destination);
+  applyVolume();
   ax.resume();
 }
 
@@ -33,11 +108,11 @@ function initAudio() {
  * @param {string} [type='sine'] - OscillatorNode waveform type
  */
 function tone(freq, start, dur, vol, type) {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var o = ax.createOscillator();
   var g = ax.createGain();
   o.connect(g);
-  g.connect(ax.destination);
+  g.connect(audioOut());
   o.frequency.setValueAtTime(freq, start);
   o.type = type || 'sine';
   // Quick 5ms attack ramp to avoid click artifacts, then exponential decay
@@ -52,7 +127,7 @@ function tone(freq, start, dur, vol, type) {
  * WhatsApp-style notification: two-note rising chime (A5 -> D6).
  */
 function sndWa() {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var t = ax.currentTime;
   tone(880, t, 0.12, 0.1);
   tone(1175, t + 0.12, 0.15, 0.1);
@@ -62,7 +137,7 @@ function sndWa() {
  * Instagram-style notification: three-note ascending arpeggio (C6 -> E6 -> G6).
  */
 function sndIg() {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var t = ax.currentTime;
   tone(1047, t, 0.06, 0.06);
   tone(1319, t + 0.07, 0.06, 0.06);
@@ -74,12 +149,12 @@ function sndIg() {
  * giving a short "bloop" effect.
  */
 function sndTk() {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var t = ax.currentTime;
   var o = ax.createOscillator();
   var g = ax.createGain();
   o.connect(g);
-  g.connect(ax.destination);
+  g.connect(audioOut());
   // Rapid frequency sweep downward creates the characteristic bloop
   o.frequency.setValueAtTime(1200, t);
   o.frequency.exponentialRampToValueAtTime(800, t + 0.08);
@@ -95,7 +170,7 @@ function sndTk() {
  * slightly longer and louder than the Instagram sound.
  */
 function sndIm() {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var t = ax.currentTime;
   tone(1047, t, 0.1, 0.08);
   tone(1319, t + 0.12, 0.1, 0.08);
@@ -108,7 +183,7 @@ function sndIm() {
  * to simulate the mechanical "click" of a camera.
  */
 function sndShutter() {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var t = ax.currentTime;
   // Generate 80ms of white noise with exponential decay
   var b = ax.createBuffer(1, ax.sampleRate * 0.08, ax.sampleRate);
@@ -126,7 +201,7 @@ function sndShutter() {
   f.frequency.value = 2000;
   s.connect(f);
   f.connect(g);
-  g.connect(ax.destination);
+  g.connect(audioOut());
   g.gain.setValueAtTime(0.2, t);
   s.start(t);
 }
@@ -136,12 +211,12 @@ function sndShutter() {
  * the haptic buzz of a phone notification.
  */
 function sndBuzz() {
-  if (!ax || simPaused) return;
+  if (!ax || simPaused || simSeeking) return;
   var t = ax.currentTime;
   var o = ax.createOscillator();
   var g = ax.createGain();
   o.connect(g);
-  g.connect(ax.destination);
+  g.connect(audioOut());
   o.frequency.setValueAtTime(150, t);
   o.type = 'sawtooth';
   g.gain.setValueAtTime(0.04, t);
@@ -175,20 +250,8 @@ function typStop() {
 
 // ========== BACKGROUND MUSIC ==========
 
-/** @type {HTMLAudioElement|null} Reference to the <audio id="bgm"> element */
-var bgMusic;
-
-/**
- * Starts the background music track at 40% volume.
- * Silently catches play() rejections (e.g. if autoplay is blocked).
- */
-function startMusic() {
-  bgMusic = document.getElementById('bgm');
-  if (bgMusic) {
-    bgMusic.volume = 0.4;
-    bgMusic.play().catch(function () {});
-  }
-}
+/** @type {HTMLAudioElement|null} The <audio id="bgm"> element; main.js sets it once the page has loaded */
+var bgMusic = null;
 
 // ========== PAUSABLE TIMEOUT SYSTEM ==========
 //
@@ -202,9 +265,16 @@ function startMusic() {
 var simPaused = false;
 
 /**
+ * @type {boolean} True while simAdvance() fast-forwards through the timers
+ * (jump on the timeline, see js/controls.js). Sounds and the camera flash
+ * stay off, and new timers are not armed until the jump is finished.
+ */
+var simSeeking = false;
+
+/**
  * @type {number} Test-only time-lapse factor, set via URL parameter
- * `?testspeed=N` (integer 1-60). All simTimeout delays and the progress-bar
- * tick interval are divided by it, so N=10 runs the 120s simulation in ~12s.
+ * `?testspeed=N` (integer 1-60). All simTimeout delays and the clock tick
+ * interval are divided by it, so N=10 runs the simulation ten times as fast.
  * Defaults to 1 (real time); invalid or out-of-range values fall back to 1,
  * so production behavior is unchanged unless the parameter is given explicitly.
  * Used by the E2E tests (scripts/run-e2e.js), see docs/adr/ADR-0006.
@@ -255,8 +325,58 @@ function simTimeout(fn, delay) {
 
   timer.schedule = schedule;
   simTimers.push(timer);
-  schedule();
+  // While paused or fast-forwarding the timer only waits in the list;
+  // togglePause() / simSeek() arm it later.
+  if (!simPaused && !simSeeking) schedule();
   return id;
+}
+
+/**
+ * Stops every native timeout and writes the time that has already passed
+ * into `remaining`, exactly as pausing does. Afterwards the timer list is a
+ * plain, frozen description of what is still to come.
+ */
+function simFreezeTimers() {
+  simTimers.forEach(function (t) {
+    if (t.nativeId === undefined) return;
+    clearTimeout(t.nativeId);
+    t.nativeId = undefined;
+    t.remaining -= Date.now() - t.startedAt;
+    if (t.remaining < 0) t.remaining = 0;
+  });
+}
+
+/**
+ * Fast-forwards the frozen timer list by `ms` milliseconds of timer time:
+ * every timer that becomes due is run immediately and in order, including
+ * timers created on the way. Nothing is armed here; the caller decides
+ * whether the simulation continues or stays paused.
+ * @param {number} ms - Timer time to skip (already divided by SIM_SPEED)
+ */
+function simAdvance(ms) {
+  var left = ms;
+  var guard = 0;
+  simSeeking = true;
+  try {
+    while (guard++ < 200000) {
+      var next = null;
+      for (var i = 0; i < simTimers.length; i++) {
+        if (!next || simTimers[i].remaining < next.remaining) next = simTimers[i];
+      }
+      // Half a millisecond of tolerance: remaining times are sums of floats
+      if (!next || next.remaining > left + 0.5) break;
+      var step = Math.max(next.remaining, 0);
+      left -= step;
+      for (var j = 0; j < simTimers.length; j++) simTimers[j].remaining -= step;
+      simTimers.splice(simTimers.indexOf(next), 1);
+      next.fn();
+    }
+    for (var k = 0; k < simTimers.length; k++) {
+      simTimers[k].remaining = Math.max(simTimers[k].remaining - left, 0);
+    }
+  } finally {
+    simSeeking = false;
+  }
 }
 
 /**
@@ -266,30 +386,23 @@ function simTimeout(fn, delay) {
  *   1. simTimers  -- clear native timeouts, snapshot remaining time
  *   2. bgMusic    -- pause/resume the <audio> element
  *   3. clockInt   -- stop/restart the phone clock display interval
- *   4. tmr        -- stop/restart the progress bar tick interval
- *   5. UI         -- swap button label, show/hide pause overlay
+ *   4. tmr        -- stop/restart the clock tick interval
+ *   5. UI         -- update the control bar: symbol, label, scene name (ctlUpdate)
  *
  * On resume, clockStart is recalculated so the phone clock picks up where
  * it left off without jumping forward.
  */
 function togglePause() {
+  // While the knob is dragged the simulation is held anyway (controls.js)
+  if (typeof ctlScrubbing !== 'undefined' && ctlScrubbing) return;
   simPaused = !simPaused;
-  var btn = document.getElementById('pauseBtn');
-  var overlay = document.getElementById('pauseOverlay');
 
   if (simPaused) {
     // -- PAUSE: freeze everything --
-    simTimers.forEach(function (t) {
-      clearTimeout(t.nativeId);
-      // Calculate how much time has already elapsed and subtract it
-      t.remaining -= Date.now() - t.startedAt;
-      if (t.remaining < 0) t.remaining = 0;
-    });
+    simFreezeTimers();
     if (bgMusic) bgMusic.pause();
     if (typeof clockInt !== 'undefined') clearInterval(clockInt);
     if (typeof tmr !== 'undefined') clearInterval(tmr);
-    btn.textContent = t('ui.resume');
-    overlay.classList.remove('hidden');
   } else {
     // -- RESUME: restart everything with corrected offsets --
     simTimers.forEach(function (t) {
@@ -300,7 +413,6 @@ function togglePause() {
     clockStart = Date.now() - sec * 1000;
     if (typeof startClock === 'function') startClock();
     tmr = setInterval(tick, 100 / SIM_SPEED);
-    btn.textContent = t('ui.pause');
-    overlay.classList.add('hidden');
   }
+  if (typeof ctlUpdate === 'function') ctlUpdate();
 }

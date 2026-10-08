@@ -17,11 +17,52 @@ Konzipiert fuer den Einsatz in Schulworkshops: pausierbar, diskutierbar, wirkung
 ## Features
 
 - 5 realistische App-Szenen (WhatsApp, Instagram, TikTok, Homescreen, iMessage)
-- Pausierbar fuer Workshop-Diskussionen
+- Steuerleiste: Pause, Zeitleiste zum Springen und Ziehen an jede Stelle (vor und zurueck, auch von der letzten Seite aus), Ton, Ansicht
+- Beamer-Ansicht fuer grosse Raeume: Handy, Bild und Nachrichten nebeneinander in grosser Schrift
 - View-Counter (Firebase Realtime Database)
 - Teilen-Button
 - Mehrsprachig (i18n: Deutsch + Englisch)
 - Kein Build-Step noetig
+
+## Bedienung im Lauf
+
+Waehrend die Simulation laeuft, liegt am unteren Rand eine Steuerleiste. Sie
+bleibt auch auf der letzten Seite mit den Hilfsangeboten stehen. Entscheidungen
+und Abwaegungen dazu: `docs/adr/ADR-0008`.
+
+- **Pause** und Fortsetzen.
+- **Zeitleiste** mit Marken an den Szenenwechseln; der letzte Abschnitt ist die
+  Seite mit den Hilfsangeboten. Ein Klick springt genau an die geklickte Stelle,
+  dicht neben einer Marke auf den Anfang der Szene. Beim Ziehen laeuft das Bild
+  sofort mit. Auf der fokussierten Leiste springen die Pfeiltasten um fuenf
+  Sekunden, Bild auf und Bild ab zur naechsten und vorigen Szene, Pos1 zum
+  Anfang und Ende zur letzten Seite. Im Pausezustand bleibt die Simulation nach
+  einem Sprung pausiert.
+- **Ton:** aus und ein (auch Taste M) und Lautstaerke.
+- **Ansicht:** Handy oder Beamer (auch Taste B).
+- **Impressum:** Solange es offen ist, pausiert die Simulation.
+
+Zeiten zeigt die Leiste nicht. In schmalen Fenstern laesst sie Teile weg, damit
+die Zeitleiste Platz behaelt; auf Handys ist die Zeitleiste reine Anzeige. Die
+Grenzen stehen in `docs/adr/ADR-0008`.
+
+## Beamer-Ansicht
+
+Fuer Beamer und grosse Raeume gibt es eine zweite Darstellung desselben Ablaufs:
+links das Handy, in der Mitte das Bild der Szene, rechts die jeweils neuesten
+Nachrichten in grosser Schrift. Hintergrund und Abwaegungen stehen in
+`docs/adr/ADR-0007`.
+
+- **Einschalten:** am Startbildschirm die Kachel „Beamer", der Link-Zusatz
+  `?beamer=1`, oder waehrend des Laufs die Taste B bzw. die Steuerleiste.
+- **Umschalten ohne Sprung:** Beide Ansichten zeigen denselben Lauf.
+- **Vollbild verwenden:** Die Ansicht passt sich jedem Fenster an (Aufloesung
+  und Browser-Zoom aendern die Proportionen nicht), ein kleines Fenster ergibt
+  aber ein kleines Bild.
+- **Nicht in schmalen Fenstern:** Die Beamer-Ansicht und ihre Umschalter gibt es
+  erst ab einer Mindestbreite des Fensters (`docs/adr/ADR-0007`). Darunter zeigt
+  die Seite immer die Handy-Ansicht; die Wahl gilt wieder, sobald das Fenster
+  breiter wird.
 
 ## Live Demo
 
@@ -43,17 +84,20 @@ js/
   i18n.js              — Uebersetzungssystem
   audio.js             — Sound-Engine + pausierbares Timer-System
   helpers.js           — Avatar-System + UI-Helfer
-  timer.js             — Fortschrittsbalken + Uhr
+  timer.js             — Uhr der Simulation + Uhr im Handy
+  stage.js             — Beamer-Ansicht (liest im Handy mit, zeigt gross an)
+  controls.js          — Steuerleiste + Zeitleiste (Sprung = Neustart und stummes Durchlaufen);
+                         nennt als einzige Stelle, wann welche Szene beginnt (CTL_SCENES)
   config.js            — Firebase-Konfiguration (nicht im Repo)
   firebase-counter.js  — View-Counter + Tageslimit
   main.js              — Entry Point + Share
   scenes/
-    p1-whatsapp.js     — Phase 1: WhatsApp (0–28s)
-    p2-instagram.js    — Phase 2: Instagram (28–56s)
-    p3-tiktok.js       — Phase 3: TikTok (56–78s)
-    p4-homescreen.js   — Phase 4: Homescreen (78–93s)
-    p4b-messages.js    — Phase 4b: iMessage (93–112s)
-    p5-finale.js       — Phase 5: Finale (112–120s)
+    p1-whatsapp.js     — Phase 1: WhatsApp
+    p2-instagram.js    — Phase 2: Instagram
+    p3-tiktok.js       — Phase 3: TikTok
+    p4-homescreen.js   — Phase 4: Homescreen
+    p4b-messages.js    — Phase 4b: iMessage
+    p5-finale.js       — Phase 5: Schlusstext, danach die Seite mit den Hilfsangeboten
 ```
 
 ## Neue Sprache hinzufuegen

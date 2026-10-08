@@ -22,9 +22,15 @@ bash setup.sh          # lädt App-Icons (einmalig, nicht im Repo)
 - **CSP nicht aufweichen:** kein `'unsafe-inline'` in `script-src`; die
   Inline-Script-Konsolen-Meldungen sind erwartet (ADR-0002).
 - **`js/config.js` niemals committen** (gitignored; Vorlage: config.example.js).
-- **Keine Links auf malziland.at oder malzi.me** einbauen (getrennte Projekte);
-  E-Mail-Adresse im Impressum bleibt wie sie ist.
+- **Keine Links auf malziland.at oder malzi.me** einbauen (getrennte Projekte).
+  Kontaktadresse des Projekts ist `info@malziland.at` (Entscheidung des
+  Betreibers vom 2026-10-08); sie steht im Impressum, in `llms.txt`,
+  `SECURITY.md`, `CONTRIBUTING.md` und in der Issue-Vorlage.
 - **Kein Push, Deploy, Release-Tag ohne ausdrückliche Freigabe.**
+- **Ausgeliefert wird nur die Seite.** `scripts/deploy-files.js` sperrt jeden
+  Deploy, dessen Dateiliste etwas anderes enthält; die Sperre wird nie umgangen
+  (kein `firebase deploy` an `firebase.json` vorbei). Neue Dateien: siehe
+  docs/RUNBOOK.md, „Was ausgeliefert wird".
 
 ## Konventionen
 
@@ -37,6 +43,24 @@ bash setup.sh          # lädt App-Icons (einmalig, nicht im Repo)
 - Zeitsteuerung der Szenen ausschließlich über `simTimeout()` (audio.js),
   nie natives `setTimeout` — sonst bricht die Pause-Funktion.
 - `?testspeed=N` (1–60) beschleunigt die Simulation für Tests; Standard 1.
+- Beamer-Ansicht (ADR-0007): Das Handy bleibt die einzige Quelle. `js/stage.js`
+  liest nur mit; Szenen rufen die Beamer-Ansicht nie direkt auf. Neue
+  Szeneninhalte brauchen einen Eintrag in `js/stage.js` und in der Schlüsselliste
+  des Ablauftests (`scripts/run-e2e.js`). Maße der Beamer-Ansicht nur in der
+  Einheit `--u`, nie in festen Pixeln.
+- Zeitleiste (ADR-0008): Ein Sprung startet die Szenen neu und durchläuft sie
+  stumm bis zur Zielzeit. Jede Szene muss das mitmachen: sichtbarer Zustand nur
+  im Handy-Bildschirm (`#phone .scr`), kein eigener Timer, kein Zugriff auf
+  Elemente außerhalb, der beim Neustart stehen bliebe. Einzige Ausnahme ist die
+  letzte Seite: Was `p6()` außerhalb des Handys verändert, nimmt `p6Reset()`
+  zurück (beide in `js/scenes/p5-finale.js`); wer das eine ändert, ändert das
+  andere mit. Eine neue Szene oder eine geänderte Szenendauer braucht den
+  passenden Eintrag in `CTL_SCENES` (`js/controls.js`). Das ist die einzige
+  Stelle, an der Szenenzeiten stehen; Kommentare und Doku nennen keine.
+- Sichtbarkeit prüfen, nicht Vorhandensein: Einträge im Handy beginnen
+  unsichtbar und werden erst durch ihre Einblendung sichtbar. Ein Test, der nur
+  zählt, ob ein Element da ist, übersieht ein leeres Handy.
+- Die Leiste zeigt keine Zeiten (ADR-0008).
 
 ## Wo was steht
 

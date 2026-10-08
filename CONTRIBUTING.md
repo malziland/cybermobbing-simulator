@@ -14,8 +14,8 @@ Kein Build-Step, kein npm noetig. Du brauchst nur:
 1. **Repo forken & klonen**
 
    ```bash
-   git clone https://github.com/DEIN-USERNAME/cybermobbing-simulation.git
-   cd cybermobbing-simulation
+   git clone https://github.com/DEIN-USERNAME/cybermobbing-simulator.git
+   cd cybermobbing-simulator
    ```
 
 2. **App-Icons herunterladen**
@@ -77,4 +77,4 @@ Dieses Projekt unterliegt oesterreichischem Recht. Wenn du einen Fork erstellst 
 
 ## Fragen?
 
-Erstelle ein [Issue](../../issues) oder schreib an **info@malzi.me**.
+Erstelle ein [Issue](../../issues) oder schreib an **info@malziland.at**.
