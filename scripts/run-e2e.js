@@ -2951,6 +2951,16 @@ function missingOnStage(keys) {
     await p.waitForTimeout(250);
     const covered = await p.evaluate(function () {
       var out = [];
+      // The page itself ends above the disclaimer, and the disclaimer above the bar
+      var page = document.getElementById('aCta').getBoundingClientRect();
+      var disc = document.querySelector('.disclaimer').getBoundingClientRect();
+      var bar = document.getElementById('ctlBar').getBoundingClientRect();
+      if (page.bottom > disc.top + 1) {
+        out.push('page reaches ' + Math.round(page.bottom - disc.top) + ' px under the disclaimer');
+      }
+      if (disc.bottom > bar.top + 1) {
+        out.push('disclaimer reaches ' + Math.round(disc.bottom - bar.top) + ' px under the bar');
+      }
       ['#ctaLinks a', '#ctaHelpline', '#ctaMsg', '#footerShareBtn', '#footerReplayBtn'].forEach(
         function (sel) {
           var el = document.querySelector(sel);
