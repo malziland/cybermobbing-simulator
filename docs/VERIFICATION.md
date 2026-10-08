@@ -1,34 +1,89 @@
 # Verifikationsmatrix
 
-Bindeglied zu KURZAUDIT/LANGAUDIT: je Anforderung der Nachweisweg.
-Status „offen" ist nur während der Umsetzung zulässig und blockiert die
-Definition of Done (Stufe B).
+Je Anforderung der Nachweisweg. Diese Datei ist die einzige Stelle, an der die
+Zahlen der Läufe stehen; andere Dokumente verweisen hierher. Jede Zeile nennt
+den Stand (Commit) und das Datum ihrer Messung. Eine Zeile mit älterem Stand
+ist seither nicht neu gemessen worden.
 
-Toolchain der Nachweise: Node v24.13.0 / npm 11.6.2 · ESLint 10.7.0 ·
-Playwright 1.61.1 · gitleaks 8.30.1 · geprüfter Stand: Commit `d801143`.
+Werkzeuge der Messungen vom 2026-10-09: Node v24.21.0 / npm 11.19.0 ·
+ESLint 10.7.0 · Playwright 1.61.1 · gitleaks 8.30.1 · firebase-tools 15.32.0.
+
+## Prüfungen vor der Auslieferung
+
+| Anforderung | Befehl | Ergebnis | Stand |
+|---|---|---|---|
+| Lint | `npm run lint` | Rückgabewert 0 | `136e795`, 2026-10-09 00:54 |
+| Unit-Tests (QUnit, headless) | `npm run test` | Rückgabewert 0, „QUnit: 2227/2227 assertions passed, 0 failed" | `136e795`, 2026-10-09 00:54 |
+| Unit-Tests in zufälliger Reihenfolge, ganze Suite und jedes der neun Module allein | Testseite mit `?seed=true` und `&module=…` (Wegwerfskript) | zehn Läufe, je 0 fehlgeschlagen; Summe der Module 2227 | `5aee659`, 2026-10-09 00:41 (Tests und Produktcode bis `136e795` unverändert, nur der Ablauftest kam dazu) |
+| Ablauftest mit Barrierefreiheit (axe-core, WCAG 2.x A/AA), hermetisch ohne die echte Datenbank | `npm run test:e2e` | Rückgabewert 0, „E2E: all checks passed", 266 Zeilen „ok", 0 Zeilen „FAIL" | `136e795`, 2026-10-09 00:55 |
+| Abhängigkeiten | `npm audit --audit-level=high` im Wurzelverzeichnis und in `scripts/video-export` | je Rückgabewert 0, „found 0 vulnerabilities" | `136e795`, 2026-10-09 00:57 |
+| Geheimnisse in der Historie | `gitleaks git --redact .` | Rückgabewert 0, „69 commits scanned", „no leaks found". Gegenprobe mit zwei erfundenen Schlüsseln im echten Format: Rückgabewert 1, „leaks found: 2" | `136e795`, 2026-10-09 00:57 |
+| Ausgeliefert wird nur die Seite (Sperre vor dem Deploy) | `node scripts/deploy-files.js` | Rückgabewert 0, „deploy-files: 33 files, all part of the page". Gegenprobe mit der Ausschlussliste von `85ee8b4`: Rückgabewert 1, „133 file(s) that do not belong to the page … (of 166 files)" | `136e795`, 2026-10-09 00:57 |
+| Pipeline | GitHub Actions, Workflow `ci`, auf dem Pull Request | siehe Abschnitt „Auslieferung von v2.0.0" | — |
+
+## Gegenproben
+
+Verfahren: eine Stelle im Produktcode in einer Kopie zurückbauen, Tests
+unverändert lassen, alle Tests laufen lassen. Die zuständige Prüfung muss rot
+werden.
+
+| Runde | Stand | Proben | Ergebnis |
+|---|---|---|---|
+| 1 | `b54d710`, 2026-10-08 | 32 | alle 32 von den Tests gemeldet; 31 an der erwarteten Prüfung, eine (Uhr stoppt zu früh) an zwei anderen |
+| 2 | `48de3d7`, 2026-10-09 | 25, darunter die zehn folgenreichen Stellen des tiefen Audits | 21 gemeldet, 4 nicht: Platz für den Hinweistext nach einer Fensteränderung, Ziehen nach Loslassen außerhalb, Fokus am abgeschalteten Pause-Knopf, Höhe der Links der letzten Seite |
+| 3 | `5aee659`, 2026-10-09 | die 4 aus Runde 2 nach geschärften und neuen Prüfungen, dazu 1 neue | 4 gemeldet, 1 nicht (letzte Seite reicht unter den Hinweistext) |
+| einzeln | `136e795`, 2026-10-09 | die 1 aus Runde 3 nach neuer Prüfung | gemeldet: „page reaches 125 px under the disclaimer" |
+| einzeln | `2ad6ab2`, 2026-10-08 | Schutzzeile des Hinweis-Zeitgebers | QUnit rot, zwei Zusicherungen |
+
+Die Kopien der nicht gemeldeten Proben sind verworfen; die Protokolle der Runden
+lagen im Arbeitsordner der Sitzung und sind nicht Teil des Repositorys.
+
+## Messungen ohne eigene Prüfung im Repository
+
+| Was | Wie | Ergebnis | Stand |
+|---|---|---|---|
+| Dauer der Hinweise über einen ganzen Lauf | Wegwerfskript, Zeitraffer ×5, Beobachter am Hinweis | sieben Hinweise, kürzeste Dauer 1,5 s (abgelöst vom nächsten), sonst 2,0 bis 2,5 s; vor der Behebung dreimal 0,5 s | `2ad6ab2`, 2026-10-08 |
+| Ziehen in drei Browser-Techniken (Chromium 149, WebKit 26.5, Firefox 151) | Wegwerfskript, 190 Sprünge beim Ziehen, 1920 × 1080 | Arbeit je Sprung im Mittel 7 / 14 / 9 ms, längster 11 / 23 / 14 ms; an sieben Stellen jeder Eintrag im Handy sichtbar; 0 Seitenfehler | Zwischenstand vor `b3f630c`, 2026-10-08; danach im tiefen Audit an `7c49271` nachgemessen (870 Bilder, 0 unsichtbar) |
+| Musikdatei lässt sich abschnittsweise laden (Voraussetzung für das Springen in der Musik) | `curl -H "Range: bytes=1000-1999" https://cybermobbing.web.app/assets/bgm.mp3` | „HTTP/2 206", „content-range: bytes 1000-1999/1824429" | Live-Seite v1.2.1, 2026-10-08 |
+| Sichtprüfung | 25 Bildschirmfotos: Leiste laufend und pausiert, beide Ansichten, schmale Fenster, letzte Seite mit Logo und zwei Links (auch 852 × 393, gerollt), Impressum, Startbildschirm | angesehen, je 0 Seitenfehler | Zwischenstände bis `6a100b3`, 2026-10-08 und 2026-10-09 |
+
+## Audits
+
+| Audit | Stand | Ergebnis | Bericht |
+|---|---|---|---|
+| KURZ | `1c498c1`, 2026-10-08 | elf Befunde (vier P2, sieben P3), kein P0 oder P1 | `docs/audit/2026-10-08-kurz-1c498c1.md` mit Nachtrag |
+| TIEF | `7c49271`, 2026-10-08 | ein P1 (versteckte Ordner auf der Live-Seite, Bestand), zwei P2, elf P3 | `docs/audit/2026-10-08-tief-7c49271.md` mit Nachtrag |
+| Nachprüfung der Behebungen | `498c1b3`, 2026-10-09 | siehe Nachtrag im tiefen Bericht, Abschnitt „Abnahme" | `docs/audit/2026-10-09-nachpruefung-498c1b3.md` |
+
+## Nicht belegt
+
+- Lesbarkeit im echten Saal, Klang, Windows-Schulrechner.
+- Echtes Safari und Firefox (gemessen sind die Testbrowser von Playwright).
+- Loslassen der Maus außerhalb des Fensters an einem echten Gerät.
+- Video-Export (`scripts/video-export`): angepasst, nicht ausgeführt, weil
+  `ffmpeg` auf dem Rechner nicht startet.
+
+## Auslieferung von v2.0.0
+
+Wird beim Ausliefern gefüllt (Pipeline, Deploy, Vergleich mit der Live-Seite).
+
+## Ältere Nachweise (Stand 2026-07-16, seither nicht neu gemessen)
 
 | Anforderung | Evidenz / Befehl | Ergebnis |
 |---|---|---|
-| Frischer Clone lauffähig (Setup) | `git clone … && npm ci && npm run lint && npm run test && npm run test:e2e` in leerem Verzeichnis | grün, 2026-07-16, Commit `d801143` (npm ci: 0 Vulnerabilities; alle Folge-Checks grün) |
-| Lint | `npm run lint` (ESLint + Prettier-Check) | grün, 2026-07-16, Exit 0 |
-| Unit-Tests (QUnit, headless) | `npm run test` | grün: 1723/1723 Assertions, 0 failed, keine Page-Errors |
-| E2E-Test kritischster Nutzerfluss + a11y (axe-core, WCAG 2.x A/AA) | `npm run test:e2e` (tastaturgesteuert, hermetisch ohne Produktions-Firebase) | grün: alle Checks bestanden (Start-Scan, Impressum Enter/Escape, Start, Szenenwechsel, Pause/Resume, Volllauf, CTA-Scan, CTA-Bedienung) |
-| Secret-Scan | `gitleaks git --redact .` (gesamte Historie) + CI-Job `secret-scan` | lokal grün, 2026-07-16: „no leaks found" (gitleaks 8.30.1); CI siehe Zeile CI-Lauf |
-| Dependency-Audit | `npm audit --audit-level=high` (Root und scripts/video-export) + CI-Job `dependency-audit` | grün, 2026-07-16: 0 Vulnerabilities in beiden Verzeichnissen |
-| CI-Lauf grün | GitHub Actions Workflow `ci` (.github/workflows/ci.yml) | grün, 2026-07-16: Run 29518803296 (push auf main, alle 3 Jobs success) — github.com/malziland/cybermobbing-simulator/actions/runs/29518803296 |
+| Frischer Clone lauffähig (Setup) | `git clone … && npm ci && npm run lint && npm run test && npm run test:e2e` in leerem Verzeichnis | grün, 2026-07-16, Commit `d801143` |
 | Rollback-Probe | worktree-Checkout v1.1.5, Setup + Suite dort; Details docs/RUNBOOK.md | durchgeführt 2026-07-16; Suite läuft; Fund: setup.sh-CDN-Verrottung → behoben (Commit `422aa13`) |
-| Tastatur-Smoketest (UI-Profil) | Prozedur in docs/RUNBOOK.md; automatisiert als Teil von `npm run test:e2e` (echte Tastatur-Events) | bestanden (automatisiert), 2026-07-16; Empfehlung: gelegentlich manuell auf echtem Gerät wiederholen |
 | Reproduzierbarer Stand | Lockfiles committet (Root + video-export), Node gepinnt (`.nvmrc`, `engines`), CDN-Skripte SRI-gepinnt, CI-Actions SHA-gepinnt | erfüllt, 2026-07-16 |
-| Release v1.2.0 deployt | annotierter Tag `v1.2.0`, `npm run deploy`, Live-Check von außen (curl) | grün, 2026-07-16: Live-HTML lädt SDK 12.16.0, CSS enthält AA-Farben, Cache-Stempel frisch, HTTP 200 |
-| KURZAUDIT-Remediation v1.2.1 (BUG-01, DOC-01, OPS-01, BIZ-01) | je Finding die im Audit benannte Verifikation | grün, 2026-07-16: Regeln live getestet als anonymer REST-Client (beliebiger /views-Wert → denied; Erstwert 5001 → denied; Erstwert 1 auf frischem Key → akzeptiert, Testkey als Admin entfernt); Regel-Syntax beim Deploy validiert; BIZ-01 per neuer E2E-Assertion; OPS-01 per Code-Review (Stub unconditional; Vollexport nicht ausgeführt — braucht BlackHole-Audio-Hardware) |
-| Beamer-Ansicht und Steuerleiste (ADR-0007, ADR-0008), Zweig `feat/beamer-ansicht` | `npm run lint && npm run test && npm run test:e2e`; Gegenprobe: 13 Stellen im Produktcode zurückgebaut, Tests unverändert → die zuständigen Prüfungen müssen rot werden | grün, 2026-10-08 (Zahlen und Gegenproben im Wortlaut: `docs/handover/2026-10-08-beamer-ansicht.md`). Ungültig, sobald `js/stage.js`, `js/controls.js`, die Zeitsteuerung in `js/audio.js`, die Abschnitte „CONTROL BAR" oder „PROJECTOR VIEW" in `css/styles.css` oder eine Szene geändert werden. Nicht belegt: Lesbarkeit im echten Saal, Klang, Pipeline-Lauf |
+| Release v1.2.0 deployt | annotierter Tag `v1.2.0`, `npm run deploy`, Live-Check von außen (curl) | grün, 2026-07-16 |
+| KURZAUDIT-Remediation v1.2.1 (BUG-01, DOC-01, OPS-01, BIZ-01) | je Finding die im Audit benannte Verifikation | grün, 2026-07-16; Einzelheiten im CHANGELOG 1.2.1 |
+| Tastatur-Smoketest (UI-Profil) | Prozedur in docs/RUNBOOK.md | Seit 2026-10-09 prüft der Ablauftest die Tab-Reihenfolge von Startbildschirm und Leiste, alle Tasten der Zeitleiste und den Fokus im Impressum. Von Hand am echten Gerät zuletzt nicht wiederholt |
 
 ## Externe Kontrollen (außerhalb des Repos)
 
 | Kontrolle | Status | Verifiziert am / wie |
 |---|---|---|
-| Branch Protection auf `main` inkl. Required Checks | aktiv | 2026-07-16 per GitHub-API gesetzt: Required Checks `lint-and-test`, `secret-scan`, `dependency-audit`; Force-Push und Löschen blockiert. Bewusste Solo-Ausnahme: Admin darf direkt pushen (`enforce_admins: false`), sonst wäre der Arbeitsfluss ohne PRs blockiert |
-| GitHub Secret Scanning + Push Protection | aktiv | 2026-07-16 per API verifiziert (war bereits aktiv — GitHub-Standard für öffentliche Repos) |
-| 2FA auf GitHub-Account | aktiv | 2026-07-16 per Sichtprüfung durch Betreiber (Screenshot: „Two-factor authentication: Enabled", Authenticator-App konfiguriert, 2 Passkeys) |
-| Dependabot-Alerts + automatische Sicherheits-Updates | aktiv | 2026-07-16 per API aktiviert (`vulnerability-alerts`, `automated-security-fixes`) |
-| Google-Cloud-Budget-Alert fürs Firebase-Projekt | aktiv | 2026-07-16 per gcloud verifiziert: Budget „Firebase Project cybermobbing", 25 €/Monat, E-Mail-Warnungen bei 50/90/100 % (bestand bereits; versehentlich angelegtes Duplikat wieder entfernt) |
+| Branch Protection auf `main` inkl. Required Checks | aktiv | 2026-10-09 per GitHub-API gelesen: Pflicht-Checks `lint-and-test`, `secret-scan`, `dependency-audit`; Admin darf direkt pushen (`enforce_admins: false`, bewusste Solo-Ausnahme seit 2026-07-16) |
+| GitHub Secret Scanning + Push Protection | aktiv laut Stand 2026-07-16 | 2026-07-16 per API verifiziert; seither nicht neu gemessen |
+| 2FA auf GitHub-Account | aktiv laut Stand 2026-07-16 | 2026-07-16 per Sichtprüfung durch den Betreiber; seither nicht neu gemessen |
+| Dependabot-Alerts + automatische Sicherheits-Updates | aktiv | 2026-10-09: drei offene Pull Requests von Dependabot (Nr. 2, 4, 6) per `gh pr list` gelesen |
+| Google-Cloud-Budget-Alert fürs Firebase-Projekt | aktiv laut Stand 2026-07-16 | 2026-07-16 per gcloud verifiziert; seither nicht neu gemessen |
