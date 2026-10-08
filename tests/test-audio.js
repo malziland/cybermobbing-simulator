@@ -39,9 +39,6 @@ QUnit.module(
       var fixture = document.getElementById('qunit-fixture');
       fixture.innerHTML =
         '<div id="pauseBtn"></div>' +
-        '<div id="pauseOverlay" class="hidden"></div>' +
-        '<div id="tf" style="width:0"></div>' +
-        '<div id="tl"></div>' +
         '<div id="sbTime">21:34</div>' +
         '<div id="hsClock">21:34</div>';
 
@@ -69,9 +66,6 @@ QUnit.module(
       var fixture = document.getElementById('qunit-fixture');
       fixture.innerHTML =
         '<div id="pauseBtn"></div>' +
-        '<div id="pauseOverlay" class="hidden"></div>' +
-        '<div id="tf" style="width:0"></div>' +
-        '<div id="tl"></div>' +
         '<div id="sbTime">21:34</div>' +
         '<div id="hsClock">21:34</div>';
 
@@ -137,9 +131,6 @@ QUnit.module(
       var fixture = document.getElementById('qunit-fixture');
       fixture.innerHTML =
         '<div id="pauseBtn"></div>' +
-        '<div id="pauseOverlay" class="hidden"></div>' +
-        '<div id="tf" style="width:0"></div>' +
-        '<div id="tl"></div>' +
         '<div id="sbTime">21:34</div>' +
         '<div id="hsClock">21:34</div>';
 
@@ -163,9 +154,6 @@ QUnit.module(
         var fixture = document.getElementById('qunit-fixture');
         fixture.innerHTML =
           '<div id="pauseBtn"></div>' +
-          '<div id="pauseOverlay" class="hidden"></div>' +
-          '<div id="tf" style="width:0"></div>' +
-          '<div id="tl"></div>' +
           '<div id="sbTime">21:34</div>' +
           '<div id="hsClock">21:34</div>';
 
@@ -195,9 +183,6 @@ QUnit.module(
         var fixture = document.getElementById('qunit-fixture');
         fixture.innerHTML =
           '<div id="pauseBtn"></div>' +
-          '<div id="pauseOverlay" class="hidden"></div>' +
-          '<div id="tf" style="width:0"></div>' +
-          '<div id="tl"></div>' +
           '<div id="sbTime">21:34</div>' +
           '<div id="hsClock">21:34</div>';
 

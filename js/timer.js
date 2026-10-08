@@ -1,15 +1,17 @@
 /**
  * @file timer.js
- * @description Progress bar timer and simulated phone clock display.
- *   Drives two visual elements: a progress bar that fills over 120 seconds,
- *   and a phone status-bar clock that uses the user's real local time.
+ * @description Simulation clock and simulated phone clock display.
+ *   Counts the elapsed simulation seconds (the control bar in controls.js
+ *   shows them as time and timeline) and drives the phone status-bar clock,
+ *   which uses the user's real local time.
  *   Both are paused/resumed via togglePause() in audio.js.
  * @requires audio.js - simPaused flag, togglePause() manages tmr and clockInt
+ * @requires controls.js - CTL_TOTAL, ctlUpdate() (only used at run time)
  */
 
 // ========== TIMER ==========
 
-/** @type {number|undefined} Interval ID for the progress bar tick */
+/** @type {number|undefined} Interval ID for the clock tick */
 // eslint-disable-next-line no-unassigned-vars -- assigned from main.js/audio.js (cross-file global)
 var tmr;
 
@@ -17,19 +19,14 @@ var tmr;
 var sec = 0;
 
 /**
- * Progress bar tick handler, called every 100ms by setInterval.
- * Increments sec by 0.1, updates the progress bar width as a percentage of 120s,
- * and updates the text label. Self-terminates at 130s to allow a brief overrun
- * for final scene timing.
+ * Clock tick, called every 100ms by setInterval. Increments sec by 0.1 and
+ * lets the timeline in the control bar follow. Stops itself a few seconds
+ * after the end of the run (CTL_TOTAL), when the help page is up.
  */
 function tick() {
   sec += 0.1;
-  document.getElementById('tf').style.width = Math.min((sec / 120) * 100, 100) + '%';
-  if (sec <= 120) {
-    document.getElementById('tl').textContent = Math.floor(sec) + 's / 120s';
-  }
-  if (sec >= 130) clearInterval(tmr);
-  if (typeof ctlUpdate === 'function') ctlUpdate();
+  if (sec >= CTL_TOTAL + 5) clearInterval(tmr);
+  ctlUpdate();
 }
 
 /** @type {number} Wall-clock timestamp when the clock was started/resumed (ms) */

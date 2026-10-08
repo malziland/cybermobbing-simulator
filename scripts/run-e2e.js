@@ -224,13 +224,59 @@ function simSnapshot() {
     '#phone .app.on .wm, #phone .app.on .wm-photo .cap, #phone .app.on .ig-c, #phone .app.on .tc .tx, #phone .app.on .im-bub'
   );
   var stageItems = document.querySelectorAll('#stage .st-scene.on .st-item:not(.out) .st-text');
+  // Present is not the same as visible: entries fade in from opacity 0
+  function hiddenIn(selector, rootId) {
+    var root = document.getElementById(rootId);
+    var list = document.querySelectorAll(selector);
+    var hidden = 0;
+    for (var i = 0; i < list.length; i++) {
+      var opacity = 1;
+      for (var n = list[i]; n && n !== root.parentNode; n = n.parentNode) {
+        opacity *= parseFloat(getComputedStyle(n).opacity);
+      }
+      if (opacity < 0.99) hidden++;
+    }
+    return { all: list.length, hidden: hidden };
+  }
+  var phoneSeen = hiddenIn(
+    '#phone .app.on .wm, #phone .app.on .wm-photo, #phone .app.on .wm-sticker, #phone .app.on .wa-sys, #phone .app.on .ig-c, #phone .app.on .tc, #phone .app.on .hs-n, #phone .app.on .im-bub, #phone .app.on .fl.show',
+    'phone'
+  );
+  // Older messages on the stage are dimmed on purpose (.old): count the newest ones only
+  var stageSeen = hiddenIn(
+    '#stage .st-scene.on .st-item:not(.out):not(.old), #stage .st-scene.on .st-fl.show',
+    'stage'
+  );
+  // Nothing may still be fading inside phone or stage (endless ones like typing dots aside)
+  var fading = 0;
+  if (document.getAnimations) {
+    document.getAnimations().forEach(function (a) {
+      var target = a.effect && a.effect.target;
+      var timing = a.effect && a.effect.getComputedTiming ? a.effect.getComputedTiming() : null;
+      if (!target || !timing || timing.iterations === Infinity) return;
+      if (
+        !document.getElementById('phone').contains(target) &&
+        !document.getElementById('stage').contains(target)
+      )
+        return;
+      if (a.playState === 'running') fading++;
+    });
+  }
   return {
     sec: window.sec,
     paused: window.simPaused,
     app: on ? on.id : null,
     panel: panel ? panel.getAttribute('data-app') : null,
     scene: document.getElementById('ctlScene').textContent,
-    now: document.getElementById('ctlNow').textContent,
+    phoneEntries: phoneSeen.all,
+    phoneHidden: phoneSeen.hidden,
+    stageEntries: stageSeen.all,
+    stageHidden: stageSeen.hidden,
+    fading: fading,
+    barText: document.getElementById('ctlBar').innerText,
+    help: !document.getElementById('aCta').classList.contains('hidden'),
+    scrubbing: window.ctlScrubbing === true && document.body.classList.contains('scrubbing'),
+    music: window.bgMusic ? (window.bgMusic.paused ? 'paused' : 'playing') : 'none',
     counts: {
       wa: document.querySelectorAll('#wC .wm, #wC .wm-photo').length,
       ig: document.querySelectorAll('#igCm .ig-c').length,
@@ -321,16 +367,24 @@ function missingOnStage(keys) {
   await page.keyboard.press('Enter');
   check(
     await page.evaluate(function () {
-      return !document.getElementById('pauseOverlay').classList.contains('hidden');
+      return (
+        window.simPaused === true &&
+        document.getElementById('pauseBtn').classList.contains('paused') &&
+        document.getElementById('ctlScene').textContent === window.t('ctl.paused')
+      );
     }),
-    'pause overlay shows'
+    'pause: the control bar shows the paused state'
   );
   await page.keyboard.press('Enter');
   check(
     await page.evaluate(function () {
-      return document.getElementById('pauseOverlay').classList.contains('hidden');
+      return (
+        window.simPaused === false &&
+        !document.getElementById('pauseBtn').classList.contains('paused') &&
+        document.getElementById('ctlScene').textContent === window.t('ctl.wa')
+      );
     }),
-    'simulation resumes'
+    'simulation resumes, the bar shows the scene again'
   );
   check(
     await page.evaluate(function () {
@@ -338,12 +392,73 @@ function missingOnStage(keys) {
         getComputedStyle(document.getElementById('ctlBar')).display === 'flex' &&
         getComputedStyle(document.querySelector('.ctl-sound')).display !== 'none' &&
         getComputedStyle(document.querySelector('.ctl-view')).display !== 'none' &&
-        getComputedStyle(document.querySelector('.pause-overlay')).display === 'none' &&
-        getComputedStyle(document.querySelector('.tbar')).display === 'none'
+        !document.getElementById('pauseOverlay') &&
+        !document.querySelector('.tbar, .pause-text, #tf, #tl')
       );
     }),
-    'phone view: control bar with sound and view picker is shown, old controls are not'
+    'phone view: control bar with sound and view picker is shown, the old controls are gone'
   );
+
+  console.log('E2E: legal notice pauses the run');
+  function impState() {
+    return {
+      show: document.getElementById('impModal').classList.contains('show'),
+      paused: window.simPaused,
+      button: document.getElementById('pauseBtn').classList.contains('paused'),
+      sec: window.sec,
+    };
+  }
+  await page.click('#impLinkRun');
+  const impOpen = await page.evaluate(impState);
+  await page.waitForTimeout(300); // three simulated seconds at x10
+  const impHeld = await page.evaluate(impState);
+  check(
+    impOpen.show && impOpen.paused && impOpen.button && impHeld.sec === impOpen.sec,
+    'opening the legal notice during the run pauses it (stands at ' + impHeld.sec.toFixed(1) + ' s)'
+  );
+  await page.keyboard.press('Escape');
+  const impClosed = await page.evaluate(impState);
+  const impRanOn = await page
+    .waitForFunction(
+      function (from) {
+        return window.sec > from + 1;
+      },
+      impHeld.sec,
+      { timeout: 3000 }
+    )
+    .then(
+      function () {
+        return true;
+      },
+      function () {
+        return false;
+      }
+    );
+  check(
+    !impClosed.show && !impClosed.paused && !impClosed.button && impRanOn,
+    'closing it lets the run continue by itself'
+  );
+  // Paused before opening: closing must not start it
+  await page.evaluate(function () {
+    window.togglePause();
+  });
+  await page.click('#impLinkRun');
+  const impOpenPaused = await page.evaluate(impState);
+  await page.click('#impCloseBtn');
+  const impClosedPaused = await page.evaluate(impState);
+  await page.waitForTimeout(200);
+  const impStillPaused = await page.evaluate(impState);
+  check(
+    impOpenPaused.show &&
+      impOpenPaused.paused &&
+      !impClosedPaused.show &&
+      impClosedPaused.paused &&
+      impStillPaused.sec === impOpenPaused.sec,
+    'if the run was paused before, it stays paused after the legal notice is closed'
+  );
+  await page.evaluate(function () {
+    window.togglePause();
+  });
   // The start screen fades out for 0.8 s and is then taken out for the keyboard too
   const startHidden = await page
     .waitForFunction(
@@ -379,6 +494,18 @@ function missingOnStage(keys) {
     { timeout: 15000 }
   );
   await axeScan(page, '#aCta', 'CTA screen');
+  await page.evaluate(function () {
+    document.getElementById('impLinkGlobal').click();
+  });
+  check(
+    await page.evaluate(function () {
+      return (
+        document.getElementById('impModal').classList.contains('show') && window.simPaused === false
+      );
+    }),
+    'on the help page the legal notice opens without pausing anything'
+  );
+  await page.keyboard.press('Escape');
 
   console.log('E2E: CTA keyboard operability');
   check(await tabTo(page, 'footerShareBtn', 15), 'share button reachable via Tab');
@@ -686,6 +813,23 @@ function missingOnStage(keys) {
       got.paused && Math.abs(got.sec - target) < 0.01 && !got.flashing,
       'jump to ' + target + ' s: stays paused at that second, no camera flash'
     );
+    check(
+      got.phoneEntries > 0 &&
+        got.phoneHidden === 0 &&
+        got.stageEntries > 0 &&
+        got.stageHidden === 0,
+      'jump to ' +
+        target +
+        ' s: every entry can be seen at once, in the phone (' +
+        (got.phoneEntries - got.phoneHidden) +
+        ' of ' +
+        got.phoneEntries +
+        ') and on the stage (' +
+        (got.stageEntries - got.stageHidden) +
+        ' of ' +
+        got.stageEntries +
+        ')'
+    );
   }
 
   // Every mark on the timeline must be the real scene switch
@@ -726,43 +870,113 @@ function missingOnStage(keys) {
   console.log('E2E: timeline - mouse and keyboard');
   const track = await seekPage.evaluate(function () {
     var r = document.getElementById('ctlTrack').getBoundingClientRect();
-    return { left: r.left, width: r.width, y: r.top + r.height / 2 };
+    return { left: r.left, width: r.width, y: r.top + r.height / 2, total: window.CTL_TOTAL };
   });
   function trackX(second) {
-    return track.left + (track.width * second) / 120;
+    return track.left + (track.width * second) / track.total;
   }
-  // Pointing shows where a click goes; a click snaps to the start of the scene
+  /** Waits until the pending jump of a drag has been drawn and mirrored. */
+  async function settle(p) {
+    await p.evaluate(function () {
+      return new Promise(function (resolve) {
+        requestAnimationFrame(function () {
+          requestAnimationFrame(resolve);
+        });
+      });
+    });
+    await p.waitForTimeout(60);
+  }
+  let after = await seekPage.evaluate(simSnapshot);
+  check(
+    !/\d/.test(after.barText) && !(await seekPage.$('#ctlNow, #ctlEnd')),
+    'the bar shows no time (its visible text: "' + after.barText.replace(/\s+/g, ' ').trim() + '")'
+  );
+  // Pointing names the scene
   await seekPage.mouse.move(trackX(70), track.y);
   const tip = await seekPage.evaluate(function () {
     var el = document.getElementById('ctlTip');
-    return { shown: el.classList.contains('show'), text: el.textContent };
+    return { shown: el.classList.contains('show'), text: el.textContent, want: window.t('ctl.tk') };
   });
   check(
-    tip.shown && /TikTok/.test(tip.text) && /0:56/.test(tip.text),
-    'pointing at a scene names it (' + tip.text + ')'
+    tip.shown && tip.text === tip.want,
+    'pointing at the timeline names the scene, without a time (' + tip.text + ')'
   );
+  // A click goes exactly where it was made: forwards ...
   await seekPage.mouse.click(trackX(70), track.y);
-  let after = await seekPage.evaluate(simSnapshot);
+  after = await seekPage.evaluate(simSnapshot);
   check(
-    after.app === 'aTk' && Math.abs(after.sec - 56) < 0.01 && after.now === '0:56',
-    'click inside the TikTok part jumps to its start (0:56)'
+    after.app === 'aTk' && Math.abs(after.sec - 70) < 0.5,
+    'a click lands where it was made (' +
+      after.sec.toFixed(1) +
+      ' s), not on the start of the scene'
+  );
+  // ... and backwards inside the same scene, left of the knob
+  await seekPage.mouse.click(trackX(62), track.y);
+  after = await seekPage.evaluate(simSnapshot);
+  check(
+    after.app === 'aTk' && Math.abs(after.sec - 62) < 0.5,
+    'a click before the knob inside the same scene goes back to that spot (' +
+      after.sec.toFixed(1) +
+      ' s), not to the scene start'
+  );
+  // Next to a mark it lands on the mark, so a scene can be started from its first moment
+  await seekPage.mouse.click(trackX(57), track.y);
+  after = await seekPage.evaluate(simSnapshot);
+  check(
+    after.app === 'aTk' && after.sec === 56,
+    'a click one second next to a mark lands on the mark (' + after.sec + ' s)'
   );
   await seekPage.mouse.click(trackX(10), track.y);
   after = await seekPage.evaluate(simSnapshot);
   check(
-    after.app === 'aWa' && Math.abs(after.sec) < 0.01 && after.counts.ig === 0 && after.likes === 0,
-    'click inside the WhatsApp part jumps back to the start, counters are back at zero'
+    after.app === 'aWa' &&
+      Math.abs(after.sec - 10) < 0.5 &&
+      after.counts.ig === 0 &&
+      after.likes === 0,
+    'a click into the WhatsApp part goes back there, the later scenes are back at zero'
   );
-  // Dragging lands exactly where the pointer is released
+  // Dragging: the picture follows the knob while the button is still held
   await seekPage.mouse.move(trackX(5), track.y);
   await seekPage.mouse.down();
-  await seekPage.mouse.move(trackX(20), track.y, { steps: 4 });
-  await seekPage.mouse.move(trackX(40), track.y, { steps: 4 });
+  await seekPage.mouse.move(trackX(40), track.y, { steps: 6 });
+  await settle(seekPage);
+  const held1 = await seekPage.evaluate(simSnapshot);
+  await seekPage.mouse.move(trackX(100), track.y, { steps: 6 });
+  await settle(seekPage);
+  const held2 = await seekPage.evaluate(simSnapshot);
+  check(
+    held1.scrubbing &&
+      held1.app === 'aIg' &&
+      held1.panel === 'aIg' &&
+      Math.abs(held1.sec - 40) < 0.5 &&
+      held1.phoneNewest === held1.stageNewest &&
+      held2.app === 'aIm' &&
+      held2.panel === 'aIm' &&
+      Math.abs(held2.sec - 100) < 0.5 &&
+      held2.phoneNewest === held2.stageNewest &&
+      held1.phoneEntries > 0 &&
+      held1.phoneHidden === 0 &&
+      held1.stageHidden === 0 &&
+      held2.phoneEntries > 0 &&
+      held2.phoneHidden === 0 &&
+      held2.stageHidden === 0,
+    'while dragging, phone and stage already show the spot under the pointer, every entry visible (' +
+      held1.sec.toFixed(1) +
+      ' s ' +
+      held1.app +
+      ', then ' +
+      held2.sec.toFixed(1) +
+      ' s ' +
+      held2.app +
+      ')'
+  );
+  await seekPage.mouse.move(trackX(40), track.y, { steps: 6 });
   await seekPage.mouse.up();
+  await settle(seekPage);
   after = await seekPage.evaluate(simSnapshot);
   check(
-    after.app === 'aIg' && Math.abs(after.sec - 40) < 1,
-    'dragging to 0:40 lands there (' + after.sec.toFixed(1) + ' s, Instagram)'
+    !after.scrubbing && after.paused && after.app === 'aIg' && Math.abs(after.sec - 40) < 0.5,
+    'releasing lands there (' + after.sec.toFixed(1) + ' s, Instagram) and it stays paused'
   );
   // Keyboard on the focused timeline
   await seekPage.focus('#ctlSeek');
@@ -786,8 +1000,9 @@ function missingOnStage(keys) {
       var seek = document.getElementById('ctlSeek');
       return (
         seek.getAttribute('role') === 'slider' &&
-        seek.getAttribute('aria-valuemax') === '120' &&
+        seek.getAttribute('aria-valuemax') === String(window.CTL_TOTAL) &&
         seek.getAttribute('aria-valuenow') === '0' &&
+        seek.getAttribute('aria-valuetext') === window.t('ctl.wa') &&
         !!seek.getAttribute('aria-label') &&
         !!document.getElementById('pauseBtn').getAttribute('aria-label')
       );
@@ -809,6 +1024,105 @@ function missingOnStage(keys) {
   check(
     !after.paused && after.app === 'aIg' && after.phoneNewest === after.stageNewest,
     'after a jump and resume the run continues, phone and stage stay together'
+  );
+
+  console.log('E2E: timeline - dragging while the run is going');
+  const musicBefore = after.music;
+  await seekPage.mouse.move(trackX(50), track.y);
+  await seekPage.mouse.down();
+  await seekPage.mouse.move(trackX(70), track.y, { steps: 6 });
+  await settle(seekPage);
+  const hold1 = await seekPage.evaluate(simSnapshot);
+  await seekPage.waitForTimeout(400); // four simulated seconds at x10
+  const hold2 = await seekPage.evaluate(simSnapshot);
+  check(
+    hold1.scrubbing &&
+      !hold1.paused &&
+      hold1.app === 'aTk' &&
+      Math.abs(hold1.sec - 70) < 0.5 &&
+      hold2.sec === hold1.sec &&
+      JSON.stringify(hold2.counts) === JSON.stringify(hold1.counts) &&
+      hold1.phoneEntries > 0 &&
+      hold1.phoneHidden === 0 &&
+      hold2.phoneHidden === 0 &&
+      hold1.stageHidden === 0,
+    'while the knob is held the simulation stands still (' +
+      hold1.sec.toFixed(1) +
+      ' s, ' +
+      JSON.stringify(hold1.counts) +
+      ' unchanged after 400 ms)'
+  );
+  await seekPage.mouse.up();
+  const ranOn = await seekPage
+    .waitForFunction(
+      function (from) {
+        return window.sec > from + 2 && !document.body.classList.contains('scrubbing');
+      },
+      hold1.sec,
+      { timeout: 3000 }
+    )
+    .then(
+      function () {
+        return true;
+      },
+      function () {
+        return false;
+      }
+    );
+  after = await seekPage.evaluate(simSnapshot);
+  check(
+    ranOn && !after.paused && after.phoneNewest === after.stageNewest,
+    'after releasing, the run continues from there by itself'
+  );
+  check(
+    musicBefore === 'playing' && hold1.music === 'paused' && after.music === 'playing',
+    'the music waits while the knob is held and plays again afterwards (' +
+      [musicBefore, hold1.music, after.music].join(' -> ') +
+      ')'
+  );
+
+  console.log('E2E: timeline - ends where the run ends');
+  await seekPage.evaluate(function () {
+    if (!window.simPaused) window.togglePause();
+  });
+  // Dragging beyond the right end must not call up the help page
+  await seekPage.mouse.move(trackX(110), track.y);
+  await seekPage.mouse.down();
+  await seekPage.mouse.move(trackX(track.total) + 40, track.y, { steps: 6 });
+  await settle(seekPage);
+  const atEnd = await seekPage.evaluate(simSnapshot);
+  await seekPage.mouse.up();
+  await settle(seekPage);
+  after = await seekPage.evaluate(simSnapshot);
+  check(
+    atEnd.app === 'aFn' &&
+      !atEnd.help &&
+      atEnd.sec === track.total - 1 &&
+      !after.help &&
+      after.sec === track.total - 1,
+    'dragging to the very end stops one second before it (' +
+      after.sec +
+      ' s), the help page is not called up'
+  );
+  const ending = await seekPage.evaluate(function () {
+    var cta = document.getElementById('aCta');
+    function up() {
+      return !cta.classList.contains('hidden');
+    }
+    var out = { total: window.CTL_TOTAL };
+    window.simAdvance(900 / window.SIM_SPEED); // 0.1 s before the end
+    out.justBefore = up();
+    window.simAdvance(200 / window.SIM_SPEED); // 0.1 s after the end
+    out.justAfter = up();
+    return out;
+  });
+  check(
+    !ending.justBefore && ending.justAfter,
+    'the timeline ends exactly where the help page takes over (not yet at ' +
+      (ending.total - 0.1) +
+      ' s, there at ' +
+      (ending.total + 0.1) +
+      ' s)'
   );
   await seekPage.close();
 
@@ -907,7 +1221,7 @@ function missingOnStage(keys) {
     return {
       // parts inside the bar: next to each other, inside the bar
       insideBar: overlaps(
-        ['#pauseBtn', '.ctl-time', '#ctlSeek', '#ctlEnd', '.ctl-sound', '.ctl-view', '#impLinkRun'],
+        ['#pauseBtn', '#ctlScene', '#ctlSeek', '.ctl-sound', '.ctl-view', '#impLinkRun'],
         bar
       ),
       // bar against everything around it
@@ -1002,6 +1316,41 @@ function missingOnStage(keys) {
         size[1] +
         ': start screen has no overlaps' +
         (hits.length ? ' - ' + hits.join(', ') : '')
+    );
+    await ctx.close();
+  }
+
+  console.log('E2E: start screen - the two view tiles only where the projector view makes sense');
+  const tileProbes = [
+    [1280, 720, '', true],
+    [501, 800, '', true],
+    [500, 800, '', false],
+    [393, 852, '', false],
+    [393, 852, '?beamer=1', true],
+  ];
+  for (const probe of tileProbes) {
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: probe[0], height: probe[1] },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/' + probe[2]);
+    await p.waitForSelector('#startBtn');
+    const shown = await p.evaluate(function () {
+      var el = document.querySelector('.view-pick');
+      return getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().height > 0;
+    });
+    check(
+      shown === probe[3],
+      probe[0] +
+        ' px wide' +
+        (probe[2] ? ' with ' + probe[2] : '') +
+        ': view tiles are ' +
+        (probe[3] ? 'shown' : 'hidden')
     );
     await ctx.close();
   }

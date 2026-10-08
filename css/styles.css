@@ -72,9 +72,7 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
 body.sim-running .ctl-bar{display:flex}
 .ctl-play{flex-shrink:0;width:calc(var(--bar-h)*.9);height:calc(var(--bar-h)*.72);padding:0;border:none;border-radius:calc(var(--bar-h)*.2);background:transparent;color:#fff;font-family:inherit;font-size:calc(var(--bar-h)*.5);font-weight:700;letter-spacing:.06em;line-height:1;cursor:pointer}
 .ctl-play.paused{background:rgba(254,44,85,.4)}
-.ctl-time{flex-shrink:0;display:flex;align-items:baseline;gap:.7em;font-variant-numeric:tabular-nums}
-.ctl-now{color:#fff}
-.ctl-scene{font-weight:500;min-width:6.6em}
+.ctl-scene{flex-shrink:0;font-weight:500;min-width:6.6em}
 .ctl-scene.paused{color:#ff6b81}
 .ctl-seek{flex:1;min-width:0;height:100%;position:relative;display:flex;align-items:center;cursor:pointer;touch-action:none;--pos:0%}
 .ctl-seek[role="progressbar"]{cursor:default}
@@ -85,7 +83,6 @@ body.sim-running .ctl-bar{display:flex}
 .ctl-tip{display:none;position:absolute;bottom:calc(var(--bar-h)*.86);transform:translateX(-50%);padding:.4em .85em;border-radius:.65em;background:#fff;color:#000;font-weight:700;pointer-events:none}
 .ctl-tip.show{display:block}
 .ctl-tip::after{content:'';position:absolute;left:50%;top:100%;border:.4em solid transparent;border-top-color:#fff;transform:translateX(-50%)}
-.ctl-end{flex-shrink:0;font-variant-numeric:tabular-nums}
 .ctl-sep{flex-shrink:0;width:1px;height:46%;background:rgba(255,255,255,.16)}
 .ctl-sound{flex-shrink:0;display:flex;align-items:center;gap:.55em}
 .ctl-sound button{display:flex;align-items:center;justify-content:center;width:calc(var(--bar-h)*.72);height:calc(var(--bar-h)*.72);padding:0;border:none;border-radius:calc(var(--bar-h)*.2);background:transparent;color:#fff;cursor:pointer}
@@ -100,13 +97,12 @@ body.sim-running .ctl-bar{display:flex}
 .ctl-view button[aria-pressed="true"]{background:rgba(254,44,85,.4);color:#fff}
 .ctl-view .view-ico{font-size:calc(var(--bar-h)*.21)}
 .ctl-impr{flex-shrink:0;font-size:inherit;font-weight:500;color:rgba(255,255,255,.66);text-decoration:underline;text-underline-offset:.22em;cursor:pointer}
+/* While the knob is dragged the picture follows at once: every fade is cut to its
+   end state. Not animation:none -- phone entries start invisible and only become
+   visible through their fade-in. */
+body.scrubbing #phone *,body.scrubbing #stage *{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important;transition-delay:0s!important}
 /* While the bar is shown it carries the legal notice link (wide windows) */
 body.sim-running .impr-link-bar{display:none}
-
-/* Old controls, no longer shown. The elements stay in the page until the bar
-   is approved, because togglePause() and tick() still write to them
-   (see "Aufräumen nach Abnahme" in docs/handover). */
-.pause-overlay,.tbar{display:none}
 
 /* ===== PHONE ===== */
 .phone{position:fixed;top:calc(50% - 20px);left:50%;transform:translate(-50%,-50%);width:393px;height:852px;max-width:96vw;max-height:88vh;background:#000;border-radius:55px;border:4px solid #1a1a1a;overflow:hidden;z-index:1000;box-shadow:0 0 0 2px #000,0 40px 80px rgba(0,0,0,.6)}
@@ -786,8 +782,10 @@ body.stage-live{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(var(--u)*1.35);--bar-si
   .imp-notice p{font-size:.76rem}
   .imp-close-btn{padding:10px 30px;font-size:.85rem;margin-top:14px}
   .imp-home-indicator{margin:12px auto 0;width:100px;height:4px}
-  /* View picker on phones: compact, no key hint; the in-run picker is only
-     needed to get back out of the projector view */
+  /* View picker on phones: hidden, the projector view is useless on an upright
+     phone. It only shows (compact, no key hint) if the projector view was
+     chosen with ?beamer=1, to get back out of it. */
+  body:not(.beamer) .view-pick{display:none}
   .view-pick{font-size:12px;gap:10px;margin-top:14px}
   #start .view-opt{width:92px;height:62px;gap:6px;padding:8px 6px;font-size:.72rem}
   .view-pick .view-ico{font-size:12px}
@@ -796,7 +794,7 @@ body.stage-live{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(var(--u)*1.35);--bar-si
      there (js/controls.js), the legal notice stays as a line below the bar. */
   :root{--bar-h:36px;--bar-bottom:calc(var(--ctl-bottom) + var(--ctl-impr)*1.25 + 6px)}
   .ctl-bar{gap:calc(var(--bar-h)*.24)}
-  .ctl-time,.ctl-end,.ctl-sep,.ctl-sound input,.ctl-impr,.ctl-knob,.ctl-tip{display:none!important}
+  .ctl-scene,.ctl-sep,.ctl-sound input,.ctl-impr,.ctl-knob,.ctl-tip{display:none!important}
   body:not(.beamer) .ctl-view{display:none}
   body.sim-running .impr-link-bar{display:block}
   body.stage-live .phone{max-height:none!important;top:calc((100vh - var(--u)*56.25)/2 + var(--u)*1.6)!important}

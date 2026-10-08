@@ -184,13 +184,12 @@
 <!-- CONTROL BAR: pause, time, timeline, sound, view, legal notice (js/controls.js, ADR-0008) -->
 <div class="ctl-bar" id="ctlBar" role="group" aria-label="Steuerung">
   <button id="pauseBtn" class="ctl-play hidden" type="button">II</button>
-  <div class="ctl-time"><span class="ctl-now" id="ctlNow">0:00</span><span class="ctl-scene" id="ctlScene"></span></div>
-  <div class="ctl-seek" id="ctlSeek" role="slider" tabindex="0" aria-label="Zeitleiste" aria-valuemin="0" aria-valuemax="120" aria-valuenow="0">
+  <span class="ctl-scene" id="ctlScene"></span>
+  <div class="ctl-seek" id="ctlSeek" role="slider" tabindex="0" aria-label="Zeitleiste" aria-valuemin="0" aria-valuemax="134" aria-valuenow="0">
     <div class="ctl-track" id="ctlTrack"><div class="ctl-fill"></div></div>
     <div class="ctl-knob"></div>
     <span class="ctl-tip" id="ctlTip"></span>
   </div>
-  <span class="ctl-end" id="ctlEnd">2:00</span>
   <i class="ctl-sep"></i>
   <div class="ctl-sound" role="group" aria-label="Ton">
     <button type="button" id="soundBtn" aria-label="Ton ausschalten">
@@ -207,12 +206,6 @@
   <i class="ctl-sep"></i>
   <span class="ctl-impr" id="impLinkRun" tabindex="0" role="button" data-i18n="ui.impressum">Impressum</span>
 </div>
-<!-- Old pause text and progress line: hidden, kept until the bar is approved (audio.js and timer.js still write to them) -->
-<div id="pauseOverlay" class="pause-overlay hidden">
-  <div class="pause-text" data-i18n="ui.paused">Pausiert &mdash; tippe um fortzufahren</div>
-</div>
-
-<div class="tbar"><div class="fill" id="tf"></div><div class="lbl" id="tl"></div></div>
 <div class="flash" id="fl"></div>
 <div class="toast" id="toast"></div>
 

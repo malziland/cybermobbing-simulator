@@ -30,27 +30,39 @@ QUnit.module(
   function () {
     // ----- small helpers -----
 
-    QUnit.test('ctlFormat() writes seconds as m:ss', function (assert) {
-      assert.equal(ctlFormat(0), '0:00', 'zero');
-      assert.equal(ctlFormat(43.9), '0:43', 'fractions are cut off');
-      assert.equal(ctlFormat(60), '1:00', 'full minute');
-      assert.equal(ctlFormat(120), '2:00', 'end of the timeline');
-      assert.equal(ctlFormat(-5), '0:00', 'never negative');
-    });
+    QUnit.test(
+      'ctlSnap() pulls a click onto a scene mark only when it is close',
+      function (assert) {
+        assert.strictEqual(CTL_SNAP, 1.5, 'a click snaps within 1.5 seconds of a mark');
+        assert.equal(ctlSnap(70), 70, 'in the middle of a scene: stays where it was made');
+        assert.equal(
+          ctlSnap(62),
+          62,
+          'earlier in the same scene: stays, no jump to the scene start'
+        );
+        assert.equal(ctlSnap(57.5), 56, 'exactly 1.5 s after the mark: onto the mark (inclusive)');
+        assert.equal(ctlSnap(54.5), 56, 'exactly 1.5 s before the mark: onto the mark (inclusive)');
+        assert.equal(ctlSnap(57.6), 57.6, 'just outside after the mark: stays');
+        assert.equal(ctlSnap(54.4), 54.4, 'just outside before the mark: stays');
+        assert.equal(ctlSnap(1), 0, 'next to the start: the start');
+      }
+    );
 
     QUnit.test('ctlSceneAt() returns the scene running at a second', function (assert) {
       assert.equal(ctlSceneAt(0).app, 'aWa', 'start: WhatsApp');
       assert.equal(ctlSceneAt(27.9).app, 'aWa', 'just before the first mark: still WhatsApp');
       assert.equal(ctlSceneAt(28).app, 'aIg', 'on the mark: Instagram (inclusive)');
       assert.equal(ctlSceneAt(70).app, 'aTk', 'TikTok');
-      assert.equal(ctlSceneAt(120).app, 'aFn', 'end: finale');
+      assert.equal(ctlSceneAt(120).app, 'aFn', 'closing text');
+      assert.equal(ctlSceneAt(CTL_TOTAL).app, 'aFn', 'end: still the closing text');
     });
 
     QUnit.test(
       'timeline has six scenes in rising order with labels in both languages',
       function (assert) {
         assert.equal(CTL_SCENES.length, 6, 'six scenes');
-        assert.strictEqual(CTL_TOTAL, 120, 'timeline is 120 seconds long');
+        assert.strictEqual(CTL_TOTAL, 134, 'timeline covers the whole run up to the help page');
+        assert.strictEqual(CTL_SEEK_END, CTL_TOTAL - 1, 'jumps end one second before that');
         for (var i = 0; i < CTL_SCENES.length; i++) {
           if (i > 0) assert.ok(CTL_SCENES[i].at > CTL_SCENES[i - 1].at, 'start ' + i + ' is later');
           assert.ok(CTL_SCENES[i].at < CTL_TOTAL, 'start ' + i + ' lies on the timeline');
@@ -164,22 +176,26 @@ QUnit.module(
 
     // ----- the bar -----
 
-    QUnit.test('ctlUpdate() shows time, scene, fill and the pause state', function (assert) {
+    QUnit.test('ctlUpdate() shows scene, fill and the pause state, no time', function (assert) {
       document.getElementById('qunit-fixture').innerHTML =
         '<div id="phone"><div class="app on" id="aIg"></div></div>' +
-        '<button id="pauseBtn"></button><span id="ctlNow"></span><span id="ctlScene"></span>' +
-        '<div id="ctlSeek"><div id="ctlTrack"></div></div>';
-      sec = 30;
+        '<div id="ctlBar"><button id="pauseBtn"></button><span id="ctlScene"></span>' +
+        '<div id="ctlSeek"><div id="ctlTrack"></div></div></div>';
+      sec = CTL_TOTAL / 4;
       ctlUpdate();
       var seek = document.getElementById('ctlSeek');
-      assert.equal(document.getElementById('ctlNow').textContent, '0:30', 'time');
+      assert.notOk(
+        /\d/.test(document.getElementById('ctlBar').textContent),
+        'the bar writes no time: "' + document.getElementById('ctlBar').textContent + '"'
+      );
+      assert.equal(seek.getAttribute('aria-valuetext'), t('ctl.ig'), 'read out as the scene name');
       assert.equal(
         document.getElementById('ctlScene').textContent,
         t('ctl.ig'),
         'scene name from the active app'
       );
       assert.equal(seek.style.getPropertyValue('--pos'), '25.00%', 'fill is a quarter');
-      assert.equal(seek.getAttribute('aria-valuenow'), '30', 'value for assistive technology');
+      assert.equal(seek.getAttribute('aria-valuenow'), '33', 'value for assistive technology');
       assert.equal(
         document.getElementById('pauseBtn').getAttribute('aria-label'),
         t('ctl.pause'),

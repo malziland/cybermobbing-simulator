@@ -4,9 +4,10 @@ QUnit.module(
     beforeEach: function () {
       // Reset timer state
       sec = 0;
-      // Ensure fixture elements exist with fresh content
-      document.getElementById('tf').style.width = '0';
-      document.getElementById('tl').textContent = '';
+      // The control bar shows what the clock counts; give tick() a bar to update
+      document.getElementById('qunit-fixture').innerHTML =
+        '<button id="pauseBtn"></button><span id="ctlScene"></span>' +
+        '<div id="ctlSeek"><div id="ctlTrack"></div></div>';
       document.getElementById('sbTime').textContent = '21:34';
       document.getElementById('hsClock').textContent = '21:34';
     },
@@ -18,26 +19,17 @@ QUnit.module(
       assert.ok(Math.abs(sec - 0.1) < 0.001, 'sec is 0.1 after one tick (actual: ' + sec + ')');
     });
 
-    QUnit.test('tick sets progress bar width correctly', function (assert) {
-      sec = 60; // halfway
+    QUnit.test('tick moves the timeline to the elapsed share', function (assert) {
+      sec = CTL_TOTAL / 2; // halfway
       tick();
-      var width = document.getElementById('tf').style.width;
-      // sec is now 60.1, so width should be ~50.08%
-      assert.ok(parseFloat(width) > 49 && parseFloat(width) < 51, 'Width is ~50%: ' + width);
+      var pos = document.getElementById('ctlSeek').style.getPropertyValue('--pos');
+      assert.ok(parseFloat(pos) > 49.9 && parseFloat(pos) < 50.2, 'Timeline is at ~50%: ' + pos);
     });
 
-    QUnit.test('tick updates label text', function (assert) {
-      sec = 30;
+    QUnit.test('tick never moves the timeline beyond its end', function (assert) {
+      sec = CTL_TOTAL + 3;
       tick();
-      var label = document.getElementById('tl').textContent;
-      assert.equal(label, '30s / 120s');
-    });
-
-    QUnit.test('tick caps width at 100%', function (assert) {
-      sec = 125;
-      tick();
-      var width = document.getElementById('tf').style.width;
-      assert.equal(width, '100%');
+      assert.equal(document.getElementById('ctlSeek').style.getPropertyValue('--pos'), '100.00%');
     });
 
     QUnit.test('simTimeout creates and executes timer', function (assert) {
@@ -65,25 +57,45 @@ QUnit.module(
 
     // ===== NEW TESTS =====
 
-    QUnit.test('tick() at exactly 120s: label shows "120s / 120s"', function (assert) {
-      sec = 119.9;
+    QUnit.test('the timeline keeps moving during the closing text', function (assert) {
+      function pos() {
+        return parseFloat(document.getElementById('ctlSeek').style.getPropertyValue('--pos'));
+      }
+      sec = 120;
       tick();
-      // sec is now 120.0
-      var label = document.getElementById('tl').textContent;
-      assert.equal(label, '120s / 120s', 'Label shows 120s / 120s at sec=120');
+      var at120 = pos();
+      assert.ok(at120 > 85 && at120 < 95, 'after 120 s the timeline is not full yet: ' + at120);
+      sec = 130;
+      tick();
+      assert.ok(pos() > at120 && pos() < 100, 'ten seconds later it has moved on: ' + pos());
+      sec = CTL_TOTAL - 0.1;
+      tick();
+      assert.equal(pos(), 100, 'full when the help page takes over');
     });
 
-    QUnit.test('tick() beyond 120s: label should not update', function (assert) {
-      sec = 119.9;
+    QUnit.test('tick() keeps counting until the run is over, then stops itself', function (assert) {
+      var done = assert.async();
+      var origTmr = tmr;
+      var fired = 0;
+      // During the closing text the interval must stay alive
+      tmr = setInterval(function () {
+        fired++;
+      }, 5);
+      sec = CTL_TOTAL - 2;
       tick();
-      // sec = 120.0, label updated to "120s / 120s"
-      var labelAt120 = document.getElementById('tl').textContent;
-      assert.equal(labelAt120, '120s / 120s', 'Label correct at 120s');
-
-      // Now tick again: sec = 120.1, label should NOT update
-      tick();
-      var labelBeyond = document.getElementById('tl').textContent;
-      assert.equal(labelBeyond, '120s / 120s', 'Label stays at 120s / 120s beyond 120s');
+      setTimeout(function () {
+        assert.ok(fired > 0, 'two seconds before the end the clock still runs (' + fired + ')');
+        // A few seconds after the end it stops
+        sec = CTL_TOTAL + 5;
+        tick();
+        var atStop = fired;
+        setTimeout(function () {
+          assert.equal(fired, atStop, 'after the end the interval is cleared');
+          clearInterval(tmr);
+          tmr = origTmr;
+          done();
+        }, 40);
+      }, 40);
     });
 
     QUnit.test('simTimeout with 0ms delay: should still execute', function (assert) {
@@ -136,29 +148,11 @@ QUnit.module(
 
     // ===== EXPANDED TESTS =====
 
-    QUnit.test('tick() at sec=0 produces width close to 0%', function (assert) {
+    QUnit.test('tick() at sec=0 leaves the timeline close to 0%', function (assert) {
       sec = 0;
       tick();
-      // sec is now 0.1, width = 0.1/120*100 = ~0.083%
-      var width = parseFloat(document.getElementById('tf').style.width);
-      assert.ok(width < 1, 'Width is near 0% at start: ' + width + '%');
-    });
-
-    QUnit.test('tick() label format is always "Xs / 120s"', function (assert) {
-      sec = 45;
-      tick();
-      var label = document.getElementById('tl').textContent;
-      assert.ok(/^\d+s \/ 120s$/.test(label), 'Label matches format "Xs / 120s": ' + label);
-
-      sec = 0;
-      tick();
-      label = document.getElementById('tl').textContent;
-      assert.ok(/^\d+s \/ 120s$/.test(label), 'Label at start matches format: ' + label);
-
-      sec = 99.9;
-      tick();
-      label = document.getElementById('tl').textContent;
-      assert.ok(/^\d+s \/ 120s$/.test(label), 'Label at 100s matches format: ' + label);
+      var pos = parseFloat(document.getElementById('ctlSeek').style.getPropertyValue('--pos'));
+      assert.ok(pos < 1, 'Timeline is near 0% at start: ' + pos + '%');
     });
 
     QUnit.test('startClock() sets initial time to 21:34', function (assert) {

@@ -96,7 +96,6 @@ function go() {
   if (disc) disc.classList.add('hidden');
   document.getElementById('pauseBtn').classList.remove('hidden');
   document.getElementById('pauseBtn').textContent = t('ui.pause');
-  document.getElementById('pauseOverlay').classList.add('hidden');
   document.getElementById('phone').classList.remove('hidden');
   mkPhoto(document.getElementById('igPh'));
   mkPhoto(document.getElementById('tkBg'));
@@ -168,7 +167,7 @@ function shareSimulation() {
  *   - Start button -> go()
  *   - Share buttons -> shareSimulation()
  *   - Replay button -> page reload
- *   - Pause button + overlay -> togglePause()
+ *   - Pause button -> togglePause()
  *   - Projector view pickers (start screen, in-run) and B key -> stageSet() / stageToggle()
  *   - Sound control (mute button, volume slider, M key) -> toggleMute() / setVolume()
  *   - Impressum modal (open/close/backdrop/Escape)
@@ -190,11 +189,24 @@ document.addEventListener('DOMContentLoaded', function () {
     if (discEl) discEl.textContent += ' ' + t('disclaimer.helplineLogo');
   }
 
+  // During the run the legal notice pauses the simulation and lets it continue
+  // when it is closed -- unless the simulation was already paused before.
+  var impPausedSim = false;
   function openImpressum() {
+    var phone = document.getElementById('phone');
+    var running = simStarted && !!phone && !phone.classList.contains('hidden');
+    if (running && !simPaused && !impModal.classList.contains('show')) {
+      togglePause();
+      impPausedSim = simPaused;
+    }
     impModal.classList.add('show');
   }
   function closeImpressum() {
     impModal.classList.remove('show');
+    if (impPausedSim) {
+      impPausedSim = false;
+      if (simPaused) togglePause();
+    }
   }
 
   // Start button
@@ -272,9 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Pause
   var pauseBtn = document.getElementById('pauseBtn');
-  var pauseOverlay = document.getElementById('pauseOverlay');
   if (pauseBtn) pauseBtn.addEventListener('click', togglePause);
-  if (pauseOverlay) pauseOverlay.addEventListener('click', togglePause);
 
   // Impressum links
   var impCloseBtn = document.getElementById('impCloseBtn');

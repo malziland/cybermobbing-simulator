@@ -399,15 +399,16 @@ function simAdvance(ms) {
  *   2. bgMusic    -- pause/resume the <audio> element
  *   3. clockInt   -- stop/restart the phone clock display interval
  *   4. tmr        -- stop/restart the progress bar tick interval
- *   5. UI         -- swap button label, show/hide pause overlay
+ *   5. UI         -- swap button label, update the control bar (ctlUpdate)
  *
  * On resume, clockStart is recalculated so the phone clock picks up where
  * it left off without jumping forward.
  */
 function togglePause() {
+  // While the knob is dragged the simulation is held anyway (controls.js)
+  if (typeof ctlScrubbing !== 'undefined' && ctlScrubbing) return;
   simPaused = !simPaused;
   var btn = document.getElementById('pauseBtn');
-  var overlay = document.getElementById('pauseOverlay');
 
   if (simPaused) {
     // -- PAUSE: freeze everything --
@@ -416,7 +417,6 @@ function togglePause() {
     if (typeof clockInt !== 'undefined') clearInterval(clockInt);
     if (typeof tmr !== 'undefined') clearInterval(tmr);
     btn.textContent = t('ui.resume');
-    overlay.classList.remove('hidden');
   } else {
     // -- RESUME: restart everything with corrected offsets --
     simTimers.forEach(function (t) {
@@ -428,7 +428,6 @@ function togglePause() {
     if (typeof startClock === 'function') startClock();
     tmr = setInterval(tick, 100 / SIM_SPEED);
     btn.textContent = t('ui.pause');
-    overlay.classList.add('hidden');
   }
   if (typeof ctlUpdate === 'function') ctlUpdate();
 }
