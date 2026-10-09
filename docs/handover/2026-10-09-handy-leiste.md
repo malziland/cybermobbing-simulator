@@ -86,6 +86,16 @@ ist die sichtbare Höhe.
   er war nicht gemeldet und ist mit behoben, weil er dieselbe Ursache hat.
 - Beim ersten Start eines Simulators nimmt Safari einige Sekunden lang keinen
   Link an; `scripts/check-ios.js` versucht es deshalb bis zu einer Minute.
+- Der Video-Export braucht den festen Anschluss 8765. Der war am 2026-10-09 von
+  einem fremden Programm belegt, der Export brach sofort ab. Für den Probelauf
+  diente eine Wegwerfkopie mit anderem Anschluss; am Skript ist nichts geändert.
+- Ein Pipeline-Lauf (am Merge-Commit) hing 15 Minuten beim Laden der
+  Testbrowser, vier andere liefen an derselben Stelle in Sekunden durch. Der
+  Neustart lief durch; ob das Hängen mit dem zusätzlichen WebKit zusammenhängt,
+  ist nicht belegt.
+- Lokal liegen zwei weitere Zweige: `fix/handy-leiste` (zusammengeführt, auch
+  auf GitHub) und `claude/hungry-franklin-8ef461` (nicht aus dieser Arbeit).
+  Beide nicht angefasst.
 
 ## 6. Offene Punkte
 

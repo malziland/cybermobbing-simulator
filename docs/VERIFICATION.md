@@ -8,7 +8,9 @@ ist seither nicht neu gemessen worden.
 Werkzeuge der Messungen vom 2026-10-09: Node v24.21.0 / npm 11.19.0 ·
 ESLint 10.7.0 · Playwright 1.61.1 · gitleaks 8.30.1 · firebase-tools 15.32.0 ·
 Xcode 27.0 mit den Simulatoren iPhone 18 Pro, iPhone 17 und iPad mini (A17 Pro),
-je iOS 27.0.
+je iOS 27.0. Messungen ab 17:03 Uhr (Stand `a9c8cb3`) mit den aktualisierten
+Werkzeugen: Playwright 1.63.0 (Chromium 153, WebKit 26.6), ESLint 10.12.0,
+Prettier 3.9.9.
 
 ## Prüfungen vor der Auslieferung
 
@@ -82,7 +84,6 @@ lagen im Arbeitsordner der Sitzung und sind nicht Teil des Repositorys.
 - Die Behebungen in `c79f02d` nach der Nachprüfung und alle Behebungen von
   v2.0.1: nur vom Autor geprüft (Prüfungen und Gegenproben oben), nicht fremd
   abgenommen.
-- Video-Export (`scripts/video-export`): Stand siehe Abschnitt „Version 2.0.1".
 
 ## Version 2.0.1
 
@@ -104,6 +105,8 @@ hinzu), dazu der Cache-Stempel `?v=1791557563` in `index.html`.
 | Kopfzeilen | `curl -s -D - -o /dev/null https://cybermobbing.web.app/` | „HTTP/2 200", „cache-control: no-store, must-revalidate", CSP und „x-frame-options: DENY" wie in `firebase.json` | 16:53 |
 | Die ausgelieferten Dateien in echtem mobilem Safari | `npm run test:ios` am Stand `main` nach dem Deploy (die Dateien sind laut Prüfsummenvergleich die der Live-Seite) | Rückgabewert 0, „iOS: all checks passed", 22 Zeilen „ok" | 16:55 |
 | Aufrufzähler unberührt | lesender Abruf von `/views` vor dem Deploy und nach dem letzten Lauf | 361 und 361 | 16:52 und 16:55 |
+| Stempel und Markierung | `git push origin main`, `git tag -a v2.0.1`, `git push origin v2.0.1`; nachgemessen mit `git ls-remote` | `main` und `v2.0.1` auf GitHub je `fcbb963`; Markierung annotiert; `verify-live.sh` danach Rückgabewert 0 | 16:55 |
+| Pipeline auf `main` | `gh run list --workflow ci --branch main` | Lauf 37947857745 an `fcbb963`: success. Der Lauf 37947456457 am Merge-Commit `21ccc6a` (Inhalt gleich dem grünen Kopf des Pull Requests) hing 15 Minuten im Schritt „playwright install" und wurde um 17:09 abgebrochen und neu gestartet; der Neustart endete um 17:13 mit success in allen drei Teilen | 17:13 |
 
 Die Live-Seite selbst wurde im Simulator nicht gestartet: Ein Start dort zählt
 einen Aufruf. Der Beleg am Gerät ist das Foto des Betreibers (Abschnitt „Nicht
@@ -121,6 +124,9 @@ je Punkt am Ende dieses Abschnitts nachgetragen:
 | Punkt | Stand |
 |---|---|
 | `ffmpeg` auf dem Rechner des Betreibers | `brew upgrade ffmpeg`: 8.1 auf 9.0.2 (die alte Fassung suchte `libx265.215`, installiert war `libx265.217`); `ffmpeg -version` startet, 2026-10-09 16:51 |
+| Video-Export einmal ausgeführt | `node export-video.js` in `scripts/video-export`, 16:57 bis 17:01: Rückgabewert 0, „Aufnahme beendet nach 165.0s"; `ffprobe`: h264 und aac, 2160 × 4680, 169 s; dazu die FHD-Fassung. Sichtprüfung an sechs Einzelbildern (8, 25, 60, 85, 125, 160 s): Handy bildfüllend, keine Steuerleiste im Bild, wie im Video vom 2026-05-16. Die zwei alten Videos liegen als Kopie in `output/sicherung-2026-05-16/` (bytegleich geprüft). Der erste Versuch brach ab, weil der Anschluss 8765 von einem fremden Programm belegt war (`server.py 8765`, nicht aus diesem Projekt); der Lauf nutzte deshalb eine Wegwerfkopie des Skripts mit Anschluss 8791. Das fremde Programm blieb unberührt |
+| Drei Vorschläge von Dependabot | je Versionshinweise gelesen, Änderung und Bezugsquellen geprüft, Pipeline auf dem neu aufgesetzten Vorschlag grün, dann `gh pr merge`: Nr. 2 `actions/checkout` 7.0.0 auf 7.0.1 (festgeschriebene Kennung gleich der Markierung `v7.0.1`); Nr. 4 Playwright 1.61.1 auf 1.63.0 in `scripts/video-export`; Nr. 6 im Wurzelverzeichnis `@axe-core/playwright` 4.13.0, ESLint 10.12.0, `globals` 17.13.0, Playwright 1.63.0, Prettier 3.9.9, dazu acht neue und zwei entfallene Unterpakete, alle 22 Bezugsquellen `registry.npmjs.org`. Zusammengeführt um 17:02 (`95198ef`, `708c5cf`, `a9c8cb3`). Danach am Stand `a9c8cb3`, 17:03 bis 17:07: `npm run lint` 0; QUnit 2229/2229; Ablauftest 356 „ok", 0 „FAIL"; `npm run test:ios` 22 „ok"; `npm audit` zweimal 0; `verify-live.sh` Rückgabewert 0 (die Seite ist unverändert); Pipeline-Lauf 37948757684 success |
+| Alter Zweig `feat/beamer-ansicht` | vorher: `git rev-list --count origin/main..origin/feat/beamer-ansicht` ergibt 0. Gelöscht auf GitHub und lokal um 16:56; `git ls-remote origin refs/heads/feat/beamer-ansicht` liefert 0 Zeilen, derselbe Befehl für `main` 1 Zeile |
 
 ## Auslieferung von v2.0.0
 
