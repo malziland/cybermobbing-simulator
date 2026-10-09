@@ -1,7 +1,7 @@
 # Übergabe: Version 2.0.2 — Handy ohne Leiste, Dreh-Hinweis im Querformat
 
-Stand: 2026-10-09 · Modus FEATURE · Stufe STANDARD · Abgabekontrolle selbst
-abgenommen · Vorgänger: `docs/handover/2026-10-09-handy-leiste.md` (v2.0.1)
+Stand: 2026-10-09 · Modus FEATURE · Stufe STANDARD · von einer zweiten Instanz
+abgenommen (Abschnitt 4a) · Vorgänger: `docs/handover/2026-10-09-handy-leiste.md` (v2.0.1)
 
 Alle Zahlen, Befehle und Gegenproben stehen in `docs/VERIFICATION.md`,
 Abschnitt „Version 2.0.2"; hier stehen sie nicht noch einmal.
@@ -88,8 +88,13 @@ Zwei Bestandsfehler aus dem Bericht der Abnahme (in v2.0.1 genauso):
 
 - Tab-Taste im Lauf schob den Handy-Bildschirm weg: behoben (vier rollbare
   Bereiche aus der Tab-Folge genommen), Prüfung „24 times Tab during the run".
-- Startbildschirm am Handy, wenn der Zähler nicht lädt: „Simulation teilen"
-  überdeckt die Zeile darunter um 7 Pixel. Nicht behoben; siehe Abschnitt 6.
+- Startbildschirm ohne Zähler: Die Zeile „Ein Open-Source-Bildungsprojekt"
+  rutschte 7 Pixel unter „Simulation teilen", am Rechner wie am Handy.
+  Behoben (der Abstand gehört jetzt zur Zähler-Zeile), Prüfung „with the
+  counter gone the credit line stays … below the share button".
+
+Die zweite Instanz hat alle neun Punkte am Stand `ac26a5e` nachgemessen: alle
+behoben, nichts neu kaputt.
 
 ## 5. Auffälligkeiten außerhalb des Auftrags
 
@@ -106,11 +111,7 @@ Zwei Bestandsfehler aus dem Bericht der Abnahme (in v2.0.1 genauso):
    stützt sich dort auf die Kennung des Browsers, wie Google sie beschreibt;
    gemessen ist kein Android-Gerät. Prüfbar an einem Gerät. Wird ein Tablet als
    Handy eingeordnet oder umgekehrt, steht die Regel in ADR-0008 wieder an.
-3. **Entscheidung: Startbildschirm am Handy ohne Zähler.** Lädt der Zähler
-   nicht (gesperrtes Netz), überdeckt „Simulation teilen" die Zeile darunter um
-   7 Pixel; in v2.0.1 genauso. Empfehlung: als eigene kleine Änderung beheben.
-   Ohne Entscheidung bleibt es so.
-4. **Unverändert offen** aus der Übergabe zu v2.0.1: alte Hosting-Releases in
+3. **Unverändert offen** aus der Übergabe zu v2.0.1: alte Hosting-Releases in
    der Firebase-Konsole löschen (Betreiber); Saal, Ton und Windows-Rechner vor
    Ort; voller Ablauftest in einer zweiten Browser-Technik.
 
