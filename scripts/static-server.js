@@ -24,11 +24,14 @@ const MIME = {
 /**
  * Starts a static server for `root`.
  * @param {string} root - Absolute directory to serve
+ * @param {Function} [intercept] - Called first with (req, res, urlPath); if it
+ *   returns true it has answered the request itself (scripts/check-ios.js)
  * @returns {Promise<{port: number, close: Function}>}
  */
-function createStaticServer(root) {
+function createStaticServer(root, intercept) {
   const server = http.createServer(function (req, res) {
     const urlPath = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+    if (intercept && intercept(req, res, urlPath)) return;
     const filePath = path.normalize(path.join(root, urlPath === '/' ? '/index.html' : urlPath));
     if (!filePath.startsWith(root)) {
       res.writeHead(403);

@@ -15,6 +15,7 @@
     "format": "prettier --write \"js/**/*.js\" \"tests/**/*.js\" \"scripts/*.js\"",
     "test": "node scripts/run-tests.js",
     "test:e2e": "node scripts/run-e2e.js",
+    "test:ios": "node scripts/check-ios.js",
     "dev": "firebase emulators:start --only hosting --project cybermobbing",
     "cache-bust": "bash scripts/cache-bust.sh",
     "predeploy": "bash scripts/cache-bust.sh",

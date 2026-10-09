@@ -107,12 +107,17 @@ body.sim-ended .ctl-play.hidden{display:flex;opacity:.3;pointer-events:none}
    end state. Not animation:none -- phone entries start invisible and only become
    visible through their fade-in. */
 body.scrubbing #phone *,body.scrubbing #stage *,body.scrubbing #aCta *,body.scrubbing #toast{animation-duration:0s!important;animation-delay:0s!important;transition-duration:0s!important;transition-delay:0s!important}
+/* During any jump (click, key, drag) the large messages take their final
+   state without a transition; simSeek() sets the class, ctlSettle() removes it. */
+body.jumping #stage *{transition-duration:0s!important;transition-delay:0s!important}
 /* While the bar is shown it carries the legal notice link (wide windows) */
 body.sim-running .impr-link-bar,body.sim-ended .impr-link-bar{display:none}
 
 /* ===== PHONE ===== */
-/* In low windows (a phone held sideways) the phone ends above the control bar */
-.phone{position:fixed;top:calc(50% - 20px);left:50%;transform:translate(-50%,-50%);width:393px;height:852px;max-width:96vw;max-height:min(88vh,calc(100vh + 40px - 2*(var(--bar-bottom) + var(--bar-h) + 2px)));background:#000;border-radius:55px;border:4px solid #1a1a1a;overflow:hidden;z-index:1000;box-shadow:0 0 0 2px #000,0 40px 80px rgba(0,0,0,.6)}
+/* The phone ends above the control bar. Its height is given in percent of the
+   window, never in vh: on phones vh is the height with the browser's own bars
+   retracted, which is more than what can be seen. */
+.phone{position:fixed;top:calc(50% - 20px);left:50%;transform:translate(-50%,-50%);width:393px;height:852px;max-width:96vw;max-height:min(88%,calc(100% + 40px - 2*(var(--bar-bottom) + var(--bar-h) + 2px)));background:#000;border-radius:55px;border:4px solid #1a1a1a;overflow:hidden;z-index:1000;box-shadow:0 0 0 2px #000,0 40px 80px rgba(0,0,0,.6)}
 .phone .di{display:none}
 .phone .sb{position:absolute;top:0;left:0;right:0;height:54px;z-index:400;display:flex;justify-content:space-between;align-items:flex-start;padding:14px 28px 0;font-size:15px;font-weight:600;color:#fff}
 .phone .sb .r{display:flex;align-items:center;gap:5px;font-size:12px}
@@ -310,11 +315,6 @@ body.sim-running .toast{bottom:calc(var(--bar-bottom) + var(--bar-h) + 10px)}
   gap:16px;padding:40px 30px 12px;
   overflow-y:auto;justify-content:safe center;
 }
-@media (max-height:480px){
-  .cta-screen{gap:8px;padding-top:12px}
-  .cta-logo img{height:28px}
-  .fin-buttons{gap:6px}
-}
 /* After a run the control bar stays on the help page: the disclaimer sits above it */
 body.sim-ended .cta-screen{bottom:calc(var(--bar-bottom) + var(--bar-h) + var(--disc-h,44px) + 12px)}
 body.sim-ended .disclaimer{bottom:calc(var(--bar-bottom) + var(--bar-h) + 6px)}
@@ -369,6 +369,29 @@ body.sim-ended .disclaimer{bottom:calc(var(--bar-bottom) + var(--bar-h) + 6px)}
   font-size:11px;color:#fe2c55;font-variant-numeric:tabular-nums;
 }
 .fin-views span{color:#fe2c55;font-weight:600}
+
+/* These rules stand after the ones they change; before them they would lose. */
+/* Low windows (960 x 540, an 800 x 600 projector): tighter spacing, so that the
+   page with logo, two links and both buttons fits without scrolling. The second
+   rule is for the projector view in 4:3 windows, where the bar sits at the
+   stage and leaves less room below. Lower still, the page scrolls. */
+@media (max-height:600px){
+  .cta-screen{gap:10px;padding-top:14px}
+  .cta-logo img{height:32px}
+  .fin-actions{margin-top:4px}
+  .fin-buttons{gap:6px}
+}
+@media (max-height:680px) and (max-aspect-ratio:3/2){
+  body.beamer.sim-ended .cta-screen{gap:10px;padding-top:14px}
+  body.beamer.sim-ended .cta-logo img{height:32px}
+  body.beamer.sim-ended .fin-actions{margin-top:4px}
+  body.beamer.sim-ended .fin-buttons{gap:6px}
+}
+@media (max-height:480px){
+  .cta-screen{gap:8px;padding-top:12px}
+  .cta-logo img{height:28px}
+  .fin-buttons{gap:6px}
+}
 
 /* ===== GLOBAL DISCLAIMER ===== */
 .disclaimer{
@@ -476,7 +499,7 @@ body.sim-ended .disclaimer{bottom:calc(var(--bar-bottom) + var(--bar-h) + 6px)}
 /* Phone frame for impressum */
 .imp-phone{
   width:393px;height:750px;
-  max-width:92vw;max-height:88vh;
+  max-width:92vw;max-height:88%; /* percent of the dialog, i.e. of the visible window (not vh) */
   background:#000;
   border-radius:50px;border:3px solid #222;
   overflow:hidden;position:relative;
@@ -602,7 +625,11 @@ body.sim-ended .disclaimer{bottom:calc(var(--bar-bottom) + var(--bar-h) + 6px)}
    fitted into the window), so resolution and browser zoom do not change the
    proportions. --st-text is the one knob for the message size: 3.5 gives
    capital letters of about 4.4% of the stage height. */
-:root{--u:min(1vw,1.7778vh)}
+/* --wh is the height of the window as it can be seen. On tablets and phones
+   100vh is more than that (the height with the browser's own bars retracted);
+   100dvh is the visible height. Browsers without dvh keep vh. */
+:root{--u:min(1vw,1.7778vh);--wh:100vh}
+@supports (height:100dvh){:root{--u:min(1vw,1.7778dvh);--wh:100dvh}}
 /* Legal notice link below the start and help screen: grows with the window
    but never falls below a size that works on a phone. */
 :root{--ctl-impr:max(15px,calc(var(--u)*1.2));--ctl-bottom:3px}
@@ -622,7 +649,7 @@ body.stage-live .toast{display:none}
    and is scaled as a whole; the factor comes from stageFit() in js/stage.js. */
 body.stage-live .phone{
   left:calc((100vw - var(--u)*100)/2 + var(--u)*2);
-  top:calc((100vh - var(--u)*56.25)/2 + var(--u)*1.6);
+  top:calc((var(--wh) - var(--u)*56.25)/2 + var(--u)*1.6);
   max-width:none;max-height:none;
   transform:scale(var(--st-phone-k,1));transform-origin:0 0;z-index:1600;
 }
@@ -753,7 +780,7 @@ body.stage-live .phone{
    stage, purely proportional. The minimum sizes of the phone view do not apply
    here, otherwise browser zoom would change the proportions. */
 /* The bar keeps these measures on the help page, so it does not move when the run ends */
-body.stage-live,body.beamer.sim-ended{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(var(--u)*1.35);--bar-side:calc((100vw - var(--u)*100)/2 + var(--u)*2);--bar-bottom:calc((100vh - var(--u)*56.25)/2 + var(--u)*.8)}
+body.stage-live,body.beamer.sim-ended{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(var(--u)*1.35);--bar-side:calc((100vw - var(--u)*100)/2 + var(--u)*2);--bar-bottom:calc((var(--wh) - var(--u)*56.25)/2 + var(--u)*.8)}
 
 /* Photo scribbles: same positions as in the phone, sizes relative to the stage */
 .stage .photo-wrap .e{text-shadow:calc(var(--u)*.12) calc(var(--u)*.12) calc(var(--u)*.3) rgba(0,0,0,.8)}
@@ -777,18 +804,18 @@ body.stage-live,body.beamer.sim-ended{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(v
 /* ===== NARROW WINDOWS =====
    Up to 900px: no volume slider in the phone view, the timeline needs the room
    (the sound button stays; the projector view scales as a whole and keeps it).
-   Up to 700px: the phone version -- no projector view and no switches for it
-   (STAGE_MIN_WIDTH in js/stage.js is the same limit). */
+   Up to 700px, and on a phone held sideways (see PHONES below): the phone
+   version -- no projector view and no switches for it (stageFits() in
+   js/stage.js follows the same rule). */
 @media (max-width:900px){
   body:not(.stage-live) .ctl-sound input{display:none}
 }
-@media (max-width:700px){
+@media (max-width:700px),(pointer:coarse) and (max-height:500px){
   .view-pick,.beamer-hint,.ctl-view,.ctl-view + .ctl-sep{display:none}
 }
 
 /* ===== MOBILE ===== */
 @media (max-width:500px){
-  .phone{max-height:85vh!important;top:calc(50% - 20px)!important}
   #start{padding-bottom:22px}
   .start-share{padding:4px 10px!important;font-size:10px!important}
   .start-views{margin-bottom:15px}
@@ -798,7 +825,7 @@ body.stage-live,body.beamer.sim-ended{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(v
   .hs-notifs{top:180px;bottom:100px}
   .hs-dock{bottom:16px;gap:10px}
   .hs-ai img{width:54px;height:54px;border-radius:12px}
-  .imp-phone{max-height:72vh;max-width:85vw;border-radius:32px;border-width:2px}
+  .imp-phone{max-height:72%;max-width:85vw;border-radius:32px;border-width:2px}
   .imp-phone .imp-scroll{padding:0 14px 20px}
   .imp-phone .imp-scroll h2{font-size:1.2rem;margin:12px 0 4px}
   .imp-statusbar{height:40px;padding:0 22px 5px;font-size:13px}
@@ -808,10 +835,18 @@ body.stage-live,body.beamer.sim-ended{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(v
   .imp-notice p{font-size:.76rem}
   .imp-close-btn{padding:10px 30px;font-size:.85rem;margin-top:14px}
   .imp-home-indicator{margin:12px auto 0;width:100px;height:4px}
-  /* Control bar on phones: pause, progress and sound only. Jumping is off
-     there (js/controls.js), the legal notice stays as a line below the bar. */
+}
+
+/* ===== PHONES =====
+   A phone is a window up to 500px wide, or a device operated by finger whose
+   window is up to 500px high (a phone held sideways). ctlSeekAllowed() in
+   js/controls.js follows the same rule. On a phone the bar is short: pause,
+   progress and sound only. Jumping is off, the legal notice stays as a line
+   below the bar, and the phone sits centred in the room above the bar. */
+@media (max-width:500px),(pointer:coarse) and (max-height:500px){
   :root{--bar-h:36px;--bar-bottom:calc(var(--ctl-bottom) + var(--ctl-impr)*1.25 + 6px)}
   .ctl-bar{gap:calc(var(--bar-h)*.24)}
   .ctl-scene,.ctl-sep,.ctl-sound input,.ctl-impr,.ctl-knob,.ctl-tip{display:none!important}
   body.sim-running .impr-link-bar,body.sim-ended .impr-link-bar{display:block}
+  .phone{top:calc((100% - var(--bar-bottom) - var(--bar-h))/2);max-height:calc(100% - var(--bar-bottom) - var(--bar-h) - 16px)}
 }

@@ -101,13 +101,16 @@ function ctlSnap(t) {
 }
 
 /**
- * Jumping is offered on wide windows only. Up to and including 500 CSS
- * pixels of width (the same limit the phone styles use) the timeline just
- * shows the progress, so the run cannot be skipped on a phone.
+ * Jumping is not offered on a phone: there the timeline just shows the
+ * progress. A phone is a window up to and including 500 CSS pixels wide, or a
+ * device operated by finger whose window is up to and including 500 pixels
+ * high (a phone held sideways). Tablets and computers may jump, whatever the
+ * size of their window. The phone styles in css/styles.css use the same rule.
  * @returns {boolean} True if the timeline may be used to jump
  */
 function ctlSeekAllowed() {
-  return !(window.matchMedia && window.matchMedia('(max-width:500px)').matches);
+  if (!window.matchMedia) return true;
+  return !window.matchMedia('(max-width:500px),(pointer:coarse) and (max-height:500px)').matches;
 }
 
 // ========== RESTART AND JUMP ==========
@@ -186,6 +189,11 @@ function ctlSettle() {
     }
     // Everything has its final height now: make sure no message is cut off
     stageFitLists();
+    // The final state is laid out: from here on transitions may run again.
+    // Safari would otherwise dim and fold the older messages for 0.4 s after
+    // every jump, although they already belong to the past.
+    void document.body.offsetHeight;
+    document.body.classList.remove('jumping');
   });
 }
 
@@ -201,6 +209,8 @@ function simSeek(t, hold) {
   if (!simStarted) return;
   // Tells the stage that what follows is a jump (cleared in ctlSettle())
   stageJumping = true;
+  // Until then the large messages take their state without transitions (css/styles.css)
+  document.body.classList.add('jumping');
   var n = Number(t);
   var target = isNaN(n) ? 0 : Math.min(Math.max(n, 0), CTL_TOTAL);
   // The help page has no pause and nothing left to wait for: a jump into its
