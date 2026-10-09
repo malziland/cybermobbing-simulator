@@ -2040,12 +2040,32 @@ function missingOnStage(keys) {
       var r = document.querySelector('.impr-link-bar .impr-link').getBoundingClientRect();
       return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     });
+    // Every click this tap produces is written down: one engine was seen to
+    // close the notice again right after opening it
+    await p.evaluate(function () {
+      window.e2eClicks = [];
+      document.addEventListener(
+        'click',
+        function (e) {
+          window.e2eClicks.push(
+            (e.target.id || e.target.className || e.target.tagName) +
+              '@' +
+              Math.round(performance.now())
+          );
+        },
+        true
+      );
+    });
     await p.touchscreen.tap(legalSpot.x, legalSpot.y);
     // Wait for the state instead of a fixed time: a slow machine needs longer
     const legalShown = function (want) {
       return document.getElementById('impModal').classList.contains('show') === want;
     };
     await p.waitForFunction(legalShown, true, { timeout: 5000 }).catch(function () {});
+    await p.waitForTimeout(400);
+    const tapClicks = await p.evaluate(function () {
+      return window.e2eClicks.join(', ');
+    });
     await turn(p, 874, 340);
     await p.keyboard.press('Escape');
     const escaped = await p.evaluate(sidewaysState);
@@ -2076,6 +2096,8 @@ function missingOnStage(keys) {
         closed.legalOpen +
         ', paused ' +
         closed.paused +
+        '; clicks of the tap: ' +
+        tapClicks +
         ')'
     );
 
