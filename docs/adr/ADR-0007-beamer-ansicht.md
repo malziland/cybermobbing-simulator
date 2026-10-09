@@ -52,14 +52,23 @@ Es gibt eine zweite Darstellung desselben Ablaufs, die **Beamer-Ansicht**:
   `localStorage`-Wert hinzu. Der Teilen-Knopf gibt den Link ohne diesen Zusatz
   weiter.
 - **Erst ab 701 CSS-Pixel Fensterbreite** (einschließlich; 700 Pixel hat sie
-  nicht) gibt es die Beamer-Ansicht und ihre Umschalter. Darunter ist die Seite
-  die Handy-Fassung, auch wenn die Beamer-Ansicht gewählt oder im Link
-  angegeben ist: Kacheln und Umschalter fehlen, die Taste B tut nichts. Die Wahl
-  bleibt erhalten und gilt wieder, sobald das Fenster breiter wird. Die Grenze
-  liegt bewusst niedrig, damit alte Beamer (800 × 600, oder 1024 × 768 bei
-  125 % Skalierung) die Beamer-Ansicht behalten. Sie steht an zwei Stellen:
-  als `STAGE_MIN_WIDTH` in `js/stage.js` und als `max-width:700px` in
-  `css/styles.css`; der Ablauftest prüft beide Seiten der Grenze.
+  nicht) **und nie am Handy** gibt es die Beamer-Ansicht und ihre Umschalter.
+  Sonst ist die Seite die Handy-Fassung, auch wenn die Beamer-Ansicht gewählt
+  oder im Link angegeben ist: Kacheln und Umschalter fehlen, die Taste B tut
+  nichts. Die Wahl bleibt erhalten und gilt wieder, sobald das Fenster breiter
+  wird. Die Grenze liegt bewusst niedrig, damit alte Beamer (800 × 600, oder
+  1024 × 768 bei 125 % Skalierung) die Beamer-Ansicht behalten. Ein quer
+  gehaltenes Handy ist breiter als 700 Pixel und hatte die Beamer-Ansicht bis
+  v2.0.0, mit Knöpfen von 17 bis 18 Pixel; seit dem 2026-10-09 gilt dort die
+  Regel für Handys aus ADR-0008. Beides entscheidet `stageFits()` in
+  `js/stage.js`, im Stylesheet dieselbe Medienabfrage; der Ablauftest prüft
+  beide Seiten der Grenzen.
+- **Höhen folgen der sichtbaren Fensterhöhe.** Auf Tablets und Handys ist
+  `100vh` die Höhe mit eingefahrenen Browserleisten, also mehr, als zu sehen
+  ist. Die Beamer-Ansicht rechnet deshalb mit `--wh` und `--u` (beide aus
+  `dvh`, mit `vh` als Rückfall für ältere Browser), das Handy mit Prozent des
+  Fensters. Bis v2.0.0 saßen Leiste und Handy am Tablet versetzt, und am Handy
+  lag die Leiste über dem unteren Rand des nachgebauten Handys.
 - **Nicht eigens groß gezeigt** wird reine Dekoration der App-Oberflächen:
   Statusleiste, Eingabe- und Navigationsleisten, Uhrzeiten und Lesehäkchen an
   Nachrichten, die Datumsmarke im Chat. Sie sind im Handy links zu sehen.

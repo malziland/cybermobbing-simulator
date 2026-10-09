@@ -4,6 +4,26 @@ Alle relevanten Änderungen an diesem Projekt werden hier dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) und folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [Unveröffentlicht]
+
+Behebung für Smartphones und Tablets. Den Fehler hat der Betreiber am Tag der
+Auslieferung von 2.0.0 am eigenen Handy gefunden. Nachweise in
+`docs/VERIFICATION.md`.
+
+### Behoben
+- **Am Smartphone lag die Steuerleiste über dem unteren Rand des nachgebauten Handys** (neu seit 2.0.0): Die Eingabeleiste der Chats und die Menüleisten der Apps waren teilweise bis fast ganz verdeckt. Ursache: Die Höhe des Handys war als Anteil der Fensterhöhe (`vh`) angegeben. Handy-Browser rechnen dabei mit eingefahrener Adressleiste; sichtbar ist weniger. Das Handy richtet sich jetzt nach der sichtbaren Höhe und sitzt mittig über der Leiste
+- **Beamer-Ansicht am Tablet:** Leiste und Handy saßen aus demselben Grund versetzt zur Bildfläche. Die Beamer-Ansicht misst jetzt die sichtbare Höhe (mit Rückfall für ältere Browser), ebenso der Rahmen des Impressums
+- **Beamer-Ansicht in Safari:** Nach einem Sprung dunkelten ältere Nachrichten 0,4 Sekunden lang ab und verdrängte klappten sichtbar zusammen, statt sofort zu stehen
+- **Letzte Seite in niedrigen Fenstern** (960 × 540, Beamer mit 800 × 600): Logo, Links, Text und beide Knöpfe passen ohne Rollen. Zwei ältere Regeln für sehr niedrige Fenster standen im Stylesheet an einer Stelle, an der sie nicht wirkten; sie greifen jetzt
+- **Datenschutztext:** Er nannte zwei Werte im Browserspeicher, darunter die gewählte Sprache. Gespeichert wird nur die Tagesmarke des Zählers. Der Satz ist berichtigt, und die Seite liest keinen Sprachwert mehr aus dem Speicher
+
+### Geändert
+- **Am Handy gibt es kein Springen auf der Zeitleiste und keine Beamer-Ansicht, egal wie es gehalten wird** (Entscheidung des Betreibers vom 2026-10-09). Bisher hing beides an der Fensterbreite: Ein quer gehaltenes Handy konnte springen und die Beamer-Ansicht wählen, ein hochkant gehaltenes nicht. Als Handy gilt ein Fenster bis 500 Pixel Breite oder ein Gerät mit Fingerbedienung, dessen Fenster höchstens 500 Pixel hoch ist. Tablets und Rechner sind nicht betroffen (`docs/adr/ADR-0008`)
+
+### Hinzugefügt
+- Prüfung in echtem mobilem Safari: `npm run test:ios` (`scripts/check-ios.js`) misst die Seite im iPhone- und iPad-Simulator von Xcode. Sie gehört zu den Prüfungen vor jeder Auslieferung (`docs/RUNBOOK.md`)
+- Der Ablauftest prüft Handys in den Fenstergrößen, die ein Handy-Browser tatsächlich zeigt, mit Fingerbedienung hochkant und quer, dazu Tablets; ein Abschnitt läuft zusätzlich in der Safari-Technik (WebKit)
+
 ## [2.0.0] - 2026-10-09
 
 Neue Bedienung: Beamer-Ansicht und Steuerleiste mit Zeitleiste. Die Versionsnummer

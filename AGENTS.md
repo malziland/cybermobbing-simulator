@@ -8,6 +8,7 @@ npm run lint           # ESLint + Prettier-Check
 npm run format         # Prettier schreibend (nur js/, tests/, scripts/)
 npm run test           # QUnit-Suite headless (Playwright/Chromium)
 npm run test:e2e       # E2E + axe-core (braucht kein js/config.js)
+npm run test:ios       # iPhone und iPad im Simulator, echtes Safari (nur Mac mit Xcode)
 npm run dev            # lokale Vorschau (Firebase-Hosting-Emulator, Port 5000)
 npm run deploy         # NUR nach ausdrücklicher Betreiber-Freigabe
 bash setup.sh          # lädt App-Icons (einmalig, nicht im Repo)
@@ -61,6 +62,17 @@ bash setup.sh          # lädt App-Icons (einmalig, nicht im Repo)
   unsichtbar und werden erst durch ihre Einblendung sichtbar. Ein Test, der nur
   zählt, ob ein Element da ist, übersieht ein leeres Handy.
 - Die Leiste zeigt keine Zeiten (ADR-0008).
+- Höhen nie in `vh`: Auf Handys und Tablets ist `100vh` mehr, als zu sehen ist
+  (Höhe mit eingefahrener Browserleiste). Fest platzierte Teile bekommen
+  Prozent des Fensters, die Beamer-Ansicht rechnet mit `--wh` und `--u`. Die
+  Testbrowser zeigen den Unterschied nicht; der Ablauftest liest deshalb die
+  Regeln, und `npm run test:ios` misst in echtem Safari.
+- Handy prüfen heißt: Fenstergrößen, wie sie der Handy-Browser zeigt (niedriger
+  als das Gerät, weil seine Leisten abgehen), mit Fingerbedienung, hochkant und
+  quer. Gerätemaße wie 393 × 852 sind kein Handy-Test.
+- Was als Handy gilt, steht in ADR-0008 und an drei Stellen im Code, die gleich
+  lauten müssen: Abschnitt „PHONES" in `css/styles.css`, `ctlSeekAllowed()`,
+  `stageFits()`. Am Handy gibt es kein Springen und keine Beamer-Ansicht.
 
 ## Wo was steht
 

@@ -22,6 +22,13 @@
  *  10. Layout: the control bar is the same in both views, nothing overlaps
  *      or sticks out in several window sizes and zoom levels, the start
  *      screen has no overlaps, and wider fallback fonts do not cut messages.
+ *  11. Phones (ADR-0008): in the window sizes a phone browser really shows,
+ *      operated by finger, upright and sideways, the phone ends above the
+ *      bar, nothing jumps and there is no projector view; tablets keep both.
+ *      No height rule of the phone hangs on vh (see scripts/check-ios.js for
+ *      the measurement in real mobile Safari).
+ *  12. A second browser engine (WebKit) for what Chromium cannot show: the
+ *      state of the stage in the first frame after a jump, the phone layout.
  *
  * Hermetic setup: js/config.js is replaced by js/config.example.js via route
  * interception, and all firebaseio/googleapis requests are blocked, so the
@@ -32,7 +39,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { chromium } = require('playwright');
+const { chromium, webkit } = require('playwright');
 const AxeBuilder = require('@axe-core/playwright').default;
 const { createStaticServer } = require('./static-server');
 
@@ -73,6 +80,23 @@ async function axeScan(page, includeSelector, label) {
     });
   });
 }
+
+/**
+ * A phone, as the page defines it (ADR-0008): a window up to 500 px wide, or a
+ * device operated by finger whose window is up to 500 px high (a phone held
+ * sideways). Limits inclusive. Tablets and computers are not phones.
+ */
+function isPhone(width, height, touch) {
+  return width <= 500 || (!!touch && height <= 500);
+}
+
+/**
+ * A configuration like the live one: the help page gets a logo and two links
+ * (the example configuration has no logo and one link).
+ */
+const liveLikeConfig =
+  fs.readFileSync(path.join(__dirname, '..', 'js', 'config.example.js'), 'utf8') +
+  "\nhelplineConfig = { logo: 'assets/sticker.png', logoAlt: 'Logo', link: 'https://example.org/', linkLabel: 'example.org', infoLink: 'https://example.org/info', infoLabel: 'Weitere Infos', slogan: 'Slogan' };\n";
 
 /** Placeholder config instead of the real one, no Firebase traffic. */
 async function makeHermetic(context) {
@@ -1616,62 +1640,91 @@ function missingOnStage(keys) {
   await seekPage.close();
 
   console.log('E2E: timeline - on a phone it only shows the progress');
-  const phoneCtx = await browser.newContext({
-    locale: 'de-DE',
-    viewport: { width: 393, height: 852 },
-  });
-  await makeHermetic(phoneCtx);
-  const phonePage = await phoneCtx.newPage();
-  phonePage.on('pageerror', function (err) {
-    pageErrors.push(String(err));
-  });
-  await phonePage.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
-  await phonePage.click('#startBtn');
-  await phonePage.waitForSelector('#aWa.on', { timeout: 5000 });
-  await phonePage.evaluate(function () {
-    window.togglePause();
-  });
-  const narrow = await phonePage.evaluate(function () {
-    var r = document.getElementById('ctlTrack').getBoundingClientRect();
-    var seek = document.getElementById('ctlSeek');
-    return {
-      x: r.left + r.width * 0.6,
-      y: r.top + r.height / 2,
-      role: seek.getAttribute('role'),
-      tabIndex: seek.tabIndex,
-      knob: getComputedStyle(document.querySelector('.ctl-knob')).display,
-      viewPicker: getComputedStyle(document.querySelector('.ctl-view')).display,
-      before: window.sec,
-    };
-  });
-  await phonePage.mouse.click(narrow.x, narrow.y);
-  const narrowAfter = await phonePage.evaluate(function () {
-    return { sec: window.sec, app: document.querySelector('#phone .app.on').id };
-  });
-  check(
-    narrow.role === 'progressbar' &&
-      narrow.tabIndex === -1 &&
-      narrow.knob === 'none' &&
-      narrow.viewPicker === 'none' &&
-      narrowAfter.app === 'aWa' &&
-      narrowAfter.sec === narrow.before,
-    '393 px wide: timeline is a progress display, a tap does not jump, no view picker'
-  );
-  const phoneImpr = await phonePage.evaluate(function () {
-    var el = document.getElementById('impLinkGlobal');
-    var r = el.getBoundingClientRect();
-    var top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-    return { w: r.width, h: r.height, onTop: !!top && (top === el || el.contains(top)) };
-  });
-  check(
-    phoneImpr.w > 20 && phoneImpr.h > 10 && phoneImpr.onTop,
-    '393 px wide: the legal notice below the bar is there during the run and can be tapped'
-  );
-  await phoneCtx.close();
+  for (const dev of [
+    [393, 852, false, '393 px wide'],
+    [402, 655, true, 'phone 402x655 (touch)'],
+    [852, 393, true, 'phone held sideways 852x393 (touch)'],
+    [874, 340, true, 'phone held sideways 874x340 (touch)'],
+    [900, 500, true, 'touch device 900x500'],
+  ]) {
+    const phoneCtx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: dev[0], height: dev[1] },
+      hasTouch: dev[2],
+    });
+    await makeHermetic(phoneCtx);
+    const phonePage = await phoneCtx.newPage();
+    phonePage.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await phonePage.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+    await phonePage.click('#startBtn');
+    await phonePage.waitForSelector('#aWa.on', { timeout: 5000 });
+    await phonePage.evaluate(function () {
+      window.togglePause();
+    });
+    const narrow = await phonePage.evaluate(function () {
+      var r = document.getElementById('ctlTrack').getBoundingClientRect();
+      var seek = document.getElementById('ctlSeek');
+      return {
+        x: r.left + r.width * 0.6,
+        y: r.top + r.height / 2,
+        role: seek.getAttribute('role'),
+        tabIndex: seek.tabIndex,
+        knob: getComputedStyle(document.querySelector('.ctl-knob')).display,
+        viewPicker: getComputedStyle(document.querySelector('.ctl-view')).display,
+        before: window.sec,
+      };
+    });
+    if (dev[2]) await phonePage.touchscreen.tap(narrow.x, narrow.y);
+    else await phonePage.mouse.click(narrow.x, narrow.y);
+    await phonePage.evaluate(function () {
+      document
+        .getElementById('ctlSeek')
+        .dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    });
+    await phonePage.keyboard.press('b');
+    const narrowAfter = await phonePage.evaluate(function () {
+      return {
+        sec: window.sec,
+        app: document.querySelector('#phone .app.on').id,
+        beamer: document.body.classList.contains('beamer'),
+      };
+    });
+    check(
+      narrow.role === 'progressbar' &&
+        narrow.tabIndex === -1 &&
+        narrow.knob === 'none' &&
+        narrow.viewPicker === 'none' &&
+        narrowAfter.app === 'aWa' &&
+        narrowAfter.sec === narrow.before &&
+        !narrowAfter.beamer,
+      dev[3] +
+        ': timeline is a progress display; a tap, the End key and the B key do nothing; no view picker' +
+        ' (role ' +
+        narrow.role +
+        ', knob ' +
+        narrow.knob +
+        ', picker ' +
+        narrow.viewPicker +
+        ')'
+    );
+    const phoneImpr = await phonePage.evaluate(function () {
+      var el = document.getElementById('impLinkGlobal');
+      var r = el.getBoundingClientRect();
+      var top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return { w: r.width, h: r.height, onTop: !!top && (top === el || el.contains(top)) };
+    });
+    check(
+      phoneImpr.w > 20 && phoneImpr.h > 10 && phoneImpr.onTop,
+      dev[3] + ': the legal notice below the bar is there during the run and can be tapped'
+    );
+    await phoneCtx.close();
+  }
 
   // ---------- Layout ----------
   /** True if no two rectangles of the list overlap and all lie inside `box`. */
-  function layoutProbe() {
+  function layoutProbe(phoneDevice) {
     function rect(sel) {
       var el = document.querySelector(sel);
       if (!el || getComputedStyle(el).display === 'none') return null;
@@ -1735,7 +1788,7 @@ function missingOnStage(keys) {
         bottom: bar.bottom,
         height: bar.height,
       },
-      wantHeight: window.innerWidth <= 500 ? 36 : Math.max(40, unit * 3.6),
+      wantHeight: window.innerWidth <= 500 || phoneDevice ? 36 : Math.max(40, unit * 3.6),
       scrollbars:
         document.documentElement.scrollWidth > window.innerWidth ||
         document.documentElement.scrollHeight > window.innerHeight,
@@ -1834,11 +1887,19 @@ function missingOnStage(keys) {
     [701, 800, '?beamer=1', true],
     [700, 800, '?beamer=1', false],
     [393, 852, '?beamer=1', false],
+    // operated by finger: a phone held sideways is a phone, a tablet is not
+    [852, 393, '', false, true],
+    [852, 393, '?beamer=1', false, true],
+    [900, 500, '?beamer=1', false, true],
+    [900, 501, '?beamer=1', true, true],
+    [1133, 744, '?beamer=1', true, true],
+    [744, 1133, '?beamer=1', true, true],
   ];
   for (const probe of tileProbes) {
     const ctx = await browser.newContext({
       locale: 'de-DE',
       viewport: { width: probe[0], height: probe[1] },
+      hasTouch: !!probe[4],
     });
     await makeHermetic(ctx);
     const p = await ctx.newPage();
@@ -1857,7 +1918,7 @@ function missingOnStage(keys) {
     check(
       shown.tiles === probe[3] && shown.beamer === (probe[3] && !!probe[2]),
       probe[0] +
-        ' px wide' +
+        (probe[4] ? 'x' + probe[1] + ' touch' : ' px wide') +
         (probe[2] ? ' with ' + probe[2] : '') +
         ': view tiles are ' +
         (probe[3] ? 'shown' : 'hidden') +
@@ -1882,14 +1943,35 @@ function missingOnStage(keys) {
     [500, 800],
     [393, 852],
     [375, 667],
-    // phones held sideways
+    // low windows on a computer (mouse): everything stays
     [852, 393],
     [932, 430],
+    // phones as a browser shows them: the window is lower than the device,
+    // because the browser's own bars take their share
+    [402, 714, true],
+    [402, 655, true],
+    [393, 659, true],
+    [375, 553, true],
+    [360, 560, true],
+    [320, 454, true],
+    // phones held sideways
+    [852, 393, true],
+    [932, 430, true],
+    [874, 340, true],
+    [667, 375, true],
+    // the limit of "phone held sideways": 500 px high is one, 501 is not
+    [900, 500, true],
+    [900, 501, true],
+    // tablets
+    [744, 1133, true],
+    [1133, 744, true],
+    [1180, 820, true],
   ];
   for (const size of phoneViewSizes) {
     const ctx = await browser.newContext({
       locale: 'de-DE',
       viewport: { width: size[0], height: size[1] },
+      hasTouch: !!size[2],
     });
     await makeHermetic(ctx);
     const p = await ctx.newPage();
@@ -1902,8 +1984,9 @@ function missingOnStage(keys) {
     await p.evaluate(function () {
       window.togglePause();
     });
-    const m = await p.evaluate(layoutProbe);
-    const label = size[0] + 'x' + size[1];
+    const phone = isPhone(size[0], size[1], size[2]);
+    const m = await p.evaluate(layoutProbe, phone);
+    const label = size[0] + 'x' + size[1] + (size[2] ? ' touch' : '');
     check(
       m.insideBar.length === 0 && m.around.length === 0 && !m.scrollbars,
       label +
@@ -1919,6 +2002,25 @@ function missingOnStage(keys) {
         m.wantHeight.toFixed(1) +
         ')'
     );
+    if (phone) {
+      // On a phone the simulated phone uses the room above the bar: same gap above and below
+      const gaps = await p.evaluate(function () {
+        var r = document.getElementById('phone').getBoundingClientRect();
+        return {
+          top: r.top,
+          bottom: document.getElementById('ctlBar').getBoundingClientRect().top - r.bottom,
+        };
+      });
+      check(
+        gaps.top >= 6 && gaps.bottom >= 6 && Math.abs(gaps.top - gaps.bottom) < 1,
+        label +
+          ': the phone sits centred between the top of the window and the bar (' +
+          gaps.top.toFixed(1) +
+          ' px above, ' +
+          gaps.bottom.toFixed(1) +
+          ' px below)'
+      );
+    }
     // What the bar holds depends on the width; the timeline must keep its room
     const parts = await p.evaluate(function () {
       function width(sel) {
@@ -1936,9 +2038,9 @@ function missingOnStage(keys) {
         role: document.getElementById('ctlSeek').getAttribute('role'),
       };
     });
-    const wantSlider = size[0] > 900;
-    const wantViews = size[0] > 700;
-    const wantKnob = size[0] > 500;
+    const wantSlider = size[0] > 900 && !phone;
+    const wantViews = size[0] > 700 && !phone;
+    const wantKnob = !phone;
     const share = parts.track / parts.bar;
     check(
       parts.slider === wantSlider &&
@@ -1963,16 +2065,87 @@ function missingOnStage(keys) {
     await ctx.close();
   }
 
+  console.log('E2E: heights follow the visible window, not vh');
+  {
+    // On phones and tablets 100vh is more than what can be seen (the height
+    // with the browser's own bars retracted). The test browsers cannot show
+    // that difference, so this reads the rules themselves; the measurement in
+    // real mobile Safari is scripts/check-ios.js.
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1280, height: 720 },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    await p.goto('http://127.0.0.1:' + server.port + '/');
+    await p.waitForSelector('#startBtn');
+    const vhRules = await p.evaluate(function () {
+      var hits = [];
+      var seen = 0;
+      function walk(rules) {
+        for (var i = 0; i < rules.length; i++) {
+          var rule = rules[i];
+          if (rule.cssRules && !rule.selectorText) {
+            // the fallback for browsers without dvh may use vh
+            if (!(rule.conditionText && /dvh/.test(rule.conditionText))) walk(rule.cssRules);
+            continue;
+          }
+          if (!rule.selectorText) continue;
+          if (/(^|[\s,>])\.(phone|imp-phone)($|[\s,{:.])/.test(rule.selectorText)) {
+            seen++;
+            ['top', 'bottom', 'height', 'max-height', 'min-height'].forEach(function (prop) {
+              var value = rule.style.getPropertyValue(prop);
+              if (/[0-9.]vh/.test(value))
+                hits.push(rule.selectorText + ' { ' + prop + ': ' + value + ' }');
+            });
+          }
+          if (rule.selectorText === ':root' || /stage-live/.test(rule.selectorText)) {
+            ['--wh', '--bar-bottom', '--u'].forEach(function (prop) {
+              var value = rule.style.getPropertyValue(prop);
+              if (/100vh/.test(value) && prop !== '--wh')
+                hits.push(rule.selectorText + ' { ' + prop + ': ' + value + ' }');
+            });
+          }
+        }
+      }
+      for (var s = 0; s < document.styleSheets.length; s++) walk(document.styleSheets[s].cssRules);
+      var root = getComputedStyle(document.documentElement);
+      return {
+        hits: hits,
+        seen: seen,
+        wh: root.getPropertyValue('--wh').trim(),
+        u: root.getPropertyValue('--u').trim(),
+      };
+    });
+    check(
+      vhRules.seen >= 4 && vhRules.hits.length === 0,
+      'no rule sizes or places the phone or the legal notice frame in vh (' +
+        vhRules.seen +
+        ' rules read)' +
+        (vhRules.hits.length ? ' - ' + vhRules.hits.join('; ') : '')
+    );
+    check(
+      vhRules.wh === '100dvh' && /dvh/.test(vhRules.u),
+      'the projector view measures the visible height: --wh is ' +
+        vhRules.wh +
+        ', --u is ' +
+        vhRules.u
+    );
+    await ctx.close();
+  }
+
   console.log('E2E: control bar - target sizes where the bar is smallest');
   for (const probe of [
     [393, 852, '?beamer=1&testspeed=10', 'phone opened with ?beamer=1'],
     [800, 600, '?beamer=1&testspeed=10', 'projector view on an 800 x 600 projector'],
     [701, 640, '?beamer=1&testspeed=10', 'projector view in the narrowest window'],
-    [852, 393, '?testspeed=10', 'phone held sideways'],
+    [852, 393, '?testspeed=10', 'low window on a computer'],
+    [852, 393, '?beamer=1&testspeed=10', 'phone held sideways, opened with ?beamer=1', true],
   ]) {
     const ctx = await browser.newContext({
       locale: 'de-DE',
       viewport: { width: probe[0], height: probe[1] },
+      hasTouch: !!probe[4],
     });
     await makeHermetic(ctx);
     const p = await ctx.newPage();
@@ -2958,11 +3131,8 @@ function missingOnStage(keys) {
       viewport: { width: 1280, height: 720 },
     });
     await makeHermetic(ctx);
-    const liveLike =
-      fs.readFileSync(path.join(ROOT, 'js', 'config.example.js'), 'utf8') +
-      "\nhelplineConfig = { logo: 'assets/sticker.png', logoAlt: 'Logo', link: 'https://example.org/', linkLabel: 'example.org', infoLink: 'https://example.org/info', infoLabel: 'Weitere Infos', slogan: 'Slogan' };\n";
     await ctx.route('**/js/config.js*', function (route) {
-      route.fulfill({ contentType: 'text/javascript; charset=utf-8', body: liveLike });
+      route.fulfill({ contentType: 'text/javascript; charset=utf-8', body: liveLikeConfig });
     });
     const p = await ctx.newPage();
     p.on('pageerror', function (err) {
@@ -3015,6 +3185,66 @@ function missingOnStage(keys) {
     );
     await p.waitForTimeout(150);
     await axeScan(p, '#aCta', 'help page with a logo and two links');
+    await ctx.close();
+  }
+  for (const probe of [
+    [960, 540, ''],
+    [960, 540, '&beamer=1'],
+    [1024, 576, ''],
+    [1024, 600, '&beamer=1'],
+    [800, 600, '&beamer=1'],
+    [832, 624, '&beamer=1'],
+    [1366, 625, ''],
+  ]) {
+    // Help page like the live one (logo, two links) in low windows: all of it
+    // is there without scrolling, "again" included
+    const ctx = await browser.newContext({
+      locale: 'de-DE',
+      viewport: { width: probe[0], height: probe[1] },
+    });
+    await makeHermetic(ctx);
+    await ctx.route('**/js/config.js*', function (route) {
+      route.fulfill({ contentType: 'text/javascript; charset=utf-8', body: liveLikeConfig });
+    });
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10' + probe[2]);
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+    await p.evaluate(function () {
+      window.togglePause();
+      window.simSeek(window.CTL_TOTAL);
+    });
+    await p.waitForTimeout(250);
+    const room = await p.evaluate(function () {
+      var page = document.getElementById('aCta');
+      var box = page.getBoundingClientRect();
+      var again = document.getElementById('footerReplayBtn').getBoundingClientRect();
+      var first = (
+        document.querySelector('#ctaLogo img') || page.firstElementChild
+      ).getBoundingClientRect();
+      return {
+        need: page.scrollHeight,
+        have: page.clientHeight,
+        logo: !!document.querySelector('#ctaLogo img'),
+        links: document.querySelectorAll('#ctaLinks a').length,
+        inside: first.top >= box.top - 1 && again.bottom <= box.bottom + 1,
+      };
+    });
+    check(
+      room.logo && room.links === 2 && room.need <= room.have + 1 && room.inside,
+      probe[0] +
+        'x' +
+        probe[1] +
+        (probe[2] ? ' projector view' : '') +
+        ': help page with logo and two links fits without scrolling (needs ' +
+        room.need +
+        ' px, has ' +
+        room.have +
+        ')'
+    );
     await ctx.close();
   }
   for (const size of [
@@ -3174,6 +3404,118 @@ function missingOnStage(keys) {
   }
 
   await browser.close();
+
+  // ---------- Second browser engine ----------
+  console.log('E2E: Safari engine (WebKit) - what the Chromium run cannot show');
+  const safari = await webkit.launch();
+  {
+    // Projector view: after a jump the older messages stand in their final
+    // state in the very first frame (dimmed, or folded away). Chromium did
+    // that anyway; WebKit dimmed and folded them for 0.4 s after every jump.
+    const ctx = await safari.newContext({
+      locale: 'de-DE',
+      viewport: { width: 1280, height: 720 },
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push('WebKit: ' + String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?beamer=1');
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+    await p.evaluate(function () {
+      window.togglePause();
+    });
+    const settled = await p.evaluate(function () {
+      var targets = [12, 20, 34, 46, 62, 74, 100];
+      var out = { old: 0, gone: 0, wrong: [] };
+      function step(i, done) {
+        if (i === targets.length) return done(out);
+        window.simSeek(targets[i]);
+        requestAnimationFrame(function () {
+          var items = document.querySelectorAll('#stage .st-scene.on .st-item.old');
+          for (var k = 0; k < items.length; k++) {
+            var gone = items[k].classList.contains('out');
+            var opacity = parseFloat(getComputedStyle(items[k]).opacity);
+            if (gone) out.gone++;
+            else out.old++;
+            if (Math.abs(opacity - (gone ? 0 : 0.5)) > 0.02) {
+              out.wrong.push(
+                targets[i] + ' s: ' + opacity.toFixed(2) + (gone ? ' (pushed out)' : ' (older)')
+              );
+            }
+          }
+          step(i + 1, done);
+        });
+      }
+      return new Promise(function (resolve) {
+        step(0, resolve);
+      });
+    });
+    check(
+      settled.old >= 4 && settled.gone >= 2 && settled.wrong.length === 0,
+      'WebKit, projector view: in the first frame after a jump older messages are dimmed and pushed-out ones are gone (' +
+        settled.old +
+        ' older, ' +
+        settled.gone +
+        ' pushed out)' +
+        (settled.wrong.length ? ' - ' + settled.wrong.join(', ') : '')
+    );
+    const afterJump = await p.evaluate(function () {
+      return document.body.classList.contains('jumping');
+    });
+    check(
+      !afterJump,
+      'WebKit: the mark for a running jump is cleared again, transitions run as usual'
+    );
+    await ctx.close();
+  }
+  for (const size of [
+    [402, 655],
+    [375, 553],
+    [874, 340],
+  ]) {
+    // The phone layout in the second engine: phone above the bar, no jumping
+    const ctx = await safari.newContext({
+      locale: 'de-DE',
+      viewport: { width: size[0], height: size[1] },
+      hasTouch: true,
+    });
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push('WebKit: ' + String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10&beamer=1');
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+    const m = await p.evaluate(function () {
+      window.togglePause();
+      var phone = document.getElementById('phone').getBoundingClientRect();
+      var bar = document.getElementById('ctlBar').getBoundingClientRect();
+      return {
+        top: phone.top,
+        gap: bar.top - phone.bottom,
+        barBottom: bar.bottom,
+        height: window.innerHeight,
+        role: document.getElementById('ctlSeek').getAttribute('role'),
+        beamer: document.body.classList.contains('beamer'),
+      };
+    });
+    check(
+      m.top >= 6 && m.gap >= 6 && m.barBottom <= m.height && m.role === 'progressbar' && !m.beamer,
+      'WebKit ' +
+        size[0] +
+        'x' +
+        size[1] +
+        ' touch: the phone ends above the bar (' +
+        m.gap.toFixed(1) +
+        ' px), no jumping, no projector view'
+    );
+    await ctx.close();
+  }
+  await safari.close();
   server.close();
 
   if (pageErrors.length) {
