@@ -100,10 +100,32 @@ Auslieferung; sie kannte die Ergebnisse des Autors nicht):
 |---|---|---|---|
 | Abnahme des Stands `5002054` | elf eigene Sonden in Chromium, WebKit und Firefox, 254 Bilder; dazu `npm run lint`, `npm run test`, `npm run test:e2e` | die fünf Wünsche des Betreibers erfüllt; sieben Fehler und Lücken, zwei Bestandsfehler; Rückgabewerte 0 / 0 / 0, 2251/2251, 382 „ok" | 2026-10-09 18:29 bis 19:11 |
 | Behebung | Commit `ac26a5e` | alle sieben und beide Bestandsfehler bearbeitet, je mit eigener Prüfung; Liste in `docs/handover/2026-10-09-handy-ohne-leiste.md`, Abschnitt 4a | 19:12 bis 19:52 |
-| Nachmessung durch dieselbe Instanz | ihre eigenen Sonden am Stand `ac26a5e` | wird mit der Auslieferung eingetragen | — |
+| Nachmessung durch dieselbe Instanz | ihre eigenen Sonden am Stand `ac26a5e` | alle sieben Funde und beide Bestandsfehler behoben, nichts neu kaputt. Handy: Chromium 37 „ok", WebKit 34; Tablets 234 „ok"; Rechner 14 Fälle gegen v2.0.1, Startbild bytegleich. Nicht nachgemessen: Firefox und ein Handy, das seinen Bildschirm in Gerätepixeln meldet | 19:52 bis 19:59 |
 
-Die Auslieferung ist noch nicht erfolgt; ihre Nachweise werden hier mit dem
-Deploy eingetragen.
+Zwischen der Nachmessung (`ac26a5e`) und dem ausgelieferten Stand liegen nur
+`docs/VERIFICATION.md` und `scripts/run-e2e.js` (`git diff --stat ac26a5e
+951f6c4`); die Dateien der Seite sind dieselben.
+
+**Auslieferung.** Ausgelieferter Stand: Merge-Commit `0ba12bf` auf `main`
+(Inhalt gleich `951f6c4`, `git diff` leer), dazu der Cache-Stempel
+`?v=1791570079` in `index.html`.
+
+| Schritt | Befehl | Ergebnis | Zeit (CEST) |
+|---|---|---|---|
+| Pull Request Nr. 9, Pipeline | `gh pr checks 9` | am Kopf `951f6c4`: `lint-and-test`, `secret-scan`, `dependency-audit` je SUCCESS (Lauf 37972209691). Davor zwei rote Läufe (37969787707, 37970712479) an genau einer Prüfung in WebKit unter Linux: Die Testhilfe wartete nach dem Zurückdrehen feste 150 ms und tippte dann, der Hinweis stand dort noch. Belegt durch die Ausgabe des dritten Laufs (37971…, grün): ein Tipp, ein Klick, Impressum offen. Die Hilfe wartet jetzt auf den Zustand; an der Seite ist dafür nichts geändert | 19:56 bis 20:20 |
+| Zusammengeführt | `gh pr merge 9 --merge`; nachgemessen mit `git diff HEAD 951f6c4` | Merge-Commit `0ba12bf`, 0 Zeilen Unterschied zum geprüften Stand | 20:21 |
+| Sperre und Deploy | `npm run deploy` von `main` | „deploy-files: 33 files, all part of the page; all 25 files the page loads are among them"; Rückgabewert 0, „found 33 files in .", „release complete", „Deploy complete!" | 20:21 |
+| Live-Seite zeigt diesen Stand | `bash scripts/verify-live.sh` | Rückgabewert 0, Fehlerausgabe leer; „live site serves this state (33 of 33 files identical, 21 of 21 tooling files not reachable)"; Cache-Stempel live und lokal `?v=1791570079`. Vor dem Deploy: Rückgabewert 1, sieben Dateien verschieden (Zeile in der Tabelle oben) | 20:21 |
+| Kennzeichen der neuen Fassung in den Live-Dateien | `curl` und `grep -c` | `js/helpers.js`: 2 Treffer für `PHONE_DEVICE`; Startseite: 1 Treffer für `id="rotateHint"`; `css/styles.css`: 11 Treffer für `html.phone-device`, 0 für die alte Regel `pointer:coarse` | 20:22 |
+| Werkzeuge und versteckte Ordner nicht abrufbar | `curl -s -o /dev/null -w '%{http_code}'` je Pfad | `/.git/HEAD`, `/.claude/settings.local.json`, `/scripts/check-ios.js`, `/docs/VERIFICATION.md`: je 404; `/`: 200 | 20:22 |
+| Kopfzeilen | `curl -s -D - -o /dev/null https://cybermobbing.web.app/` | „HTTP/2 200", „cache-control: no-store, must-revalidate", „x-frame-options: DENY" | 20:22 |
+| Die ausgelieferten Dateien in echtem mobilem Safari | `npm run test:ios` am Stand `main` nach dem Deploy | Rückgabewert 0, 22 Zeilen „ok" | 20:23 |
+| Aufrufzähler unberührt | lesender Abruf von `/views` vor dem Deploy und nach dem letzten Lauf | 361 und 361 | 20:21 und 20:23 |
+
+Rückweg: `docs/RUNBOOK.md`, Abschnitt „Rollback". Sauber sind die Releases von v2.0.1
+und v2.0.0 (beide enthalten nur die Seite); ältere stellen `.git/` wieder ins
+Netz. Gezogen wird der Rückweg, wenn Tippen oder Drehen am echten Handy nicht
+tun, was hier beschrieben ist.
 
 ## Version 2.0.1
 

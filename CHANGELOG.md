@@ -4,10 +4,12 @@ Alle relevanten Änderungen an diesem Projekt werden hier dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) und folgt [Semantic Versioning](https://semver.org/lang/de/).
 
-## [Unveröffentlicht]
+## [2.0.2] - 2026-10-09
 
-Handy-Fassung nach den Wünschen des Betreibers vom 2026-10-09. Nachweise in
-`docs/VERIFICATION.md`.
+Handy-Fassung nach den Wünschen des Betreibers vom 2026-10-09. Vor der
+Auslieferung von einer zweiten Instanz abgenommen; ihre sieben Funde sind
+behoben. Ausgeliefert am 2026-10-09; Nachweise in `docs/VERIFICATION.md`,
+Abschnitt „Version 2.0.2".
 
 ### Geändert
 - **Am Handy gibt es keine Steuerleiste mehr.** Das nachgebaute Handy nutzt die Höhe bis zur Impressum-Zeile (im iPhone-Simulator 36 Pixel mehr). Ein Tipp auf das Handy pausiert, ein zweiter setzt fort; solange pausiert ist, steht ein Pause-Zeichen in der Mitte. Fortschritt und Ton-Knopf entfallen dort; die Lautstärke regeln die Tasten des Handys. Das Impressum bleibt als Zeile unter dem Handy
