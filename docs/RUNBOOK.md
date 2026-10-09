@@ -35,13 +35,15 @@ ersetzt das nicht.
 
 `npm run test:ios` läuft nur am Mac, die Pipeline kann es nicht. Es ist trotzdem
 Pflicht: Die Testbrowser rechnen die Fensterhöhe anders als Safari auf Handy und
-Tablet, und genau dort lag in v2.0.0 die Steuerleiste über dem Handy. Der Lauf
+Tablet, und genau dort lag in v2.0.0 die Steuerleiste über dem Handy. Nur dort
+meldet sich außerdem ein Browser wirklich als Handy oder Tablet. Der Lauf
 startet die Simulatoren selbst und fährt sie wieder herunter; der echte
 Aufrufzähler wird nicht berührt. Fehlt Xcode oder ein Simulator, endet er mit
 Rückgabewert 2, und das ist ein Fehlschlag, kein übersprungener Schritt.
 Notschalter, nur mit ausdrücklicher Freigabe des Betreibers: ohne diesen Lauf
 ausliefern und sofort danach am echten Handy prüfen (jede Szene einmal ansehen:
-Das nachgebaute Handy endet über der Leiste). Im Abschluss wird das genannt.
+Das nachgebaute Handy endet über der Impressum-Zeile, ein Tipp pausiert, quer
+erscheint der Dreh-Hinweis). Im Abschluss wird das genannt.
 
 ## Deployment
 

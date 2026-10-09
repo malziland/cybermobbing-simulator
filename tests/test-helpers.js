@@ -242,4 +242,20 @@ QUnit.module('helpers', function () {
     });
     assert.ok(soundCalled, 'Sound function was called');
   });
+
+  QUnit.test('phoneFrom(): a phone says so itself and has a small screen', function (assert) {
+    assert.strictEqual(phoneFrom(true, 402, 874), true, 'iPhone upright');
+    assert.strictEqual(phoneFrom(true, 874, 402), true, 'the same phone, screen reported sideways');
+    assert.strictEqual(phoneFrom(true, 599, 1000), true, 'shorter side 599: still a phone');
+    assert.strictEqual(phoneFrom(true, 600, 1000), false, 'shorter side 600: not a phone');
+    assert.strictEqual(phoneFrom(true, 744, 1133), false, 'a tablet that claims to be a phone');
+    assert.strictEqual(phoneFrom(false, 402, 874), false, 'small screen, but the browser says no');
+    assert.strictEqual(phoneFrom(false, 1920, 1080), false, 'computer');
+  });
+
+  QUnit.test('the test browser is not a phone', function (assert) {
+    assert.strictEqual(isPhoneDevice(), false, 'isPhoneDevice() on a computer');
+    assert.strictEqual(PHONE_DEVICE, false, 'PHONE_DEVICE');
+    assert.notOk(document.documentElement.classList.contains('phone-device'), 'no class on <html>');
+  });
 });

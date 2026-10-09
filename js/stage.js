@@ -110,8 +110,8 @@ var STAGE_MIN_WIDTH = 701;
  * @returns {boolean} True from STAGE_MIN_WIDTH on, except on a phone
  */
 function stageFits() {
+  if (PHONE_DEVICE) return false;
   if (!window.matchMedia) return true;
-  if (window.matchMedia('(pointer:coarse) and (max-height:500px)').matches) return false;
   return window.matchMedia('(min-width:' + STAGE_MIN_WIDTH + 'px)').matches;
 }
 

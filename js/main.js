@@ -255,6 +255,39 @@ function initPage() {
     }
   }
 
+  // ---------- Phone held sideways ----------
+  // Sideways the simulated phone would be tiny. The page shows a hint to turn
+  // the phone instead and pauses the run; turned back, the run continues,
+  // unless it had been paused before. Tablets and computers never see this.
+  var rotateHint = document.getElementById('rotateHint');
+  var rotatePausedSim = false;
+  function rotateSync() {
+    if (!PHONE_DEVICE || !rotateHint || !window.matchMedia) return;
+    var sideways = window.matchMedia('(orientation:landscape)').matches;
+    if (sideways === rotateHint.classList.contains('show')) return;
+    rotateHint.classList.toggle('show', sideways);
+    // Nothing behind the hint can be reached while it is shown
+    for (var i = 0; i < document.body.children.length; i++) {
+      var el = document.body.children[i];
+      if (el !== rotateHint && el.tagName !== 'SCRIPT') el.inert = sideways;
+    }
+    if (!sideways && impModal.classList.contains('show')) impSetBehind(true);
+    var phone = document.getElementById('phone');
+    var running = simStarted && !!phone && !phone.classList.contains('hidden');
+    if (sideways) {
+      if (running && !simPaused) {
+        togglePause();
+        rotatePausedSim = simPaused;
+      }
+    } else if (rotatePausedSim) {
+      rotatePausedSim = false;
+      if (simPaused) togglePause();
+    }
+  }
+  window.addEventListener('resize', rotateSync);
+  window.addEventListener('orientationchange', rotateSync);
+  rotateSync();
+
   // Start button
   var startBtn = document.getElementById('startBtn');
   if (startBtn) {

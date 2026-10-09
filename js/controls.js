@@ -109,8 +109,9 @@ function ctlSnap(t) {
  * @returns {boolean} True if the timeline may be used to jump
  */
 function ctlSeekAllowed() {
+  if (PHONE_DEVICE) return false;
   if (!window.matchMedia) return true;
-  return !window.matchMedia('(max-width:500px),(pointer:coarse) and (max-height:500px)').matches;
+  return !window.matchMedia('(max-width:500px)').matches;
 }
 
 // ========== RESTART AND JUMP ==========

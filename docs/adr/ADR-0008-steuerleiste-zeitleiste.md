@@ -1,6 +1,6 @@
 # ADR-0008: Eine Steuerleiste mit Zeitleiste zum Vor- und Zurückspringen
 
-Status: Angenommen · Datum: 2026-10-08 · ausgeliefert mit v2.0.0 · Handy-Regel geändert am 2026-10-09
+Status: Angenommen · Datum: 2026-10-08 · ausgeliefert mit v2.0.0 · Handy-Fassung geändert am 2026-10-09 (v2.0.1, v2.0.2)
 
 ## Kontext
 
@@ -26,7 +26,7 @@ Umschalter der Ansicht, Impressum.
   Beamer-Ansicht ist die Leiste an der Bildfläche ausgerichtet und rein
   proportional (3,6 % der Flächenbreite hoch); in der Handy-Ansicht hat sie
   dieselbe Formel mit einer Mindesthöhe von 40 CSS-Pixeln, in der kurzen
-  Fassung am Handy fest 36.
+  Fassung im schmalen Fenster fest 36. Am Handy gibt es sie nicht (weiter unten).
 - Rot bedeutet in der Leiste nur „gewählt" oder „aktiv" (gewählte Ansicht,
   Pause, Ton aus). Impressum und Lautstärke-Regler sind dort weiß.
 - **Die Leiste zeigt keine Zeiten.** Der Titel verspricht 120 Sekunden, der
@@ -74,37 +74,63 @@ Umschalter der Ansicht, Impressum.
   zur nächsten und vorigen Szene, Pos1 zum Anfang, Ende zur letzten Seite.
 - Nur die Haupttaste der Maus springt.
 
-**Schmale Fenster und Handys** (Maße in CSS-Pixeln, Grenzen jeweils einschließlich):
+**Schmale Fenster** (Breite in CSS-Pixeln, Grenzen jeweils einschließlich):
 
-| Fenster | Was die Leiste zeigt |
+| Fensterbreite | Was die Leiste zeigt |
 |---|---|
-| ab 901 breit | alles |
-| 701 bis 900 breit | in der Handy-Ansicht ohne Lautstärke-Regler (der Ton-Knopf bleibt); die Zeitleiste braucht den Platz |
-| 501 bis 700 breit | zusätzlich ohne Umschalter der Ansicht: Dort gibt es die Beamer-Ansicht nicht (ADR-0007) |
-| Handy | kurze Fassung: Pause, Fortschritt, Ton. Die Zeitleiste ist reine Anzeige, das Impressum steht als Zeile darunter, die Beamer-Ansicht gibt es nicht |
+| ab 901 | alles |
+| 701 bis 900 | in der Handy-Ansicht ohne Lautstärke-Regler (der Ton-Knopf bleibt); die Zeitleiste braucht den Platz |
+| 501 bis 700 | zusätzlich ohne Umschalter der Ansicht: Dort gibt es die Beamer-Ansicht nicht (ADR-0007) |
+| bis 500 | kurze Fassung: Pause, Fortschritt, Ton. Die Zeitleiste ist reine Anzeige, das Impressum steht als Zeile darunter |
 
-**Als Handy gilt** ein Fenster bis 500 Pixel Breite, oder ein Gerät mit
-Fingerbedienung, dessen Fenster höchstens 500 Pixel hoch ist (ein quer
-gehaltenes Handy). Beispiele:
+Beispiele: 900 Pixel ohne, 901 mit Regler; 700 ohne, 701 mit Umschalter; 500
+ohne, 501 mit Springen. Das gilt für Rechner und Tablets, auch mit
+Fingerbedienung.
 
-- iPhone hochkant, 402 × 655: Handy. iPhone quer, 874 × 340: Handy.
-- Gerät mit Fingerbedienung, 900 × 500: Handy; 900 × 501: keines.
-- iPad mini, 744 × 1047 oder quer: kein Handy. Es darf springen und hat die
-  Beamer-Ansicht.
-- Ein Rechner mit Maus ist nie ein Handy, auch nicht mit niedrigem Fenster. Nur
-  das schmale Fenster bis 500 Pixel Breite bekommt auch dort die kurze Fassung,
-  weil der Platz fehlt.
+**Am Handy gibt es keine Leiste** (Entscheidung des Betreibers vom 2026-10-09):
 
-Die Regel steht an drei Stellen und muss dort gleich lauten: im Abschnitt
-„PHONES" von `css/styles.css`, in `ctlSeekAllowed()` (`js/controls.js`) und in
-`stageFits()` (`js/stage.js`). Der Ablauftest hält sie als `isPhone()` dagegen.
+- **Hochkant** füllt das nachgebaute Handy die Höhe bis zur Impressum-Zeile.
+  Ein Tipp auf das Handy pausiert, ein zweiter setzt fort; solange pausiert
+  ist, steht ein Pause-Zeichen in der Mitte. Technisch ist das der Pause-Knopf
+  der Leiste, über die ganze Fläche gelegt; er bleibt mit der Tastatur
+  erreichbar. Fortschritt, Ton-Knopf und Springen gibt es nicht; die Lautstärke
+  regeln die Tasten des Handys. Auf der letzten Seite liegt keine Tippfläche.
+- **Quer** zeigt die Seite statt der Simulation den Hinweis „Bitte dreh dein
+  Handy hochkant". Die Simulation pausiert dabei und läuft nach dem Drehen
+  weiter, außer sie war schon vorher pausiert. Der Hinweis gilt auch am
+  Startbildschirm und auf der letzten Seite. Verhindern lässt sich das Drehen
+  nicht; das erlaubt kein Browser einer gewöhnlichen Seite.
+- Die Beamer-Ansicht gibt es am Handy nicht (ADR-0007).
 
-Grund: Am Handy ist die Zeitleiste rund 290 Pixel breit (2 Pixel je Sekunde)
-und 34 hoch. Springen mit dem Finger ist dort fummelig, und wer die Simulation
-am eigenen Handy ansieht, soll den Ablauf nicht überspringen. Bis v2.0.0 hing
-die Sperre allein an der Fensterbreite: Ein quer gehaltenes Handy durfte
-springen und die Beamer-Ansicht wählen, ein hochkant gehaltenes nicht. Der
-Betreiber hat am 2026-10-09 entschieden: am Handy einheitlich nicht.
+**Als Handy gilt** ein Gerät, dessen Browser sich selbst als Handy-Browser
+meldet („Mobile" in seiner Kennung, oder das entsprechende Merkmal neuerer
+Browser) und dessen Bildschirm an der kürzeren Seite unter 600 CSS-Pixel misst
+(599 ist ein Handy, 600 nicht). Der zweite Teil hält ein Tablet auch dann für
+ein Tablet, wenn sein Browser sich als Handy ausgibt. Beispiele; die iPhones und
+iPads sind im Simulator gemessen:
+
+- iPhone 17e, iPhone 17, iPhone 18 Pro Max: kürzere Seite 390, 402 und 440,
+  meldet sich als Handy: Handy.
+- iPad mini und iPad: 744 und 820, Safari meldet sich dort wie ein Rechner:
+  kein Handy.
+- Android-Tablet: meldet „Android" ohne „Mobile": kein Handy.
+- Rechner, auch mit kleinem Fenster oder Touchscreen: kein Handy.
+- Wer am Handy „Desktop-Website anfordern" wählt, bekommt die Fassung für
+  Rechner.
+
+Entschieden wird einmal beim Laden: `PHONE_DEVICE` in `js/helpers.js` setzt die
+Klasse `phone-device` am `<html>`. Daran hängen `ctlSeekAllowed()`,
+`stageFits()`, der Abschnitt „PHONE DEVICES" im Stylesheet und der Dreh-Hinweis
+in `js/main.js`.
+
+Grund: Am Handy war die Zeitleiste 286 Pixel breit (2 Pixel je Sekunde); sie
+und der Ton-Knopf nahmen dem nachgebauten Handy rund 36 Pixel Höhe, ohne dort
+gebraucht zu werden. Quer bleiben einem Handy-Browser rund 200 bis 340 Pixel
+Höhe, das nachgebaute Handy war dort etwa 115 bis 250 Pixel hoch. Vorgeschichte:
+Bis v2.0.0 hing die Sperre des Springens allein an der Fensterbreite, sodass ein
+quer gehaltenes Handy springen konnte. v2.0.1 nahm „Fingerbedienung und Fenster
+bis 500 Pixel hoch" dazu; das traf das Gerät nur ungefähr und hätte ein kleines
+Tablet im Querformat mit erfasst.
 
 **Impressum:** Wird es während des Laufs geöffnet, pausiert die Simulation; beim
 Schließen läuft sie weiter, außer sie war schon vorher pausiert.
@@ -155,6 +181,7 @@ Schließen läuft sie weiter, außer sie war schon vorher pausiert.
 ## Bedingung für Neubewertung
 
 Rückmeldung aus dem ersten Workshop: ob das Springen genutzt wird und ob die
-Marken reichen. Die Regel für Handys ist eine Entscheidung des Betreibers vom
-2026-10-09. Sie steht wieder an, wenn am Handy gesprungen werden soll; dann
-braucht die Leiste dort eine größere Fläche für den Finger.
+Marken reichen. Die Handy-Fassung ohne Leiste ist eine Entscheidung des
+Betreibers vom 2026-10-09. Sie steht wieder an, wenn am Handy gesprungen oder
+der Fortschritt gezeigt werden soll, oder wenn ein Gerät falsch eingeordnet
+wird (ein Tablet als Handy oder umgekehrt).

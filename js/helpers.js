@@ -7,6 +7,46 @@
  * @requires audio.js - typStart(), typStop(), sndWa() used by waType()
  */
 
+// ========== DEVICE ==========
+
+/**
+ * Tells whether a device counts as a phone (ADR-0008): its browser says so
+ * itself, and the shorter side of its screen is below 600 CSS pixels (599 is a
+ * phone, 600 is not). The second part keeps a tablet a tablet even if its
+ * browser claims to be a phone.
+ * @param {boolean} saysPhone - What the browser reports about itself
+ * @param {number} screenWidth - Width of the device screen in CSS pixels
+ * @param {number} screenHeight - Height of the device screen in CSS pixels
+ * @returns {boolean} True for a phone
+ */
+function phoneFrom(saysPhone, screenWidth, screenHeight) {
+  return !!saysPhone && Math.min(screenWidth, screenHeight) < 600;
+}
+
+/**
+ * Tells whether the page runs on a phone. Phone browsers name themselves
+ * ("Mobile" in their identification, or the mobile flag of newer browsers);
+ * tablets and computers do not. Somebody who asks for the desktop version of
+ * the page on a phone gets it.
+ * @returns {boolean} True on a phone
+ */
+function isPhoneDevice() {
+  var data = navigator.userAgentData;
+  var says =
+    data && typeof data.mobile === 'boolean'
+      ? data.mobile
+      : /Mobi/i.test(navigator.userAgent || '');
+  return phoneFrom(says, window.screen.width, window.screen.height);
+}
+
+/**
+ * @type {boolean} True on a phone; fixed for the visit. On a phone there is no
+ * control bar (a tap on the phone pauses), no jumping, no projector view, and
+ * held sideways the page asks to turn the phone (css/styles.css, main.js).
+ */
+var PHONE_DEVICE = isPhoneDevice();
+if (PHONE_DEVICE) document.documentElement.classList.add('phone-device');
+
 // ========== CHARACTER AVATARS ==========
 
 /**

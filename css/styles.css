@@ -804,13 +804,13 @@ body.stage-live,body.beamer.sim-ended{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(v
 /* ===== NARROW WINDOWS =====
    Up to 900px: no volume slider in the phone view, the timeline needs the room
    (the sound button stays; the projector view scales as a whole and keeps it).
-   Up to 700px, and on a phone held sideways (see PHONES below): the phone
-   version -- no projector view and no switches for it (stageFits() in
-   js/stage.js follows the same rule). */
+   Up to 700px, and on every phone (see PHONE DEVICES below): no projector
+   view and no switches for it (stageFits() in js/stage.js follows the same
+   rule). */
 @media (max-width:900px){
   body:not(.stage-live) .ctl-sound input{display:none}
 }
-@media (max-width:700px),(pointer:coarse) and (max-height:500px){
+@media (max-width:700px){
   .view-pick,.beamer-hint,.ctl-view,.ctl-view + .ctl-sep{display:none}
 }
 
@@ -837,16 +837,41 @@ body.stage-live,body.beamer.sim-ended{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(v
   .imp-home-indicator{margin:12px auto 0;width:100px;height:4px}
 }
 
-/* ===== PHONES =====
-   A phone is a window up to 500px wide, or a device operated by finger whose
-   window is up to 500px high (a phone held sideways). ctlSeekAllowed() in
-   js/controls.js follows the same rule. On a phone the bar is short: pause,
-   progress and sound only. Jumping is off, the legal notice stays as a line
-   below the bar, and the phone sits centred in the room above the bar. */
-@media (max-width:500px),(pointer:coarse) and (max-height:500px){
+/* ===== NARROW WINDOWS UP TO 500PX =====
+   The bar is short there: pause, progress and sound only. Jumping is off
+   (ctlSeekAllowed() in js/controls.js), the legal notice stays as a line
+   below the bar, and the phone sits centred in the room above the bar. On a
+   computer this is a window pulled narrow; real phones get the rules of
+   PHONE DEVICES on top. */
+@media (max-width:500px){
   :root{--bar-h:36px;--bar-bottom:calc(var(--ctl-bottom) + var(--ctl-impr)*1.25 + 6px)}
   .ctl-bar{gap:calc(var(--bar-h)*.24)}
   .ctl-scene,.ctl-sep,.ctl-sound input,.ctl-impr,.ctl-knob,.ctl-tip{display:none!important}
   body.sim-running .impr-link-bar,body.sim-ended .impr-link-bar{display:block}
   .phone{top:calc((100% - var(--bar-bottom) - var(--bar-h))/2);max-height:calc(100% - var(--bar-bottom) - var(--bar-h) - 16px)}
 }
+
+/* ===== PHONE DEVICES (ADR-0008) =====
+   A real phone, as helpers.js recognises it (class phone-device on <html>).
+   Upright there is no bar at all: the room above the legal notice is one
+   large button, a tap pauses and a second tap continues, and the pause sign
+   stands in the middle while paused. Held sideways the page asks to turn the
+   phone (.rotate-hint, shown by main.js). No projector view on a phone. */
+html.phone-device{--bar-h:0px;--bar-bottom:calc(var(--ctl-bottom) + var(--ctl-impr)*1.25 + 6px)}
+html.phone-device .ctl-bar{left:0;right:0;top:0;bottom:var(--bar-bottom);height:auto;padding:0;gap:0;background:none;border:none;border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+html.phone-device .ctl-bar > :not(#pauseBtn){display:none!important}
+html.phone-device body.sim-ended .ctl-bar{display:none}
+html.phone-device body.sim-running .impr-link-bar,html.phone-device body.sim-ended .impr-link-bar{display:block}
+html.phone-device .ctl-play,html.phone-device .ctl-play.paused{width:100%;height:100%;border-radius:0;background:transparent;cursor:default;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+html.phone-device .ctl-play:focus-visible{outline:3px solid #fff;outline-offset:-8px}
+html.phone-device .ctl-play svg{width:76px;height:76px;padding:20px;border-radius:50%;background:rgba(0,0,0,.6);box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+html.phone-device .ctl-play .ico-pause,html.phone-device .ctl-play .ico-play,html.phone-device .ctl-play.paused .ico-play{display:none}
+html.phone-device .ctl-play.paused .ico-pause{display:block}
+html.phone-device .phone{top:calc((100% - var(--bar-bottom))/2);max-height:calc(100% - var(--bar-bottom) - 16px)}
+
+/* Hint for a phone held sideways; lies above everything, the legal notice included */
+.rotate-hint{display:none;position:fixed;inset:0;z-index:100000;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px;background:#000;color:#fff;text-align:center}
+.rotate-hint.show{display:flex}
+/* The drawing: the phone lying (dashed) turns into the phone upright */
+.rotate-hint svg{width:150px;height:120px;max-height:45%;flex-shrink:1}
+.rotate-hint p{font-size:1.15rem;font-weight:600}

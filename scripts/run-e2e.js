@@ -82,12 +82,38 @@ async function axeScan(page, includeSelector, label) {
 }
 
 /**
- * A phone, as the page defines it (ADR-0008): a window up to 500 px wide, or a
- * device operated by finger whose window is up to 500 px high (a phone held
- * sideways). Limits inclusive. Tablets and computers are not phones.
+ * The short bar without jumping: a window up to 500 px wide (inclusive), on any
+ * device that is not a phone. Real phones have no bar at all; they are checked
+ * in phoneDeviceChecks().
  */
-function isPhone(width, height, touch) {
-  return width <= 500 || (!!touch && height <= 500);
+function isPhone(width) {
+  return width <= 500;
+}
+
+/** Identification of a phone browser: it names itself "Mobile". */
+const PHONE_UA =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Mobile/15E148 Safari/604.1';
+/** A tablet browser: Safari on an iPad names itself like a computer. */
+const TABLET_UA =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0 Safari/605.1.15';
+/** An Android tablet: "Android" without "Mobile". */
+const ANDROID_TABLET_UA =
+  'Mozilla/5.0 (Linux; Android 16; SM-X710) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36';
+
+/**
+ * Context options of a phone (ADR-0008): the browser says it is one, finger
+ * input, and the screen of the device (not the window) is small.
+ */
+function phoneOptions(engine, width, height, screen) {
+  const options = {
+    locale: 'de-DE',
+    userAgent: PHONE_UA,
+    hasTouch: true,
+    viewport: { width: width, height: height },
+    screen: screen || { width: 402, height: 874 },
+  };
+  if (engine === 'chromium') options.isMobile = true;
+  return options;
 }
 
 /**
@@ -1636,16 +1662,12 @@ function missingOnStage(keys) {
     await ctx.close();
   }
 
-  console.log('E2E: timeline - on a phone it only shows the progress');
   await seekPage.close();
 
-  console.log('E2E: timeline - on a phone it only shows the progress');
+  console.log('E2E: timeline - in a narrow window it only shows the progress');
   for (const dev of [
     [393, 852, false, '393 px wide'],
     [402, 655, true, 'phone 402x655 (touch)'],
-    [852, 393, true, 'phone held sideways 852x393 (touch)'],
-    [874, 340, true, 'phone held sideways 874x340 (touch)'],
-    [900, 500, true, 'touch device 900x500'],
   ]) {
     const phoneCtx = await browser.newContext({
       locale: 'de-DE',
@@ -1720,6 +1742,333 @@ function missingOnStage(keys) {
       dev[3] + ': the legal notice below the bar is there during the run and can be tapped'
     );
     await phoneCtx.close();
+  }
+
+  // ---------- Phones ----------
+  /**
+   * A real phone (ADR-0008): no bar, a tap on the phone pauses and continues,
+   * the legal notice stays as a line below, held sideways the page asks to
+   * turn the phone and pauses. Tablets and computers get none of this.
+   */
+  async function phoneDeviceChecks(engineBrowser, engine, full) {
+    console.log('E2E: phones (' + engine + ') - no bar, tap to pause, hint when held sideways');
+    const tag = engine + ' phone: ';
+    const ctx = await engineBrowser.newContext(phoneOptions(engine, 402, 655));
+    await makeHermetic(ctx);
+    const p = await ctx.newPage();
+    p.on('pageerror', function (err) {
+      pageErrors.push(engine + ' phone: ' + String(err));
+    });
+    await p.goto('http://127.0.0.1:' + server.port + '/?testspeed=10&beamer=1');
+    await p.waitForSelector('#startBtn');
+    const atStart = await p.evaluate(function () {
+      var tiles = document.querySelector('.view-pick');
+      return {
+        device: document.documentElement.classList.contains('phone-device'),
+        tiles: getComputedStyle(tiles).display !== 'none',
+        beamer: document.body.classList.contains('beamer'),
+        hint: document.getElementById('rotateHint').classList.contains('show'),
+      };
+    });
+    check(
+      atStart.device && !atStart.tiles && !atStart.beamer && !atStart.hint,
+      tag + 'recognised as a phone; no view tiles, ?beamer=1 has no effect, no hint while upright'
+    );
+    await p.click('#startBtn');
+    await p.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+    function phoneLayout() {
+      function shown(sel) {
+        var el = document.querySelector(sel);
+        if (!el || getComputedStyle(el).display === 'none') return false;
+        var r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      }
+      var phone = document.getElementById('phone').getBoundingClientRect();
+      var area = document.getElementById('ctlBar').getBoundingClientRect();
+      var link = document.querySelector('.impr-link-bar .impr-link');
+      var legal = link.getBoundingClientRect();
+      var top = document.elementFromPoint(
+        legal.left + legal.width / 2,
+        legal.top + legal.height / 2
+      );
+      var sign = document.querySelector('#pauseBtn .ico-pause');
+      var signRect = sign.getBoundingClientRect();
+      return {
+        parts: ['#ctlSeek', '.ctl-sound', '#ctlScene', '.ctl-view', '#impLinkRun'].filter(shown),
+        areaBackground: getComputedStyle(document.getElementById('ctlBar')).backgroundColor,
+        above: phone.top,
+        below: area.bottom - phone.bottom,
+        toLegal: legal.top - phone.bottom,
+        legalInWindow: legal.bottom <= window.innerHeight + 0.5,
+        legalOnTop: !!top && (top === link || link.contains(top)),
+        paused: window.simPaused,
+        sign: getComputedStyle(sign).display !== 'none' && signRect.width > 0,
+        signOff:
+          Math.abs(signRect.left + signRect.width / 2 - (phone.left + phone.width / 2)) +
+          Math.abs(signRect.top + signRect.height / 2 - (area.top + area.height / 2)),
+        signSize: signRect.width,
+        label: document.getElementById('pauseBtn').getAttribute('aria-label'),
+        x: phone.left + phone.width / 2,
+        y: phone.top + phone.height / 2,
+      };
+    }
+    const running = await p.evaluate(phoneLayout);
+    check(
+      running.parts.length === 0 && /rgba\(0, 0, 0, 0\)|transparent/.test(running.areaBackground),
+      tag +
+        'no control bar: timeline, sound, scene name and view switch are not shown' +
+        (running.parts.length ? ' - shown: ' + running.parts.join(', ') : '')
+    );
+    check(
+      running.above >= 6 &&
+        running.toLegal >= 6 &&
+        Math.abs(running.above - running.below) < 1 &&
+        running.legalInWindow &&
+        running.legalOnTop,
+      tag +
+        'the phone fills the room above the legal notice, which stays below it and can be tapped (' +
+        running.above.toFixed(1) +
+        ' px above, ' +
+        running.toLegal.toFixed(1) +
+        ' px to the legal notice)'
+    );
+    check(!running.paused && !running.sign, tag + 'while running there is no pause sign');
+    await p.touchscreen.tap(running.x, running.y);
+    const tapped = await p.evaluate(phoneLayout);
+    check(
+      tapped.paused &&
+        tapped.sign &&
+        tapped.signSize >= 60 &&
+        tapped.signOff < 4 &&
+        tapped.label === 'Fortsetzen',
+      tag +
+        'a tap on the phone pauses; the pause sign stands in the middle (' +
+        Math.round(tapped.signSize) +
+        ' px), the button reads "' +
+        tapped.label +
+        '"'
+    );
+    await p.touchscreen.tap(running.x, running.y);
+    const again = await p.evaluate(phoneLayout);
+    check(
+      !again.paused && !again.sign && again.label === 'Pause',
+      tag + 'a second tap continues, the sign is gone'
+    );
+    await p.focus('#pauseBtn');
+    await p.keyboard.press('Enter');
+    const byKey = await p.evaluate(function () {
+      return window.simPaused;
+    });
+    await p.keyboard.press('Enter');
+    const byKeyAgain = await p.evaluate(function () {
+      return window.simPaused;
+    });
+    check(byKey && !byKeyAgain, tag + 'the same with the keyboard: Enter pauses and continues');
+    if (full) await axeScan(p, '#ctlBar', tag + 'tap area');
+
+    // Held sideways
+    function sidewaysState() {
+      var hint = document.getElementById('rotateHint');
+      var r = hint.getBoundingClientRect();
+      var top = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
+      return {
+        shown: hint.classList.contains('show') && getComputedStyle(hint).display !== 'none',
+        covers:
+          r.left <= 0 &&
+          r.top <= 0 &&
+          r.right >= window.innerWidth &&
+          r.bottom >= window.innerHeight,
+        onTop: !!top && hint.contains(top),
+        text: hint.textContent.trim(),
+        paused: window.simPaused,
+        phoneInert: document.getElementById('phone').inert === true,
+        startInert: document.getElementById('start').inert === true,
+        mayJump: window.ctlSeekAllowed(),
+        stageOffered: window.stageFits(),
+        beamer: document.body.classList.contains('beamer'),
+      };
+    }
+    await p.setViewportSize({ width: 874, height: 340 });
+    await p.waitForTimeout(150);
+    const side = await p.evaluate(sidewaysState);
+    check(
+      side.shown && side.covers && side.onTop && side.text === 'Bitte dreh dein Handy hochkant',
+      tag + 'held sideways the page shows "' + side.text + '" over the whole window'
+    );
+    check(
+      side.paused && side.phoneInert,
+      tag + 'held sideways the run pauses, nothing behind the hint can be reached'
+    );
+    check(
+      !side.mayJump && !side.stageOffered && !side.beamer,
+      tag + 'held sideways it is wider than 700 px and still has no jumping and no projector view'
+    );
+    if (full) await axeScan(p, '#rotateHint', tag + 'hint to turn the phone');
+    await p.setViewportSize({ width: 402, height: 655 });
+    await p.waitForTimeout(150);
+    const back = await p.evaluate(sidewaysState);
+    check(
+      !back.shown && !back.paused && !back.phoneInert,
+      tag + 'turned upright again the hint is gone and the run continues by itself'
+    );
+    // Paused by hand before turning: it stays paused
+    await p.touchscreen.tap(running.x, running.y);
+    await p.setViewportSize({ width: 874, height: 340 });
+    await p.waitForTimeout(150);
+    await p.setViewportSize({ width: 402, height: 655 });
+    await p.waitForTimeout(150);
+    const kept = await p.evaluate(sidewaysState);
+    check(
+      !kept.shown && kept.paused,
+      tag + 'a run paused by hand stays paused after turning there and back'
+    );
+    await p.touchscreen.tap(running.x, running.y);
+
+    // Last page: no tap area over its buttons
+    await p.evaluate(function () {
+      window.simSeek(window.CTL_TOTAL);
+    });
+    await p.waitForTimeout(300);
+    const last = await p.evaluate(function () {
+      var again = document.getElementById('footerReplayBtn');
+      again.scrollIntoView({ block: 'center' });
+      var r = again.getBoundingClientRect();
+      var top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return {
+        area: getComputedStyle(document.getElementById('ctlBar')).display,
+        againOnTop: !!top && (top === again || again.contains(top)),
+        legal: getComputedStyle(document.querySelector('.impr-link-bar')).display,
+        // no room is kept free for a bar: the disclaimer sits right above the legal notice
+        gap:
+          document.querySelector('.impr-link-bar .impr-link').getBoundingClientRect().top -
+          document.querySelector('.disclaimer').getBoundingClientRect().bottom,
+      };
+    });
+    check(
+      last.area === 'none' && last.againOnTop && last.legal !== 'none',
+      tag +
+        'on the last page there is no tap area, "again" can be tapped, the legal notice is there'
+    );
+    check(
+      last.gap >= 0 && last.gap < 16,
+      tag +
+        'on the last page no room is kept free for a bar: the disclaimer ends ' +
+        last.gap.toFixed(1) +
+        ' px above the legal notice'
+    );
+    await ctx.close();
+
+    // Opened while held sideways: the hint is there before anything else
+    const sideCtx = await engineBrowser.newContext(phoneOptions(engine, 874, 340));
+    await makeHermetic(sideCtx);
+    const sp = await sideCtx.newPage();
+    sp.on('pageerror', function (err) {
+      pageErrors.push(engine + ' phone: ' + String(err));
+    });
+    await sp.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+    await sp.waitForSelector('#startBtn', { state: 'attached' });
+    const opened = await sp.evaluate(sidewaysState);
+    await sp.setViewportSize({ width: 402, height: 655 });
+    await sp.waitForTimeout(150);
+    await sp.click('#startBtn');
+    await sp.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+    check(
+      opened.shown && opened.covers && opened.startInert,
+      tag + 'opened sideways: the hint covers the start screen; upright the run can be started'
+    );
+    await sideCtx.close();
+
+    if (!full) return;
+    {
+      // A phone wider than 500 px upright (the narrow-window rules do not reach it)
+      const wideCtx = await engineBrowser.newContext(
+        phoneOptions(engine, 540, 900, { width: 540, height: 1100 })
+      );
+      await makeHermetic(wideCtx);
+      const wp = await wideCtx.newPage();
+      await wp.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+      await wp.click('#startBtn');
+      await wp.waitForSelector('#aWa.on', { timeout: 5000, state: 'attached' });
+      const wide = await wp.evaluate(phoneLayout);
+      check(
+        wide.parts.length === 0 &&
+          wide.above >= 6 &&
+          Math.abs(wide.above - wide.below) < 1 &&
+          wide.toLegal >= 6 &&
+          wide.legalOnTop,
+        tag +
+          '540 px wide: no bar either, the phone centred above the legal notice (' +
+          wide.above.toFixed(1) +
+          ' px above, ' +
+          wide.below.toFixed(1) +
+          ' px below)' +
+          (wide.parts.length ? ' - shown: ' + wide.parts.join(', ') : '')
+      );
+      await wideCtx.close();
+    }
+    // Who is a phone: the browser says so and the screen is small
+    console.log('E2E: phones - who counts as one');
+    const devices = [
+      [
+        'phone, shorter screen side 599',
+        phoneOptions(engine, 402, 655, { width: 599, height: 1000 }),
+        true,
+      ],
+      [
+        'says phone, shorter screen side 600',
+        phoneOptions(engine, 402, 655, { width: 600, height: 1000 }),
+        false,
+      ],
+      [
+        'iPad (names itself like a computer), finger',
+        {
+          locale: 'de-DE',
+          userAgent: TABLET_UA,
+          hasTouch: true,
+          viewport: { width: 1133, height: 650 },
+          screen: { width: 744, height: 1133 },
+        },
+        false,
+      ],
+      [
+        'Android tablet ("Android" without "Mobile"), finger',
+        {
+          locale: 'de-DE',
+          userAgent: ANDROID_TABLET_UA,
+          hasTouch: true,
+          viewport: { width: 1280, height: 700 },
+          screen: { width: 800, height: 1280 },
+        },
+        false,
+      ],
+      [
+        'computer with a small window',
+        {
+          locale: 'de-DE',
+          viewport: { width: 400, height: 700 },
+          screen: { width: 400, height: 700 },
+        },
+        false,
+      ],
+    ];
+    for (const device of devices) {
+      const dctx = await engineBrowser.newContext(device[1]);
+      await makeHermetic(dctx);
+      const dp = await dctx.newPage();
+      await dp.goto('http://127.0.0.1:' + server.port + '/?testspeed=10');
+      await dp.waitForSelector('#startBtn', { state: 'attached' });
+      const is = await dp.evaluate(function () {
+        return {
+          device: document.documentElement.classList.contains('phone-device'),
+          hint: document.getElementById('rotateHint').classList.contains('show'),
+        };
+      });
+      check(
+        is.device === device[2] && (device[2] || !is.hint),
+        device[0] + ': ' + (device[2] ? 'a phone' : 'not a phone, no hint to turn it')
+      );
+      await dctx.close();
+    }
   }
 
   // ---------- Layout ----------
@@ -1887,10 +2236,10 @@ function missingOnStage(keys) {
     [701, 800, '?beamer=1', true],
     [700, 800, '?beamer=1', false],
     [393, 852, '?beamer=1', false],
-    // operated by finger: a phone held sideways is a phone, a tablet is not
-    [852, 393, '', false, true],
-    [852, 393, '?beamer=1', false, true],
-    [900, 500, '?beamer=1', false, true],
+    // operated by finger, but not a phone (a tablet in a low window): as on a computer
+    [852, 393, '', true, true],
+    [852, 393, '?beamer=1', true, true],
+    [900, 500, '?beamer=1', true, true],
     [900, 501, '?beamer=1', true, true],
     [1133, 744, '?beamer=1', true, true],
     [744, 1133, '?beamer=1', true, true],
@@ -1946,20 +2295,19 @@ function missingOnStage(keys) {
     // low windows on a computer (mouse): everything stays
     [852, 393],
     [932, 430],
-    // phones as a browser shows them: the window is lower than the device,
-    // because the browser's own bars take their share
+    // windows as narrow and low as a phone browser shows them, here without a
+    // phone's identification: the short bar
     [402, 714, true],
     [402, 655, true],
     [393, 659, true],
     [375, 553, true],
     [360, 560, true],
     [320, 454, true],
-    // phones held sideways
+    // finger input in a low window, not a phone: the full bar
     [852, 393, true],
     [932, 430, true],
     [874, 340, true],
     [667, 375, true],
-    // the limit of "phone held sideways": 500 px high is one, 501 is not
     [900, 500, true],
     [900, 501, true],
     // tablets
@@ -2065,6 +2413,8 @@ function missingOnStage(keys) {
     await ctx.close();
   }
 
+  await phoneDeviceChecks(browser, 'chromium', true);
+
   console.log('E2E: heights follow the visible window, not vh');
   {
     // On phones and tablets 100vh is more than what can be seen (the height
@@ -2140,7 +2490,13 @@ function missingOnStage(keys) {
     [800, 600, '?beamer=1&testspeed=10', 'projector view on an 800 x 600 projector'],
     [701, 640, '?beamer=1&testspeed=10', 'projector view in the narrowest window'],
     [852, 393, '?testspeed=10', 'low window on a computer'],
-    [852, 393, '?beamer=1&testspeed=10', 'phone held sideways, opened with ?beamer=1', true],
+    [
+      852,
+      393,
+      '?beamer=1&testspeed=10',
+      'finger input in a low window, opened with ?beamer=1',
+      true,
+    ],
   ]) {
     const ctx = await browser.newContext({
       locale: 'de-DE',
@@ -3471,12 +3827,12 @@ function missingOnStage(keys) {
     );
     await ctx.close();
   }
+  await phoneDeviceChecks(safari, 'webkit', false);
   for (const size of [
     [402, 655],
     [375, 553],
-    [874, 340],
   ]) {
-    // The phone layout in the second engine: phone above the bar, no jumping
+    // The narrow window in the second engine: phone above the short bar, no jumping
     const ctx = await safari.newContext({
       locale: 'de-DE',
       viewport: { width: size[0], height: size[1] },
