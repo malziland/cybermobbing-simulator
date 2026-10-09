@@ -24,7 +24,7 @@ je iOS 27.0.
 | Ausgeliefert wird nur die Seite (Sperre vor dem Deploy) | `node scripts/deploy-files.js` | Rückgabewert 0, „deploy-files: 33 files, all part of the page; all 25 files the page loads are among them". So auch an `bcf5bd7` am 2026-10-09 16:45. Gegenproben: mit der Ausschlussliste von `85ee8b4` Rückgabewert 1, „133 file(s) that do not belong to the page … (of 166 files)"; fünf Köder in einer Kopie (Sicherungskopie `js/config.js.bak`, Verknüpfung nach außen, fehlendes Icon, fehlendes Skript, neuer Ordner) je Rückgabewert 1 | `c79f02d`, 2026-10-09 01:40 |
 | Live-Seite vor dem Deploy (Beleg, dass die Prüfung anschlagen kann) | `bash scripts/verify-live.sh` | Rückgabewert 1, „live site differs (35 problem(s) in 33 files and 21 hidden paths)"; darunter `.git/HEAD`, `.git/config`, `.git/index`, `.claude/settings.local.json`, `.github/workflows/ci.yml` je „EXPOSED … (HTTP 200)". Probe mit einem Prüfsummen-Werkzeug, das nichts liefert: Rückgabewert 2 | Live-Seite v1.2.1 gegen `c79f02d`, 2026-10-09 01:40 |
 | Live-Seite vor dem Deploy von v2.0.1 | `bash scripts/verify-live.sh` | Rückgabewert 1, „live site differs (5 problem(s) in 33 files and 21 hidden paths)" | Live-Seite v2.0.0 gegen `bcf5bd7`, 2026-10-09 16:45 |
-| Pipeline | GitHub Actions, Workflow `ci`, auf dem Pull Request | siehe Abschnitt „Auslieferung von v2.0.0" | — |
+| Pipeline | GitHub Actions, Workflow `ci`, auf dem Pull Request | siehe Abschnitte „Version 2.0.1" und „Auslieferung von v2.0.0" | — |
 
 ## Gegenproben
 
@@ -87,8 +87,40 @@ lagen im Arbeitsordner der Sitzung und sind nicht Teil des Repositorys.
 ## Version 2.0.1
 
 Prüfungen, Gegenproben und Messungen stehen in den Tabellen oben, Stand
-`bcf5bd7`. Die Auslieferung ist noch nicht erfolgt; ihre Nachweise werden hier
-mit dem Deploy eingetragen.
+`bcf5bd7`. Ausgelieferter Stand: Merge-Commit `21ccc6a` auf `main` (Inhalt
+gleich `05ebd86`, `git diff` leer; `05ebd86` fügt `bcf5bd7` nur Dokumentation
+hinzu), dazu der Cache-Stempel `?v=1791557563` in `index.html`.
+
+| Schritt | Befehl | Ergebnis | Zeit (CEST) |
+|---|---|---|---|
+| Zweig hochgeladen, Pull Request Nr. 8 | `git push -u origin fix/handy-leiste`, `gh pr create` | Rückgabewert 0; Kopf des Pull Requests `05ebd86` wie lokal | 2026-10-09 16:48 |
+| Pipeline auf dem Pull Request | `gh pr checks 8` | `lint-and-test`, `secret-scan`, `dependency-audit`: je SUCCESS (Lauf 37946909806). Im Protokoll: WebKit 26.5 installiert, QUnit 2229/2229, der Abschnitt in WebKit mit fünf Zeilen „ok" unter Linux | 16:52 |
+| Zusammengeführt | `gh pr merge 8 --merge`; nachgemessen mit `git diff HEAD 05ebd86` | Merge-Commit `21ccc6a`, 0 Zeilen Unterschied zum geprüften Stand | 16:52 |
+| Sperre vor dem Deploy | läuft als `hosting.predeploy`, im Protokoll des Deploys | „deploy-files: 33 files, all part of the page; all 25 files the page loads are among them" | 16:52 |
+| Deploy | `npm run deploy` von `main` | Rückgabewert 0; „found 33 files in .", „release complete", „Deploy complete!" | 16:52 |
+| Live-Seite zeigt diesen Stand | `bash scripts/verify-live.sh` | Rückgabewert 0, Fehlerausgabe leer; „live site serves this state (33 of 33 files identical, 21 of 21 tooling files not reachable)"; Cache-Stempel live und lokal `?v=1791557563`. Vor dem Deploy: Rückgabewert 1, fünf Dateien verschieden (Zeile in der Tabelle oben) | 16:53 |
+| Kennzeichen der Behebung in den Live-Dateien | `curl` und `grep -c` | `css/styles.css`: 4 Treffer für die Handy-Abfrage, `--wh:100dvh` und `body.jumping`; `js/controls.js`: 1 Treffer für `pointer:coarse`; `js/i18n.js`: 0 Treffer für `sim_lang` | 16:53 |
+| Werkzeuge und versteckte Ordner nicht abrufbar | `curl -s -o /dev/null -w '%{http_code}'` je Pfad | `/.git/HEAD`, `/.claude/settings.local.json`, `/scripts/check-ios.js`, `/docs/VERIFICATION.md`: je 404; `/` und `/css/styles.css`: je 200 | 16:53 |
+| Kopfzeilen | `curl -s -D - -o /dev/null https://cybermobbing.web.app/` | „HTTP/2 200", „cache-control: no-store, must-revalidate", CSP und „x-frame-options: DENY" wie in `firebase.json` | 16:53 |
+| Die ausgelieferten Dateien in echtem mobilem Safari | `npm run test:ios` am Stand `main` nach dem Deploy (die Dateien sind laut Prüfsummenvergleich die der Live-Seite) | Rückgabewert 0, „iOS: all checks passed", 22 Zeilen „ok" | 16:55 |
+| Aufrufzähler unberührt | lesender Abruf von `/views` vor dem Deploy und nach dem letzten Lauf | 361 und 361 | 16:52 und 16:55 |
+
+Die Live-Seite selbst wurde im Simulator nicht gestartet: Ein Start dort zählt
+einen Aufruf. Der Beleg am Gerät ist das Foto des Betreibers (Abschnitt „Nicht
+belegt").
+
+Rückweg: `docs/RUNBOOK.md`, Abschnitt „Rollback". Für diesen Release ist auch
+Weg 1 sauber, solange er auf das Release von v2.0.0 zeigt (das erste, das nur
+die Seite enthält); ältere Releases stellen `.git/` wieder ins Netz. Gezogen
+wird der Rückweg, wenn die Seite am Handy schlechter aussieht als mit v2.0.0
+oder Fehler wirft.
+
+Außerhalb des Repositorys, vom Betreiber am 2026-10-09 mit freigegeben; Stand
+je Punkt am Ende dieses Abschnitts nachgetragen:
+
+| Punkt | Stand |
+|---|---|
+| `ffmpeg` auf dem Rechner des Betreibers | `brew upgrade ffmpeg`: 8.1 auf 9.0.2 (die alte Fassung suchte `libx265.215`, installiert war `libx265.217`); `ffmpeg -version` startet, 2026-10-09 16:51 |
 
 ## Auslieferung von v2.0.0
 

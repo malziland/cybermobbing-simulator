@@ -4,11 +4,11 @@ Alle relevanten Änderungen an diesem Projekt werden hier dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) und folgt [Semantic Versioning](https://semver.org/lang/de/).
 
-## [Unveröffentlicht]
+## [2.0.1] - 2026-10-09
 
 Behebung für Smartphones und Tablets. Den Fehler hat der Betreiber am Tag der
-Auslieferung von 2.0.0 am eigenen Handy gefunden. Nachweise in
-`docs/VERIFICATION.md`.
+Auslieferung von 2.0.0 am eigenen Handy gefunden. Ausgeliefert am 2026-10-09;
+Nachweise in `docs/VERIFICATION.md`, Abschnitt „Version 2.0.1".
 
 ### Behoben
 - **Am Smartphone lag die Steuerleiste über dem unteren Rand des nachgebauten Handys** (neu seit 2.0.0): Die Eingabeleiste der Chats und die Menüleisten der Apps waren teilweise bis fast ganz verdeckt. Ursache: Die Höhe des Handys war als Anteil der Fensterhöhe (`vh`) angegeben. Handy-Browser rechnen dabei mit eingefahrener Adressleiste; sichtbar ist weniger. Das Handy richtet sich jetzt nach der sichtbaren Höhe und sitzt mittig über der Leiste
