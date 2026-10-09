@@ -2041,13 +2041,17 @@ function missingOnStage(keys) {
       return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     });
     await p.touchscreen.tap(legalSpot.x, legalSpot.y);
-    await p.waitForTimeout(100);
+    // Wait for the state instead of a fixed time: a slow machine needs longer
+    const legalShown = function (want) {
+      return document.getElementById('impModal').classList.contains('show') === want;
+    };
+    await p.waitForFunction(legalShown, true, { timeout: 5000 }).catch(function () {});
     await turn(p, 874, 340);
     await p.keyboard.press('Escape');
     const escaped = await p.evaluate(sidewaysState);
     const stillOpen = await turn(p, 402, 655);
     await p.keyboard.press('Escape');
-    await p.waitForTimeout(100);
+    await p.waitForFunction(legalShown, false, { timeout: 5000 }).catch(function () {});
     const closed = await p.evaluate(sidewaysState);
     check(
       escaped.legalOpen &&
@@ -2057,7 +2061,22 @@ function missingOnStage(keys) {
         !closed.legalOpen &&
         !closed.paused,
       tag +
-        'legal notice open, turned sideways, Escape: it stays open and paused; upright Escape closes it and the run continues'
+        'legal notice open, turned sideways, Escape: it stays open and paused; upright Escape closes it and the run continues' +
+        ' (behind the hint: open ' +
+        escaped.legalOpen +
+        ', paused ' +
+        escaped.paused +
+        '; upright: open ' +
+        stillOpen.legalOpen +
+        ', paused ' +
+        stillOpen.paused +
+        ', focus ' +
+        stillOpen.focus +
+        '; after Escape: open ' +
+        closed.legalOpen +
+        ', paused ' +
+        closed.paused +
+        ')'
     );
 
     // Last page: nothing over its buttons
