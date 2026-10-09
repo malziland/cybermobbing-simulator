@@ -101,11 +101,10 @@ function ctlSnap(t) {
 }
 
 /**
- * Jumping is not offered on a phone: there the timeline just shows the
- * progress. A phone is a window up to and including 500 CSS pixels wide, or a
- * device operated by finger whose window is up to and including 500 pixels
- * high (a phone held sideways). Tablets and computers may jump, whatever the
- * size of their window. The phone styles in css/styles.css use the same rule.
+ * Jumping is not offered on a phone (PHONE_DEVICE in helpers.js; a phone has
+ * no bar at all) and not in a window up to and including 500 CSS pixels wide,
+ * where the timeline just shows the progress. Tablets and computers may jump
+ * in wider windows, with finger input too.
  * @returns {boolean} True if the timeline may be used to jump
  */
 function ctlSeekAllowed() {

@@ -10,33 +10,58 @@
 // ========== DEVICE ==========
 
 /**
- * Tells whether a device counts as a phone (ADR-0008): its browser says so
- * itself, and the shorter side of its screen is below 600 CSS pixels (599 is a
- * phone, 600 is not). The second part keeps a tablet a tablet even if its
- * browser claims to be a phone.
+ * Tells whether a device counts as a phone (ADR-0008): the shorter side of its
+ * screen is below 600 CSS pixels (599 is a phone, 600 is not), and either its
+ * browser says it is a phone browser or the finger is its main pointer. The
+ * screen keeps a tablet a tablet whatever its browser claims; the finger keeps
+ * a phone a phone when somebody asks for the desktop version of the page.
  * @param {boolean} saysPhone - What the browser reports about itself
+ * @param {boolean} fingerFirst - True if the main pointer is the finger
  * @param {number} screenWidth - Width of the device screen in CSS pixels
  * @param {number} screenHeight - Height of the device screen in CSS pixels
  * @returns {boolean} True for a phone
  */
-function phoneFrom(saysPhone, screenWidth, screenHeight) {
-  return !!saysPhone && Math.min(screenWidth, screenHeight) < 600;
+function phoneFrom(saysPhone, fingerFirst, screenWidth, screenHeight) {
+  return (!!saysPhone || !!fingerFirst) && Math.min(screenWidth, screenHeight) < 600;
 }
 
 /**
  * Tells whether the page runs on a phone. Phone browsers name themselves
  * ("Mobile" in their identification, or the mobile flag of newer browsers);
- * tablets and computers do not. Somebody who asks for the desktop version of
- * the page on a phone gets it.
+ * tablets and computers do not.
  * @returns {boolean} True on a phone
  */
 function isPhoneDevice() {
   var data = navigator.userAgentData;
-  var says =
-    data && typeof data.mobile === 'boolean'
-      ? data.mobile
-      : /Mobi/i.test(navigator.userAgent || '');
-  return phoneFrom(says, window.screen.width, window.screen.height);
+  var says = (!!data && data.mobile === true) || /Mobi/i.test(navigator.userAgent || '');
+  var finger = !!window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
+  return phoneFrom(says, finger, window.screen.width, window.screen.height);
+}
+
+/**
+ * Tells whether a phone is held sideways: its window is wider than high AND
+ * wider than the short side of its screen. The second part matters in a split
+ * screen, where an upright phone has a low window; that is not sideways.
+ * @param {number} windowWidth - Width of the window in CSS pixels
+ * @param {number} windowHeight - Height of the window in CSS pixels
+ * @param {number} screenWidth - Width of the device screen in CSS pixels
+ * @param {number} screenHeight - Height of the device screen in CSS pixels
+ * @returns {boolean} True if the device lies on its side
+ */
+function sidewaysFrom(windowWidth, windowHeight, screenWidth, screenHeight) {
+  return windowWidth > windowHeight && windowWidth > Math.min(screenWidth, screenHeight) + 1;
+}
+
+/**
+ * @returns {boolean} True if this device lies on its side (asked on phones only)
+ */
+function phoneSideways() {
+  return sidewaysFrom(
+    window.innerWidth,
+    window.innerHeight,
+    window.screen.width,
+    window.screen.height
+  );
 }
 
 /**

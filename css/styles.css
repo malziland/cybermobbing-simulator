@@ -52,9 +52,12 @@ html,body{height:100%;overflow:hidden;background:#000;font-family:-apple-system,
   cursor:pointer;font-family:inherit;transition:background .2s,color .2s;
 }
 .start-share:hover{background:rgba(254,44,85,.1)!important;color:#fe2c55!important;transform:none!important}
-.start-views{display:flex;align-items:center;gap:4px;font-size:11px;color:#fe2c55;font-variant-numeric:tabular-nums;margin-bottom:clamp(10px,2.4vh,25px)}
+/* The room between the counter and the credit line belongs to the counter:
+   when the counter is taken away (it did not load), the credit line keeps its
+   place below the share button instead of sliding under it. */
+.start-views{display:flex;align-items:center;gap:4px;font-size:11px;color:#fe2c55;font-variant-numeric:tabular-nums;margin-bottom:clamp(-5px,calc(2.4vh - 15px),10px)}
 .start-views span{color:#fe2c55;font-weight:600}
-.start-credit{font-size:.68rem;color:#777;margin-top:-15px} /* >=4.5:1 on #000 (WCAG AA) */
+.start-credit{font-size:.68rem;color:#777} /* >=4.5:1 on #000 (WCAG AA) */
 .start-credit a{color:#888;text-decoration:underline}
 .start-credit a:hover{color:#fe2c55}
 
@@ -818,7 +821,7 @@ body.stage-live,body.beamer.sim-ended{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(v
 @media (max-width:500px){
   #start{padding-bottom:22px}
   .start-share{padding:4px 10px!important;font-size:10px!important}
-  .start-views{margin-bottom:15px}
+  .start-views{margin-bottom:0}
   .disclaimer{font-size:.55rem;padding:2px 16px}
   .footer-share{padding:8px 14px;font-size:11px}
   .footer-replay{padding:8px 14px;font-size:11px}
@@ -853,17 +856,19 @@ body.stage-live,body.beamer.sim-ended{--bar-h:calc(var(--u)*3.6);--bar-fs:calc(v
 
 /* ===== PHONE DEVICES (ADR-0008) =====
    A real phone, as helpers.js recognises it (class phone-device on <html>).
-   Upright there is no bar at all: the room above the legal notice is one
-   large button, a tap pauses and a second tap continues, and the pause sign
-   stands in the middle while paused. Held sideways the page asks to turn the
-   phone (.rotate-hint, shown by main.js). No projector view on a phone. */
+   Upright there is no bar at all. A tap on the simulated phone pauses and a
+   second tap continues (main.js listens on #phone, so a swipe still scrolls a
+   chat). Of the bar only the pause button is left: invisible while running
+   (the keyboard still reaches it), the pause sign in the middle while paused.
+   Held sideways the page asks to turn the phone (.rotate-hint, shown by
+   main.js). No projector view on a phone. */
 html.phone-device{--bar-h:0px;--bar-bottom:calc(var(--ctl-bottom) + var(--ctl-impr)*1.25 + 6px)}
-html.phone-device .ctl-bar{left:0;right:0;top:0;bottom:var(--bar-bottom);height:auto;padding:0;gap:0;background:none;border:none;border-radius:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+html.phone-device .ctl-bar{left:50%;right:auto;top:calc((100% - var(--bar-bottom))/2);bottom:auto;width:76px;height:76px;transform:translate(-50%,-50%);padding:0;gap:0;background:none;border:none;border-radius:50%;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;pointer-events:none}
 html.phone-device .ctl-bar > :not(#pauseBtn){display:none!important}
 html.phone-device body.sim-ended .ctl-bar{display:none}
 html.phone-device body.sim-running .impr-link-bar,html.phone-device body.sim-ended .impr-link-bar{display:block}
-html.phone-device .ctl-play,html.phone-device .ctl-play.paused{width:100%;height:100%;border-radius:0;background:transparent;cursor:default;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-html.phone-device .ctl-play:focus-visible{outline:3px solid #fff;outline-offset:-8px}
+html.phone-device .ctl-play,html.phone-device .ctl-play.paused{width:100%;height:100%;border-radius:50%;background:transparent;cursor:default;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+html.phone-device .ctl-play:focus-visible{outline:3px solid #fff;outline-offset:3px}
 html.phone-device .ctl-play svg{width:76px;height:76px;padding:20px;border-radius:50%;background:rgba(0,0,0,.6);box-shadow:0 0 0 2px rgba(255,255,255,.25)}
 html.phone-device .ctl-play .ico-pause,html.phone-device .ctl-play .ico-play,html.phone-device .ctl-play.paused .ico-play{display:none}
 html.phone-device .ctl-play.paused .ico-pause{display:block}

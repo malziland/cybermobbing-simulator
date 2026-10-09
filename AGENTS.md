@@ -75,8 +75,13 @@ bash setup.sh          # lädt App-Icons (einmalig, nicht im Repo)
 - Was als Handy gilt, steht in ADR-0008 und wird an genau einer Stelle
   entschieden: `PHONE_DEVICE` in `js/helpers.js` (Klasse `phone-device` am
   `<html>`). Am Handy gibt es keine Leiste, kein Springen und keine
-  Beamer-Ansicht; quer erscheint der Dreh-Hinweis. Neue Regeln für Handys
-  hängen an dieser Klasse, nicht an einer Fenstergröße.
+  Beamer-Ansicht; ein Tipp auf das Handy pausiert, quer erscheint der
+  Dreh-Hinweis. Neue Regeln für Handys hängen an dieser Klasse, nicht an einer
+  Fenstergröße. Über das nachgebaute Handy wird nichts gelegt, das Gesten
+  annimmt: Wischen muss die Chats weiter rollen.
+- Rollbare Bereiche im nachgebauten Handy tragen `tabindex="-1"`. Sonst nimmt
+  einer davon in Chrome und Firefox den Tastaturfokus, und der Browser schiebt
+  den Handy-Bildschirm weg.
 
 ## Wo was steht
 

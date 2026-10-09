@@ -91,37 +91,45 @@ Fingerbedienung.
 
 - **Hochkant** füllt das nachgebaute Handy die Höhe bis zur Impressum-Zeile.
   Ein Tipp auf das Handy pausiert, ein zweiter setzt fort; solange pausiert
-  ist, steht ein Pause-Zeichen in der Mitte. Technisch ist das der Pause-Knopf
-  der Leiste, über die ganze Fläche gelegt; er bleibt mit der Tastatur
-  erreichbar. Fortschritt, Ton-Knopf und Springen gibt es nicht; die Lautstärke
-  regeln die Tasten des Handys. Auf der letzten Seite liegt keine Tippfläche.
+  ist, steht ein Pause-Zeichen in der Mitte. Ein Wischen ist kein Tipp: Ein
+  pausierter Chat lässt sich weiter mit dem Finger zurückrollen. In den ersten
+  0,7 Sekunden nach dem Start zählt ein Tipp nicht, sonst pausierte ein
+  doppelter Tipp auf „Simulation starten" den Lauf sofort wieder. Für Tastatur
+  und Vorlese-Programme bleibt der Pause-Knopf der Leiste erhalten, unsichtbar
+  in der Mitte. Fortschritt, Ton-Knopf und Springen gibt es nicht; die
+  Lautstärke regeln die Tasten des Handys. Auf der letzten Seite fehlt auch der
+  Knopf.
 - **Quer** zeigt die Seite statt der Simulation den Hinweis „Bitte dreh dein
   Handy hochkant". Die Simulation pausiert dabei und läuft nach dem Drehen
-  weiter, außer sie war schon vorher pausiert. Der Hinweis gilt auch am
-  Startbildschirm und auf der letzten Seite. Verhindern lässt sich das Drehen
-  nicht; das erlaubt kein Browser einer gewöhnlichen Seite.
+  weiter, außer sie war schon vorher pausiert. Hinter dem Hinweis ist nichts
+  erreichbar, auch nicht mit Tasten; der Tastaturfokus kehrt danach zurück.
+  Der Hinweis gilt auch am Startbildschirm und auf der letzten Seite.
+  Verhindern lässt sich das Drehen nicht; das erlaubt kein Browser einer
+  gewöhnlichen Seite. Als quer gilt: Das Fenster ist breiter als hoch und
+  breiter als die kurze Seite des Bildschirms. Ein hochkant gehaltenes Handy
+  im geteilten Bildschirm (Fenster 402 × 380) ist damit nicht quer.
 - Die Beamer-Ansicht gibt es am Handy nicht (ADR-0007).
 
-**Als Handy gilt** ein Gerät, dessen Browser sich selbst als Handy-Browser
-meldet („Mobile" in seiner Kennung, oder das entsprechende Merkmal neuerer
-Browser) und dessen Bildschirm an der kürzeren Seite unter 600 CSS-Pixel misst
-(599 ist ein Handy, 600 nicht). Der zweite Teil hält ein Tablet auch dann für
-ein Tablet, wenn sein Browser sich als Handy ausgibt. Beispiele; die iPhones und
-iPads sind im Simulator gemessen:
+**Als Handy gilt** ein Gerät, dessen Bildschirm an der kürzeren Seite unter 600
+CSS-Pixel misst (599 ist ein Handy, 600 nicht) und bei dem eines von beiden
+zutrifft: Der Browser meldet sich als Handy-Browser („Mobile" in seiner
+Kennung, oder das entsprechende Merkmal neuerer Browser), oder der Finger ist
+das Hauptzeigegerät. Der Bildschirm hält ein Tablet für ein Tablet, was immer
+sein Browser meldet; der Finger hält ein Handy für ein Handy, wenn jemand dort
+„Desktop-Website anfordern" wählt. Beispiele; die iPhones und iPads sind im
+Simulator gemessen:
 
-- iPhone 17e, iPhone 17, iPhone 18 Pro Max: kürzere Seite 390, 402 und 440,
-  meldet sich als Handy: Handy.
-- iPad mini und iPad: 744 und 820, Safari meldet sich dort wie ein Rechner:
-  kein Handy.
-- Android-Tablet: meldet „Android" ohne „Mobile": kein Handy.
-- Rechner, auch mit kleinem Fenster oder Touchscreen: kein Handy.
-- Wer am Handy „Desktop-Website anfordern" wählt, bekommt die Fassung für
-  Rechner.
+- iPhone 17e, iPhone 17, iPhone 18 Pro Max: kürzere Seite 390, 402 und 440:
+  Handy.
+- iPad mini und iPad: 744 und 820: kein Handy.
+- Android-Tablet ab 600: kein Handy.
+- Rechner mit Maus, auch mit kleinem Fenster: kein Handy. Laptop mit
+  Touchscreen: kein Handy, sein Bildschirm ist größer.
 
 Entschieden wird einmal beim Laden: `PHONE_DEVICE` in `js/helpers.js` setzt die
 Klasse `phone-device` am `<html>`. Daran hängen `ctlSeekAllowed()`,
-`stageFits()`, der Abschnitt „PHONE DEVICES" im Stylesheet und der Dreh-Hinweis
-in `js/main.js`.
+`stageFits()`, der Abschnitt „PHONE DEVICES" im Stylesheet, der Tipp auf das
+Handy und der Dreh-Hinweis in `js/main.js`.
 
 Grund: Am Handy war die Zeitleiste 286 Pixel breit (2 Pixel je Sekunde); sie
 und der Ton-Knopf nahmen dem nachgebauten Handy rund 36 Pixel Höhe, ohne dort

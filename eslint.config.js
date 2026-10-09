@@ -52,6 +52,8 @@ const appGlobals = {
   toastSeq: 'writable',
   phoneFrom: 'writable',
   isPhoneDevice: 'writable',
+  phoneSideways: 'writable',
+  sidewaysFrom: 'writable',
   PHONE_DEVICE: 'writable',
   addMsg: 'writable',
   waType: 'writable',

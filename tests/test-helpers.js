@@ -243,19 +243,70 @@ QUnit.module('helpers', function () {
     assert.ok(soundCalled, 'Sound function was called');
   });
 
-  QUnit.test('phoneFrom(): a phone says so itself and has a small screen', function (assert) {
-    assert.strictEqual(phoneFrom(true, 402, 874), true, 'iPhone upright');
-    assert.strictEqual(phoneFrom(true, 874, 402), true, 'the same phone, screen reported sideways');
-    assert.strictEqual(phoneFrom(true, 599, 1000), true, 'shorter side 599: still a phone');
-    assert.strictEqual(phoneFrom(true, 600, 1000), false, 'shorter side 600: not a phone');
-    assert.strictEqual(phoneFrom(true, 744, 1133), false, 'a tablet that claims to be a phone');
-    assert.strictEqual(phoneFrom(false, 402, 874), false, 'small screen, but the browser says no');
-    assert.strictEqual(phoneFrom(false, 1920, 1080), false, 'computer');
-  });
+  QUnit.test(
+    'phoneFrom(): a small screen, and the browser says phone or the finger leads',
+    function (assert) {
+      assert.strictEqual(phoneFrom(true, true, 402, 874), true, 'iPhone upright');
+      assert.strictEqual(
+        phoneFrom(true, true, 874, 402),
+        true,
+        'the same phone, screen reported sideways'
+      );
+      assert.strictEqual(phoneFrom(true, false, 402, 874), true, 'says phone, pointer unknown');
+      assert.strictEqual(
+        phoneFrom(false, true, 402, 874),
+        true,
+        'asks for the desktop version: finger and small screen'
+      );
+      assert.strictEqual(phoneFrom(true, true, 599, 1000), true, 'shorter side 599: still a phone');
+      assert.strictEqual(phoneFrom(true, true, 600, 1000), false, 'shorter side 600: not a phone');
+      assert.strictEqual(
+        phoneFrom(true, true, 744, 1133),
+        false,
+        'a tablet that claims to be a phone'
+      );
+      assert.strictEqual(phoneFrom(false, true, 744, 1133), false, 'tablet');
+      assert.strictEqual(
+        phoneFrom(false, false, 400, 700),
+        false,
+        'computer with a small screen and a mouse'
+      );
+      assert.strictEqual(phoneFrom(false, true, 1366, 768), false, 'laptop with a touch screen');
+    }
+  );
 
   QUnit.test('the test browser is not a phone', function (assert) {
     assert.strictEqual(isPhoneDevice(), false, 'isPhoneDevice() on a computer');
     assert.strictEqual(PHONE_DEVICE, false, 'PHONE_DEVICE');
     assert.notOk(document.documentElement.classList.contains('phone-device'), 'no class on <html>');
   });
+
+  QUnit.test(
+    'sidewaysFrom(): wider than high and wider than the short screen side',
+    function (assert) {
+      assert.strictEqual(sidewaysFrom(874, 340, 402, 874), true, 'iPhone on its side');
+      assert.strictEqual(
+        sidewaysFrom(874, 340, 874, 402),
+        true,
+        'the same, screen reported sideways (Android)'
+      );
+      assert.strictEqual(sidewaysFrom(402, 655, 402, 874), false, 'upright');
+      assert.strictEqual(
+        sidewaysFrom(402, 380, 402, 874),
+        false,
+        'upright in a split screen: low window'
+      );
+      assert.strictEqual(
+        sidewaysFrom(437, 340, 402, 874),
+        true,
+        'half of the screen while on its side'
+      );
+      assert.strictEqual(
+        sidewaysFrom(403, 380, 402, 874),
+        false,
+        'one pixel wider counts as rounding'
+      );
+      assert.strictEqual(sidewaysFrom(404, 380, 402, 874), true, 'two pixels wider is sideways');
+    }
+  );
 });

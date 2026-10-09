@@ -59,12 +59,37 @@ und nach Simulator-Bildern zur Auslieferung freigegeben:
 | Querformat am Handy: Hinweis statt Darstellung | Betreiber | quer ist das Handy winzig |
 | Hochkant ohne Leiste, Tippen für Pause, Impressum unten | Betreiber | voller Platz; Lautstärke haben die Tasten des Handys |
 | Symbol A | Betreiber | zeigt, wohin gedreht wird |
-| Handy = Browser meldet sich als Handy UND kürzere Bildschirmseite unter 600 | Autor, vom Betreiber überlassen | Tablets dürfen nie als Handy gelten; der Bildschirm sichert gegen einen Tablet-Browser ab, der sich als Handy meldet. 600 ist die Grenze, ab der Android selbst von Tablets spricht |
+| Handy = kürzere Bildschirmseite unter 600 UND (Browser meldet sich als Handy ODER Finger als Hauptzeiger) | Autor, vom Betreiber überlassen; nach der Abnahme erweitert | Tablets dürfen nie als Handy gelten, und ein Handy bleibt eines, auch wenn dort die Desktop-Website angefordert wird. 600 ist die Grenze, ab der Android selbst von Tablets spricht |
 | Kein Fortschrittsstrich am Handy | Autor | der Betreiber nannte die Zeitleiste dort überflüssig |
-| Die Tippfläche ist der vorhandene Pause-Knopf, über die Fläche gelegt | Autor | Beschriftung, Tastatur und Zustand bleiben an einer Stelle |
+| Der Tipp wird am nachgebauten Handy gehört; der Pause-Knopf bleibt unsichtbar in der Mitte für Tastatur und Vorlese-Programme | Autor, nach der Abnahme (vorher lag der Knopf über der ganzen Fläche und nahm das Wischen weg) | gegenüber v2.0.1 geht nichts verloren |
 | Das Pause-Zeichen zeigt den Zustand (pausiert), nicht die nächste Aktion | Autor, nach der gezeigten Skizze | so stand es in der Vorschau |
 | Schmale Fenster am Rechner behalten die kurze Leiste | Autor | der Betreiber wollte den Rechner unverändert |
-| Wer am Handy die Desktop-Website anfordert, bekommt sie | Autor | das ist dann eine Entscheidung des Besuchers |
+
+## 4a. Unabhängige Abnahme vor der Auslieferung
+
+Auf Wunsch des Betreibers („bevor du online gehst, bitte prüfen, ob wirklich
+alles erledigt ist") hat eine zweite Instanz den Stand `5002054` geprüft, ohne
+die Ergebnisse des Autors zu kennen: elf eigene Sonden, Chromium, WebKit und
+Firefox. Urteil: Die fünf Wünsche sind erfüllt, sieben Fehler und Lücken. Alle
+sieben sind vor der Auslieferung behoben; die Zahlen stehen in
+`docs/VERIFICATION.md`.
+
+| Nr. | Fund der Abnahme | Behebung | Prüfung |
+|---|---|---|---|
+| 1 | Zwei schnelle Tipps auf „Simulation starten" pausierten den Lauf sofort | Ein Tipp auf das Handy zählt erst 0,7 Sekunden nach dem Start (`phoneTapFrom` in `js/main.js`) | Ablauftest „two quick taps on the start button: the run is going" |
+| 2 | Ein pausierter Chat ließ sich nicht mehr zurückrollen, weil der Knopf über dem Handy lag | Der Tipp wird am Handy selbst gehört (`click` auf `#phone`); der Knopf nimmt keine Gesten mehr an | „a paused chat scrolls back", „nothing lies over the phone" |
+| 3 | Ein Handy mit „Desktop-Website anfordern" bekam die Fassung für Rechner | Erkennung: kleiner Bildschirm und (Browser meldet Handy oder Finger als Hauptzeiger) | „phone asking for the desktop version …: a phone", QUnit `phoneFrom()` |
+| 4 | Hochkant gehaltenes Handy im geteilten Bildschirm zeigte den Dreh-Hinweis | quer heißt: breiter als hoch und breiter als die kurze Bildschirmseite (`sidewaysFrom()`) | „a low window on an upright phone (402x380) shows no hint", QUnit `sidewaysFrom()` |
+| 5 | Impressum offen, quer gedreht, Escape: Der Lauf ging hinter dem Hinweis weiter | Solange der Hinweis steht, erreicht keine Taste die Seite | „legal notice open, turned sideways, Escape: it stays open and paused" |
+| 6 | Nach dem Drehen stand der Fokus auf nichts; die Taste M schaltete hinter dem Hinweis den Ton | Fokus wird gemerkt und zurückgegeben; Tasten siehe Nr. 5 | „the keyboard focus is back where it was", „behind the hint the M key does nothing" |
+| 7 | Kommentare und Doku beschrieben noch die Regel aus v2.0.1; der Abschnitt „Version 2.0.2" in VERIFICATION fehlte | Kommentare in `js/controls.js` und `js/stage.js`, ADR-0008, README und VERIFICATION nachgezogen | `grep -n "pointer:coarse\|500 Pixel hoch\|500 px high" js css README.md AGENTS.md` |
+
+Zwei Bestandsfehler aus dem Bericht der Abnahme (in v2.0.1 genauso):
+
+- Tab-Taste im Lauf schob den Handy-Bildschirm weg: behoben (vier rollbare
+  Bereiche aus der Tab-Folge genommen), Prüfung „24 times Tab during the run".
+- Startbildschirm am Handy, wenn der Zähler nicht lädt: „Simulation teilen"
+  überdeckt die Zeile darunter um 7 Pixel. Nicht behoben; siehe Abschnitt 6.
 
 ## 5. Auffälligkeiten außerhalb des Auftrags
 
@@ -81,7 +106,11 @@ und nach Simulator-Bildern zur Auslieferung freigegeben:
    stützt sich dort auf die Kennung des Browsers, wie Google sie beschreibt;
    gemessen ist kein Android-Gerät. Prüfbar an einem Gerät. Wird ein Tablet als
    Handy eingeordnet oder umgekehrt, steht die Regel in ADR-0008 wieder an.
-3. **Unverändert offen** aus der Übergabe zu v2.0.1: alte Hosting-Releases in
+3. **Entscheidung: Startbildschirm am Handy ohne Zähler.** Lädt der Zähler
+   nicht (gesperrtes Netz), überdeckt „Simulation teilen" die Zeile darunter um
+   7 Pixel; in v2.0.1 genauso. Empfehlung: als eigene kleine Änderung beheben.
+   Ohne Entscheidung bleibt es so.
+4. **Unverändert offen** aus der Übergabe zu v2.0.1: alte Hosting-Releases in
    der Firebase-Konsole löschen (Betreiber); Saal, Ton und Windows-Rechner vor
    Ort; voller Ablauftest in einer zweiten Browser-Technik.
 
