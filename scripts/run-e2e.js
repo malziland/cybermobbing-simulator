@@ -1848,7 +1848,20 @@ function missingOnStage(keys) {
     }
     async function turn(page, width, height) {
       await page.setViewportSize({ width: width, height: height });
-      await page.waitForTimeout(150);
+      // Wait until the page has taken the new size in (its resize handler has
+      // run), not for a fixed time: WebKit on Linux needed longer than 150 ms,
+      // and the next tap then still hit the hint
+      await page
+        .waitForFunction(
+          function () {
+            var shown = document.getElementById('rotateHint').classList.contains('show');
+            return !window.PHONE_DEVICE || shown === window.phoneSideways();
+          },
+          null,
+          { timeout: 5000 }
+        )
+        .catch(function () {});
+      await page.waitForTimeout(60);
       return page.evaluate(sidewaysState);
     }
 
