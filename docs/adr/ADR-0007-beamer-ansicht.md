@@ -9,11 +9,11 @@ Maße (393 × 852 CSS-Pixel) und wächst nicht mit dem Bild. Messung vom 2026-10
 gegen Commit `5364d4b` (Chromium, 1920 × 1080): Das Handy belegt 20,5 % der
 Bildbreite, ein Großbuchstabe der Chat-Schrift ist 0,95 % der Bildhöhe hoch.
 
-Einsatzbedingungen laut Betreiber: Kinder sitzen bis zu 10–15 m entfernt, der
+Einsatzbedingungen in den Workshops: Kinder sitzen bis zu 10–15 m entfernt, der
 Beamer hat teils eine schlechte Auflösung. Nach der Planungsregel der
 Veranstaltungstechnik (Zeichenhöhe = Abstand ÷ 200) braucht es dafür rund
-3,5–5 % der Bildhöhe, also das Vier- bis Fünffache. Ausgeschlossen hat der
-Betreiber: die Schrift im Handy einfach zu vergrößern und Scrollen von Hand.
+3,5–5 % der Bildhöhe, also das Vier- bis Fünffache. Ausgeschlossen waren von
+Anfang an: die Schrift im Handy einfach zu vergrößern und Scrollen von Hand.
 
 ## Entscheidung
 
@@ -82,7 +82,7 @@ Die Tasten B (Ansicht) und M (Ton) sind Kürzel aus einem einzelnen Buchstaben.
 WCAG 2.1.4 (Stufe A) verlangt, dass solche Kürzel abschaltbar oder umlegbar
 sind; das ist hier nicht der Fall.
 
-- Entscheidung des Betreibers vom 2026-10-08: Die Kürzel bleiben.
+- Entscheidung vom 2026-10-08: Die Kürzel bleiben.
 - Begründung: Die Seite hat kein Eingabefeld, in dem die Tasten versehentlich
   ausgelöst würden, und wird im Workshop von einer Person moderiert. Beide
   Funktionen sind zusätzlich über sichtbare, per Tastatur erreichbare Knöpfe
@@ -101,8 +101,7 @@ sind; das ist hier nicht der Fall.
   abgeschnitten.
 - **Handy am Rand und nur Text daneben:** verworfen, weil das Foto dabei nur im
   Handy und damit klein zu sehen ist.
-- **Bild und Text ohne Handy:** zunächst gebaut, auf Wunsch des Betreibers
-  verworfen. Es gäbe mehr Platz für Bild und Text, aber das Handy als
+- **Bild und Text ohne Handy:** zunächst gebaut, dann wieder verworfen. Es gäbe mehr Platz für Bild und Text, aber das Handy als
   Wiedererkennung fehlt.
 - **Ein einzelner Schalter in Pillenform:** verworfen, weil er neben „Simulation
   starten" und „Simulation teilen" wie ein weiterer gleichartiger Knopf wirkt.

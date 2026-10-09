@@ -59,7 +59,7 @@ lagen im Arbeitsordner der Sitzung und sind nicht Teil des Repositorys.
 | Ziehen in drei Browser-Techniken (Chromium 149, WebKit 26.5, Firefox 151) | Wegwerfskript, 190 Sprünge beim Ziehen, 1920 × 1080 | Arbeit je Sprung im Mittel 7 / 14 / 9 ms, längster 11 / 23 / 14 ms; an sieben Stellen jeder Eintrag im Handy sichtbar; 0 Seitenfehler | Zwischenstand vor `b3f630c`, 2026-10-08; danach im tiefen Audit an `7c49271` nachgemessen (870 Bilder, 0 unsichtbar) |
 | Musikdatei lässt sich abschnittsweise laden (Voraussetzung für das Springen in der Musik) | `curl -H "Range: bytes=1000-1999" https://cybermobbing.web.app/assets/bgm.mp3` | „HTTP/2 206", „content-range: bytes 1000-1999/1824429" | Live-Seite v1.2.1, 2026-10-08 |
 | Sichtprüfung | 25 Bildschirmfotos: Leiste laufend und pausiert, beide Ansichten, schmale Fenster, letzte Seite mit Logo und zwei Links (auch 852 × 393, gerollt), Impressum, Startbildschirm | angesehen, je 0 Seitenfehler | Zwischenstände bis `6a100b3`, 2026-10-08 und 2026-10-09 |
-| Fehler von v2.0.0 am Handy, vor der Behebung | Wegwerf-Messung im Simulator iPhone 17 (iOS 27.0, Safari), Seite mit Beispiel-Konfiguration | Fenster 402 × 714 sichtbar, 100vh = 754; nachgebautes Handy 16,5 bis 657,4, Leiste ab 650,3: 7,1 Pixel Überstand, Eingabeleiste 3,1 von 54 Pixel verdeckt. Für die zweizeilige Safari-Leiste des Betreibers (aus seinem Foto rund 655 Pixel sichtbar) gerechnet: rund 37 Pixel Überstand, rund 33 von 54 verdeckt | `9b796b3`, 2026-10-09 15:30 |
+| Fehler von v2.0.0 am Handy, vor der Behebung | Wegwerf-Messung im Simulator iPhone 17 (iOS 27.0, Safari), Seite mit Beispiel-Konfiguration | Fenster 402 × 714 sichtbar, 100vh = 754; nachgebautes Handy 16,5 bis 657,4, Leiste ab 650,3: 7,1 Pixel Überstand, Eingabeleiste 3,1 von 54 Pixel verdeckt. Für die zweizeilige Safari-Leiste am eigenen Handy (aus einem Foto rund 655 Pixel sichtbar) gerechnet: rund 37 Pixel Überstand, rund 33 von 54 verdeckt | `9b796b3`, 2026-10-09 15:30 |
 | Aufrufzähler bei den Messungen im Simulator | lesender Abruf von `/views` vor und nach der Messung | 361 und 361; der Messserver beantwortete `js/config.js` neunmal mit der Beispiel-Konfiguration | 2026-10-09 15:30 und 15:34 |
 | Letzte Seite mit Logo und zwei Links, vor der Behebung | Wegwerfskript, Chromium, Beispiel-Konfiguration mit Logo und zweitem Link | es fehlten 58 Pixel bei 960 × 540, 22 bei 1024 × 576, in der Beamer-Ansicht 60 bei 800 × 600; danach in allen 20 gemessenen Fällen 0 | `9b796b3` und `bcf5bd7`, 2026-10-09 |
 | Ältere Nachrichten nach einem Sprung in der Safari-Technik, vor der Behebung | Wegwerfskript, WebKit von Playwright, Beamer-Ansicht, erstes Bild nach dem Sprung | Deckkraft 1,00 statt 0,50 (ältere) und 1,00 statt 0 (verdrängte); danach 0,50 und 0,00 | `9b796b3` und `bcf5bd7`, 2026-10-09 |
@@ -79,28 +79,28 @@ lagen im Arbeitsordner der Sitzung und sind nicht Teil des Repositorys.
   Handy-Kennung, hochkant zusätzlich im Simulator. Der Simulator ließ sich
   weder drehen noch antippen: `xcrun simctl help` kennt kein Drehen, die
   Geräte-App von Xcode 27 heißt DeviceHub, und `osascript` meldete „keine
-  Berechtigung für den Hilfszugriff". Der Betreiber hat am 2026-10-09
-  entschieden, nach der Auslieferung am eigenen Handy zu testen.
+  Berechtigung für den Hilfszugriff". Entscheidung vom 2026-10-09: nach der
+  Auslieferung am eigenen Handy testen.
 - Android-Handys und Android-Tablets an echten Geräten: Die Erkennung stützt
   sich dort auf Bildschirmgröße, Kennung und Zeigegerät; gemessen ist keines.
 - Echtes Safari und Firefox am Rechner (gemessen sind die Testbrowser von
   Playwright; echtes mobiles Safari deckt `npm run test:ios` ab).
 - Loslassen der Maus außerhalb des Fensters und Ruhezustand an einem echten Gerät.
-- Die Behebungen in `c79f02d` und alle Behebungen von v2.0.1: nur vom Autor
-  geprüft. Für v2.0.2 siehe Abschnitt „Version 2.0.2", Abnahme.
+- Die Behebungen in `c79f02d` und alle Behebungen von v2.0.1: nur selbst
+  geprüft, nicht unabhängig abgenommen. Für v2.0.2 siehe Abschnitt „Version 2.0.2", Abnahme.
 
 ## Version 2.0.2
 
 Prüfungen und Gegenproben stehen in den Tabellen oben, Stand `ac26a5e`.
 
-**Abnahme durch eine zweite Instanz** (auf Wunsch des Betreibers vor der
-Auslieferung; sie kannte die Ergebnisse des Autors nicht):
+**Unabhängige Abnahme vor der Auslieferung** (ein zweiter Prüflauf, der die
+Ergebnisse der eigenen Prüfungen nicht kannte):
 
 | Schritt | Was | Ergebnis | Zeit (CEST) |
 |---|---|---|---|
-| Abnahme des Stands `5002054` | elf eigene Sonden in Chromium, WebKit und Firefox, 254 Bilder; dazu `npm run lint`, `npm run test`, `npm run test:e2e` | die fünf Wünsche des Betreibers erfüllt; sieben Fehler und Lücken, zwei Bestandsfehler; Rückgabewerte 0 / 0 / 0, 2251/2251, 382 „ok" | 2026-10-09 18:29 bis 19:11 |
+| Abnahme des Stands `5002054` | elf eigene Sonden in Chromium, WebKit und Firefox, 254 Bilder; dazu `npm run lint`, `npm run test`, `npm run test:e2e` | die fünf Anforderungen erfüllt; sieben Fehler und Lücken, zwei Bestandsfehler; Rückgabewerte 0 / 0 / 0, 2251/2251, 382 „ok" | 2026-10-09 18:29 bis 19:11 |
 | Behebung | Commit `ac26a5e` | alle sieben und beide Bestandsfehler bearbeitet, je mit eigener Prüfung; Liste in `docs/handover/2026-10-09-handy-ohne-leiste.md`, Abschnitt 4a | 19:12 bis 19:52 |
-| Nachmessung durch dieselbe Instanz | ihre eigenen Sonden am Stand `ac26a5e` | alle sieben Funde und beide Bestandsfehler behoben, nichts neu kaputt. Handy: Chromium 37 „ok", WebKit 34; Tablets 234 „ok"; Rechner 14 Fälle gegen v2.0.1, Startbild bytegleich. Nicht nachgemessen: Firefox und ein Handy, das seinen Bildschirm in Gerätepixeln meldet | 19:52 bis 19:59 |
+| Nachmessung durch denselben Prüflauf | seine eigenen Sonden am Stand `ac26a5e` | alle sieben Funde und beide Bestandsfehler behoben, nichts neu kaputt. Handy: Chromium 37 „ok", WebKit 34; Tablets 234 „ok"; Rechner 14 Fälle gegen v2.0.1, Startbild bytegleich. Nicht nachgemessen: Firefox und ein Handy, das seinen Bildschirm in Gerätepixeln meldet | 19:52 bis 19:59 |
 
 Zwischen der Nachmessung (`ac26a5e`) und dem ausgelieferten Stand liegen nur
 `docs/VERIFICATION.md` und `scripts/run-e2e.js` (`git diff --stat ac26a5e
@@ -151,7 +151,7 @@ hinzu), dazu der Cache-Stempel `?v=1791557563` in `index.html`.
 | Pipeline auf `main` | `gh run list --workflow ci --branch main` | Lauf 37947857745 an `fcbb963`: success. Der Lauf 37947456457 am Merge-Commit `21ccc6a` (Inhalt gleich dem grünen Kopf des Pull Requests) hing 15 Minuten im Schritt „playwright install" und wurde um 17:09 abgebrochen und neu gestartet; der Neustart endete um 17:13 mit success in allen drei Teilen | 17:13 |
 
 Die Live-Seite selbst wurde im Simulator nicht gestartet: Ein Start dort zählt
-einen Aufruf. Der Beleg am Gerät ist das Foto des Betreibers (Abschnitt „Nicht
+einen Aufruf. Der Beleg am Gerät ist ein Foto vom echten Handy (Abschnitt „Nicht
 belegt").
 
 Rückweg: `docs/RUNBOOK.md`, Abschnitt „Rollback". Für diesen Release ist auch
@@ -160,12 +160,11 @@ die Seite enthält); ältere Releases stellen `.git/` wieder ins Netz. Gezogen
 wird der Rückweg, wenn die Seite am Handy schlechter aussieht als mit v2.0.0
 oder Fehler wirft.
 
-Außerhalb des Repositorys, vom Betreiber am 2026-10-09 mit freigegeben; Stand
-je Punkt am Ende dieses Abschnitts nachgetragen:
+Außerhalb des Repositorys, am 2026-10-09 miterledigt:
 
 | Punkt | Stand |
 |---|---|
-| `ffmpeg` auf dem Rechner des Betreibers | `brew upgrade ffmpeg`: 8.1 auf 9.0.2 (die alte Fassung suchte `libx265.215`, installiert war `libx265.217`); `ffmpeg -version` startet, 2026-10-09 16:51 |
+| `ffmpeg` auf dem Entwicklungsrechner | `brew upgrade ffmpeg`: 8.1 auf 9.0.2 (die alte Fassung suchte `libx265.215`, installiert war `libx265.217`); `ffmpeg -version` startet, 2026-10-09 16:51 |
 | Video-Export einmal ausgeführt | `node export-video.js` in `scripts/video-export`, 16:57 bis 17:01: Rückgabewert 0, „Aufnahme beendet nach 165.0s"; `ffprobe`: h264 und aac, 2160 × 4680, 169 s; dazu die FHD-Fassung. Sichtprüfung an sechs Einzelbildern (8, 25, 60, 85, 125, 160 s): Handy bildfüllend, keine Steuerleiste im Bild, wie im Video vom 2026-05-16. Die zwei alten Videos liegen als Kopie in `output/sicherung-2026-05-16/` (bytegleich geprüft). Der erste Versuch brach ab, weil der Anschluss 8765 von einem fremden Programm belegt war (`server.py 8765`, nicht aus diesem Projekt); der Lauf nutzte deshalb eine Wegwerfkopie des Skripts mit Anschluss 8791. Das fremde Programm blieb unberührt |
 | Drei Vorschläge von Dependabot | je Versionshinweise gelesen, Änderung und Bezugsquellen geprüft, Pipeline auf dem neu aufgesetzten Vorschlag grün, dann `gh pr merge`: Nr. 2 `actions/checkout` 7.0.0 auf 7.0.1 (festgeschriebene Kennung gleich der Markierung `v7.0.1`); Nr. 4 Playwright 1.61.1 auf 1.63.0 in `scripts/video-export`; Nr. 6 im Wurzelverzeichnis `@axe-core/playwright` 4.13.0, ESLint 10.12.0, `globals` 17.13.0, Playwright 1.63.0, Prettier 3.9.9, dazu acht neue und zwei entfallene Unterpakete, alle 22 Bezugsquellen `registry.npmjs.org`. Zusammengeführt um 17:02 (`95198ef`, `708c5cf`, `a9c8cb3`). Danach am Stand `a9c8cb3`, 17:03 bis 17:07: `npm run lint` 0; QUnit 2229/2229; Ablauftest 356 „ok", 0 „FAIL"; `npm run test:ios` 22 „ok"; `npm audit` zweimal 0; `verify-live.sh` Rückgabewert 0 (die Seite ist unverändert); Pipeline-Lauf 37948757684 success |
 | Alter Zweig `feat/beamer-ansicht` | vorher: `git rev-list --count origin/main..origin/feat/beamer-ansicht` ergibt 0. Gelöscht auf GitHub und lokal um 16:56; `git ls-remote origin refs/heads/feat/beamer-ansicht` liefert 0 Zeilen, derselbe Befehl für `main` 1 Zeile |
@@ -192,7 +191,7 @@ Fehlgriff bei der Probe „Die Seite läuft": Das Skript sperrte nur gewöhnlich
 Abrufe zur Datenbank, nicht die Dauerverbindung, über die der Zähler schreibt.
 Es startete die Simulation zweimal auf der Live-Seite (einmal vor, einmal nach
 dem Deploy). Nachgemessen um 01:46 Uhr: `/views` steht bei 350, demselben Wert
-wie auf den Bildschirmfotos des Betreibers vom Abend; gezählt wurde also nicht.
+wie auf den Bildschirmfotos vom Abend; gezählt wurde also nicht.
 Eine solche Probe braucht eine Sperre der Dauerverbindung
 (`routeWebSocket` in Playwright) oder die Beispiel-Konfiguration.
 
@@ -218,6 +217,6 @@ Startknopf auf der Live-Seite nichts tut oder die Seite Fehler wirft.
 |---|---|---|
 | Branch Protection auf `main` inkl. Required Checks | aktiv | 2026-10-09 per GitHub-API gelesen: Pflicht-Checks `lint-and-test`, `secret-scan`, `dependency-audit`; Admin darf direkt pushen (`enforce_admins: false`, bewusste Solo-Ausnahme seit 2026-07-16) |
 | GitHub Secret Scanning + Push Protection | aktiv laut Stand 2026-07-16 | 2026-07-16 per API verifiziert; seither nicht neu gemessen |
-| 2FA auf GitHub-Account | aktiv laut Stand 2026-07-16 | 2026-07-16 per Sichtprüfung durch den Betreiber; seither nicht neu gemessen |
+| 2FA auf GitHub-Account | aktiv laut Stand 2026-07-16 | 2026-07-16 per Sichtprüfung; seither nicht neu gemessen |
 | Dependabot-Alerts + automatische Sicherheits-Updates | aktiv | 2026-10-09: drei offene Pull Requests von Dependabot (Nr. 2, 4, 6) per `gh pr list` gelesen |
 | Google-Cloud-Budget-Alert fürs Firebase-Projekt | aktiv laut Stand 2026-07-16 | 2026-07-16 per gcloud verifiziert; seither nicht neu gemessen |

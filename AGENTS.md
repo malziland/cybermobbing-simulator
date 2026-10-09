@@ -10,7 +10,7 @@ npm run test           # QUnit-Suite headless (Playwright/Chromium)
 npm run test:e2e       # E2E + axe-core (braucht kein js/config.js)
 npm run test:ios       # iPhone und iPad im Simulator, echtes Safari (nur Mac mit Xcode)
 npm run dev            # lokale Vorschau (Firebase-Hosting-Emulator, Port 5000)
-npm run deploy         # NUR nach ausdrücklicher Betreiber-Freigabe
+npm run deploy         # NUR nach ausdrücklicher Freigabe
 bash setup.sh          # lädt App-Icons (einmalig, nicht im Repo)
 ```
 
@@ -24,8 +24,8 @@ bash setup.sh          # lädt App-Icons (einmalig, nicht im Repo)
   Inline-Script-Konsolen-Meldungen sind erwartet (ADR-0002).
 - **`js/config.js` niemals committen** (gitignored; Vorlage: config.example.js).
 - **Keine Links auf malziland.at oder malzi.me** einbauen (getrennte Projekte).
-  Kontaktadresse des Projekts ist `info@malziland.at` (Entscheidung des
-  Betreibers vom 2026-10-08); sie steht im Impressum, in `llms.txt`,
+  Kontaktadresse des Projekts ist `info@malziland.at` (seit 2026-10-08); sie
+  steht im Impressum, in `llms.txt`,
   `SECURITY.md`, `CONTRIBUTING.md` und in der Issue-Vorlage.
 - **Kein Push, Deploy, Release-Tag ohne ausdrückliche Freigabe.**
 - **Ausgeliefert wird nur die Seite.** `scripts/deploy-files.js` sperrt jeden

@@ -7,7 +7,7 @@ Status: Angenommen · Datum: 2026-10-08 · ausgeliefert mit v2.0.0 · Handy-Fass
 Mit der Beamer-Ansicht (ADR-0007) waren die Bedienelemente auf fünf Stellen
 verteilt: Pausesymbol mit Pausentext unten in der Mitte, Impressum darunter,
 Ton-Regler links, Umschalter rechts, ein dünner Fortschrittsstrich ganz unten.
-Der Betreiber wünschte eine durchgängige, in beiden Ansichten gleiche Bedienung
+Gebraucht wurde eine durchgängige, in beiden Ansichten gleiche Bedienung
 und eine Zeitleiste, mit der sich im Workshop jede Stelle wieder aufrufen lässt,
 auch von der letzten Seite aus.
 
@@ -87,7 +87,7 @@ Beispiele: 900 Pixel ohne, 901 mit Regler; 700 ohne, 701 mit Umschalter; 500
 ohne, 501 mit Springen. Das gilt für Rechner und Tablets, auch mit
 Fingerbedienung.
 
-**Am Handy gibt es keine Leiste** (Entscheidung des Betreibers vom 2026-10-09):
+**Am Handy gibt es keine Leiste** (Entscheidung vom 2026-10-09):
 
 - **Hochkant** füllt das nachgebaute Handy die Höhe bis zur Impressum-Zeile.
   Ein Tipp auf das Handy pausiert, ein zweiter setzt fort; solange pausiert
@@ -154,15 +154,15 @@ Schließen läuft sie weiter, außer sie war schon vorher pausiert.
 - **Sprung nach vorn ohne Neustart:** verworfen. Die Uhr läuft über ein
   Intervall und kann gegenüber den Timern nachgehen; ein Sprung „auf die Marke"
   hätte dann knapp davor landen können.
-- **Klick rastet immer auf den Anfang der Szene:** zuerst so gebaut, vom
-  Betreiber verworfen. Ein Klick vor dem Knopf sprang damit weiter zurück als
+- **Klick rastet immer auf den Anfang der Szene:** zuerst so gebaut, beim
+  Ausprobieren verworfen. Ein Klick vor dem Knopf sprang damit weiter zurück als
   gemeint.
-- **Sprung erst beim Loslassen:** zuerst so gebaut, vom Betreiber verworfen.
+- **Sprung erst beim Loslassen:** zuerst so gebaut, beim Ausprobieren verworfen.
   Beim Ziehen war nicht zu sehen, wo man landet.
-- **Zeitanzeige und Endzeit in der Leiste:** zuerst so gebaut, vom Betreiber
-  verworfen, siehe oben.
+- **Zeitanzeige und Endzeit in der Leiste:** zuerst so gebaut, beim
+  Ausprobieren verworfen, siehe oben.
 - **Leiste endet mit dem Schlusstext, die letzte Seite steht für sich:** zuerst
-  so gebaut, vom Betreiber verworfen. Zum Wiederholen einer Stelle hätte man
+  so gebaut, beim Ausprobieren verworfen. Zum Wiederholen einer Stelle hätte man
   neu starten müssen.
 
 ## Konsequenzen
@@ -189,7 +189,7 @@ Schließen läuft sie weiter, außer sie war schon vorher pausiert.
 ## Bedingung für Neubewertung
 
 Rückmeldung aus dem ersten Workshop: ob das Springen genutzt wird und ob die
-Marken reichen. Die Handy-Fassung ohne Leiste ist eine Entscheidung des
-Betreibers vom 2026-10-09. Sie steht wieder an, wenn am Handy gesprungen oder
+Marken reichen. Die Handy-Fassung ohne Leiste ist eine Entscheidung vom
+2026-10-09. Sie steht wieder an, wenn am Handy gesprungen oder
 der Fortschritt gezeigt werden soll, oder wenn ein Gerät falsch eingeordnet
 wird (ein Tablet als Handy oder umgekehrt).

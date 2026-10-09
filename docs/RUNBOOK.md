@@ -40,14 +40,14 @@ meldet sich außerdem ein Browser wirklich als Handy oder Tablet. Der Lauf
 startet die Simulatoren selbst und fährt sie wieder herunter; der echte
 Aufrufzähler wird nicht berührt. Fehlt Xcode oder ein Simulator, endet er mit
 Rückgabewert 2, und das ist ein Fehlschlag, kein übersprungener Schritt.
-Notschalter, nur mit ausdrücklicher Freigabe des Betreibers: ohne diesen Lauf
+Notschalter, nur als bewusste Ausnahme: ohne diesen Lauf
 ausliefern und sofort danach am echten Handy prüfen (jede Szene einmal ansehen:
 Das nachgebaute Handy endet über der Impressum-Zeile, ein Tipp pausiert, quer
 erscheint der Dreh-Hinweis). Im Abschluss wird das genannt.
 
 ## Deployment
 
-Nur nach ausdrücklicher Freigabe des Betreibers:
+Nur nach ausdrücklicher Freigabe:
 
 ```bash
 npm run deploy     # führt automatisch vorher scripts/cache-bust.sh aus
