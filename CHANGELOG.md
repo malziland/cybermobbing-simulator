@@ -6,10 +6,10 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) 
 
 ## [2.0.2] - 2026-10-09
 
-Handy-Fassung nach den Wünschen des Betreibers vom 2026-10-09. Vor der
-Auslieferung von einer zweiten Instanz abgenommen; ihre sieben Funde sind
-behoben. Ausgeliefert am 2026-10-09; Nachweise in `docs/VERIFICATION.md`,
-Abschnitt „Version 2.0.2".
+Neue Handy-Fassung: keine Steuerleiste mehr am Handy, Tippen für Pause, ein
+Hinweis im Querformat. Vor der Auslieferung zusätzlich unabhängig geprüft; die
+sieben Funde dieser Prüfung sind behoben. Ausgeliefert am 2026-10-09; Nachweise
+in `docs/VERIFICATION.md`, Abschnitt „Version 2.0.2".
 
 ### Geändert
 - **Am Handy gibt es keine Steuerleiste mehr.** Das nachgebaute Handy nutzt die Höhe bis zur Impressum-Zeile (im iPhone-Simulator 36 Pixel mehr). Ein Tipp auf das Handy pausiert, ein zweiter setzt fort; solange pausiert ist, steht ein Pause-Zeichen in der Mitte. Fortschritt und Ton-Knopf entfallen dort; die Lautstärke regeln die Tasten des Handys. Das Impressum bleibt als Zeile unter dem Handy
@@ -21,9 +21,9 @@ Abschnitt „Version 2.0.2".
 
 ## [2.0.1] - 2026-10-09
 
-Behebung für Smartphones und Tablets. Den Fehler hat der Betreiber am Tag der
-Auslieferung von 2.0.0 am eigenen Handy gefunden. Ausgeliefert am 2026-10-09;
-Nachweise in `docs/VERIFICATION.md`, Abschnitt „Version 2.0.1".
+Behebung für Smartphones und Tablets. Der Fehler fiel am Tag der Auslieferung
+von 2.0.0 am echten Handy auf. Ausgeliefert am 2026-10-09; Nachweise in
+`docs/VERIFICATION.md`, Abschnitt „Version 2.0.1".
 
 ### Behoben
 - **Am Smartphone lag die Steuerleiste über dem unteren Rand des nachgebauten Handys** (neu seit 2.0.0): Die Eingabeleiste der Chats und die Menüleisten der Apps waren teilweise bis fast ganz verdeckt. Ursache: Die Höhe des Handys war als Anteil der Fensterhöhe (`vh`) angegeben. Handy-Browser rechnen dabei mit eingefahrener Adressleiste; sichtbar ist weniger. Das Handy richtet sich jetzt nach der sichtbaren Höhe und sitzt mittig über der Leiste
@@ -33,7 +33,7 @@ Nachweise in `docs/VERIFICATION.md`, Abschnitt „Version 2.0.1".
 - **Datenschutztext:** Er nannte zwei Werte im Browserspeicher, darunter die gewählte Sprache. Gespeichert wird nur die Tagesmarke des Zählers. Der Satz ist berichtigt, und die Seite liest keinen Sprachwert mehr aus dem Speicher
 
 ### Geändert
-- **Am Handy gibt es kein Springen auf der Zeitleiste und keine Beamer-Ansicht, egal wie es gehalten wird** (Entscheidung des Betreibers vom 2026-10-09). Bisher hing beides an der Fensterbreite: Ein quer gehaltenes Handy konnte springen und die Beamer-Ansicht wählen, ein hochkant gehaltenes nicht. Als Handy gilt ein Fenster bis 500 Pixel Breite oder ein Gerät mit Fingerbedienung, dessen Fenster höchstens 500 Pixel hoch ist. Tablets und Rechner sind nicht betroffen (`docs/adr/ADR-0008`)
+- **Am Handy gibt es kein Springen auf der Zeitleiste und keine Beamer-Ansicht, egal wie es gehalten wird.** Bisher hing beides an der Fensterbreite: Ein quer gehaltenes Handy konnte springen und die Beamer-Ansicht wählen, ein hochkant gehaltenes nicht. Als Handy gilt ein Fenster bis 500 Pixel Breite oder ein Gerät mit Fingerbedienung, dessen Fenster höchstens 500 Pixel hoch ist. Tablets und Rechner sind nicht betroffen (`docs/adr/ADR-0008`)
 
 ### Hinzugefügt
 - Prüfung in echtem mobilem Safari: `npm run test:ios` (`scripts/check-ios.js`) misst die Seite im iPhone- und iPad-Simulator von Xcode. Sie gehört zu den Prüfungen vor jeder Auslieferung (`docs/RUNBOOK.md`)
@@ -41,8 +41,8 @@ Nachweise in `docs/VERIFICATION.md`, Abschnitt „Version 2.0.1".
 
 ## [2.0.0] - 2026-10-09
 
-Neue Bedienung: Beamer-Ansicht und Steuerleiste mit Zeitleiste. Die Versionsnummer
-hat der Betreiber festgelegt. Ausgeliefert am 2026-10-09; Nachweise in
+Neue Bedienung: Beamer-Ansicht und Steuerleiste mit Zeitleiste; wegen des
+Umfangs eine neue Hauptversion. Ausgeliefert am 2026-10-09; Nachweise in
 `docs/VERIFICATION.md`, Abschnitt „Auslieferung von v2.0.0".
 
 ### Hinzugefügt
