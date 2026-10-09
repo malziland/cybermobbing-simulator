@@ -82,7 +82,7 @@ QUnit.module('i18n', function () {
   // ===== NEW TESTS =====
 
   QUnit.test('detectLanguage() returns de by default', function (assert) {
-    // detectLanguage falls back to 'de' when no URL param, localStorage, or matching navigator.language
+    // detectLanguage falls back to 'de' when no URL param or matching navigator.language
     // We can't easily mock all three, but we can verify the function exists and returns a valid lang
     var result = detectLanguage();
     assert.ok(
@@ -183,27 +183,21 @@ QUnit.module('i18n', function () {
 
   // ===== EXPANDED TESTS =====
 
-  QUnit.test(
-    'detectLanguage() with localStorage fallback: sim_lang is picked up',
-    function (assert) {
-      var origLang = currentLang;
-      var origStored = localStorage.getItem('sim_lang');
-      // Remove any URL param influence by testing localStorage path
-      localStorage.setItem('sim_lang', 'en');
-      var result = detectLanguage();
-      // detectLanguage checks URL param first, then localStorage -- if no URL param, localStorage wins
-      // We can't control the URL param in tests, but we verify localStorage is respected
-      // when it's set to a valid language
-      assert.ok(result === 'de' || result === 'en', 'detectLanguage returns a valid language');
-      // Clean up
-      if (origStored) {
-        localStorage.setItem('sim_lang', origStored);
-      } else {
-        localStorage.removeItem('sim_lang');
-      }
-      currentLang = origLang;
+  QUnit.test('detectLanguage() ignores a language left in localStorage', function (assert) {
+    // The page stores no language, and the legal notice says so: a value that
+    // something else left under that name must not change the result
+    var origStored = localStorage.getItem('sim_lang');
+    localStorage.removeItem('sim_lang');
+    var plain = detectLanguage();
+    var other = plain === 'de' ? 'en' : 'de';
+    localStorage.setItem('sim_lang', other);
+    assert.strictEqual(detectLanguage(), plain, 'a stored "' + other + '" is not picked up');
+    if (origStored) {
+      localStorage.setItem('sim_lang', origStored);
+    } else {
+      localStorage.removeItem('sim_lang');
     }
-  );
+  });
 
   QUnit.test('t() returns same string when called twice (idempotent)', function (assert) {
     var orig = currentLang;

@@ -11,7 +11,7 @@ Firebase Realtime Database (RTDB) für den anonymen View-Counter.
 ```
 Browser ──(HTTPS, statisch)──> Firebase Hosting (Google Ireland Ltd)
 Browser ──(HTTPS/WSS)────────> Firebase RTDB: /views (+1), /daily/<YYYY-MM-DD> (+1, lesend fürs Limit)
-Browser ──(lokal)────────────> localStorage: cms_last_count (geschrieben), sim_lang (nur gelesen)
+Browser ──(lokal)────────────> localStorage: cms_last_count (einziger Wert)
 ```
 
 ## Schützenswerte Güter (Assets)
@@ -25,9 +25,9 @@ Es gibt **keine personenbezogenen Daten**: keine Cookies, kein Tracking, keine
 IP-Speicherung durch die App. Im localStorage schreibt die App nur
 `cms_last_count` (Tagesmarke gegen Doppelzählung); der Wert bleibt auf dem
 Endgerät und ist personenunabhängig (offengelegt im Impressum, CHANGELOG 1.1.3).
-`sim_lang` wird nur gelesen und von der App nie geschrieben; das Impressum
-spricht noch von einer gespeicherten Sprache (gemessen am 2026-10-08,
-Entscheidung über den Text liegt beim Betreiber).
+Einen zweiten Wert gibt es nicht: Die Sprache wird weder gespeichert noch aus
+dem Speicher gelesen (bis v2.0.0 las die App `sim_lang`, ohne es je zu
+schreiben, und das Impressum nannte zwei Werte; mit v2.0.1 bereinigt).
 
 ## Rollen und Vertrauensgrenzen
 
