@@ -43,9 +43,11 @@ und Abwaegungen dazu: `docs/adr/ADR-0008`.
 - **Impressum:** Solange es offen ist, pausiert die Simulation.
 
 Zeiten zeigt die Leiste nicht. In schmalen Fenstern laesst sie Teile weg, damit
-die Zeitleiste Platz behaelt. Auf Handys ist die Zeitleiste reine Anzeige, und
-die Beamer-Ansicht gibt es dort nicht, egal wie das Handy gehalten wird. Die
-Grenzen stehen in `docs/adr/ADR-0008`.
+die Zeitleiste Platz behaelt. Am Handy gibt es keine Leiste: Ein Tipp auf das
+nachgebaute Handy pausiert, ein zweiter setzt fort, das Impressum steht als
+Zeile darunter. Quer gehalten bittet die Seite, das Handy zu drehen. Die
+Beamer-Ansicht gibt es am Handy nicht. Grenzen und Erkennung stehen in
+`docs/adr/ADR-0008`.
 
 ## Beamer-Ansicht
 

@@ -59,10 +59,10 @@ Es gibt eine zweite Darstellung desselben Ablaufs, die **Beamer-Ansicht**:
   wird. Die Grenze liegt bewusst niedrig, damit alte Beamer (800 × 600, oder
   1024 × 768 bei 125 % Skalierung) die Beamer-Ansicht behalten. Ein quer
   gehaltenes Handy ist breiter als 700 Pixel und hatte die Beamer-Ansicht bis
-  v2.0.0, mit Knöpfen von 17 bis 18 Pixel; seit dem 2026-10-09 gilt dort die
-  Regel für Handys aus ADR-0008. Beides entscheidet `stageFits()` in
-  `js/stage.js`, im Stylesheet dieselbe Medienabfrage; der Ablauftest prüft
-  beide Seiten der Grenzen.
+  v2.0.0, mit Knöpfen von 17 bis 18 Pixel. Seit dem 2026-10-09 gibt es sie am
+  Handy nicht mehr; was als Handy gilt, steht in ADR-0008. Beides entscheidet
+  `stageFits()` in `js/stage.js`; der Ablauftest prüft beide Seiten der Grenzen
+  und Tablets in beiden Lagen.
 - **Höhen folgen der sichtbaren Fensterhöhe.** Auf Tablets und Handys ist
   `100vh` die Höhe mit eingefahrenen Browserleisten, also mehr, als zu sehen
   ist. Die Beamer-Ansicht rechnet deshalb mit `--wh` und `--u` (beide aus

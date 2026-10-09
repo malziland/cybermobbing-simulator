@@ -132,6 +132,10 @@
 <!-- DISCLAIMER (visible on all screens) -->
 <div class="disclaimer" data-i18n="disclaimer.full">Fiktives Szenario zu Bildungszwecken. Alle Namen und Inhalte sind erfunden. Die dargestellten App-Oberfl&auml;chen, Logos und Markenzeichen sind Eigentum der jeweiligen Unternehmen und werden hier ausschlie&szlig;lich zur realistischen Veranschaulichung im Bildungskontext verwendet. Diese Seite steht in keiner Verbindung zu den genannten Plattformen oder deren Betreibern. Die genannten Plattformen bieten Meldefunktionen und Hilfsangebote gegen Cybermobbing.</div>
 <div class="impr-link-bar"><span class="impr-link" id="impLinkGlobal" tabindex="0" role="button" data-i18n="ui.impressum">Impressum</span></div>
+<div class="rotate-hint" id="rotateHint" role="status">
+  <svg aria-hidden="true" viewBox="0 0 150 120" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="66" width="80" height="44" rx="9" stroke="rgba(255,255,255,.32)" stroke-width="4" stroke-dasharray="7 7"/><rect x="96" y="14" width="46" height="96" rx="10" stroke="#fff" stroke-width="4.500"/><path d="M110 99h18" stroke="#fff" stroke-width="4"/><path d="M30 52A46 46 0 0 1 76 14" stroke="#fe2c55" stroke-width="5"/><path d="M66 5l11 9-10 10" stroke="#fe2c55" stroke-width="5"/></svg>
+  <p data-i18n="ui.rotate">Bitte dreh dein Handy hochkant</p>
+</div>
 
 <!-- IMPRESSUM MODAL -->
 <div id="impModal" class="imp-modal" role="dialog" aria-modal="true" aria-label="Impressum">
@@ -237,7 +241,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8696a0" stroke-width="1.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
         </div>
       </div>
-      <div class="wa-msgs" id="wC"></div>
+      <div class="wa-msgs" id="wC" tabindex="-1"></div>
       <div class="wa-bar">
         <div class="inp">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8696a0" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
@@ -257,7 +261,7 @@
         <span class="usr">sara.xoxo</span>
         <span class="more">&middot;&middot;&middot;</span>
       </div>
-      <div class="ig-body" id="igB">
+      <div class="ig-body" id="igB" tabindex="-1">
         <div class="ig-img" id="igPh"></div>
         <div class="ig-acts">
           <svg id="igH" viewBox="0 0 24 24" fill="none" stroke="#f5f5f5" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -291,7 +295,7 @@
         <div class="tk-sb"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="n" id="tkSh">0</span></div>
       </div>
       <div class="tk-bot"><div class="u">@lukas.der.echte</div><div class="d" data-i18n-html="tk.botDesc">I can't &#128128;&#128128; <span class="tag">#school</span> <span class="tag">#exposed</span> <span class="tag">#fy</span></div></div>
-      <div class="tk-cmt" id="tkCo"><div class="hdr" id="tkCmH" data-i18n="tk.commentsHeader">Kommentare</div><div class="lst" id="tkCl"></div></div>
+      <div class="tk-cmt" id="tkCo"><div class="hdr" id="tkCmH" data-i18n="tk.commentsHeader">Kommentare</div><div class="lst" id="tkCl" tabindex="-1"></div></div>
       <div class="tk-nav">
         <div class="ni act"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z"/></svg><span class="tk-nav-active" data-i18n="tk.navStart">Start</span></div>
         <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35" stroke-linecap="round"/></svg><span data-i18n="tk.navDiscover">Entdecken</span></div>
@@ -321,7 +325,7 @@
         <div class="cnt"><div class="nm" data-i18n="im.contactName">Mama &#10084;&#65039;</div><div class="sub" data-i18n="im.label">iMessage</div></div>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="1.5"><path d="M15.05 5A5 5 0 0119 8.95M15.05 1A9 9 0 0123 8.94M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.09 5.18 2 2 0 015.11 3h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 11.91a16 16 0 006 6l2.27-2.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
-      <div class="im-msgs" id="imC"></div>
+      <div class="im-msgs" id="imC" tabindex="-1"></div>
       <div class="im-bar">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg>
         <div class="inp">iMessage</div>

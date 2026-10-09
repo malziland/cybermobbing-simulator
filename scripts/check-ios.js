@@ -1,7 +1,8 @@
 /**
  * iPhone and iPad check in Apple's simulator, i.e. in real mobile Safari.
  *
- * Why: the test browsers of Playwright take "vh" as the visible height. Mobile
+ * Why: only here the page meets a browser that says of itself that it runs on
+ * a phone or a tablet, and the test browsers of Playwright take "vh" as the visible height. Mobile
  * Safari does not (there vh is the height with the browser's own bars
  * retracted), and exactly there the phone ran under the control bar in
  * v2.0.0. This run measures the page where that difference exists.
@@ -152,6 +153,10 @@ function probe() {
         beamer: document.body.classList.contains('beamer'),
         stageLive: document.body.classList.contains('stage-live'),
         seekAllowed: window.ctlSeekAllowed(),
+        phoneDevice: document.documentElement.classList.contains('phone-device'),
+        seek: rect('#ctlSeek'),
+        sound: rect('.ctl-sound'),
+        sign: rect('#pauseBtn .ico-pause'),
         role: seek.getAttribute('role'),
         phone: rect('#phone'),
         bar: rect('#ctlBar'),
@@ -170,7 +175,7 @@ function probe() {
       document.getElementById('startBtn').click();
       setTimeout(function () {
         window.simSeek(Number(query.get('t')));
-        if (!window.simPaused && !window.ctlEnded()) window.togglePause();
+        if (!window.simPaused && !window.ctlEnded() && !query.get('run')) window.togglePause();
         setTimeout(report, 900);
       }, 1500);
     }, 800);
@@ -295,10 +300,8 @@ function probe() {
         ' px'
     );
     check(
-      startPhone.coarse && startPhone.width <= 500,
-      'iPhone: the simulator is a phone as the page defines it (finger, ' +
-        startPhone.width +
-        ' px wide)'
+      startPhone.phoneDevice && startPhone.coarse,
+      'iPhone: Safari in the simulator is recognised as a phone (' + startPhone.width + ' px wide)'
     );
     check(
       !startPhone.tiles && !startPhone.beamer,
@@ -312,15 +315,20 @@ function probe() {
       m.app === scene[2],
       'iPhone ' + scene[0] + ': the station shows this scene (' + m.app + ')'
     );
-    const above = !!m.phone && !!m.bar && m.phone.bottom <= m.bar.top + 0.5 && m.phone.top >= -0.5;
+    const fits =
+      !!m.phone &&
+      !!m.legal &&
+      m.phone.top >= -0.5 &&
+      m.phone.bottom <= m.legal.top + 0.5 &&
+      m.legal.bottom <= m.visible + 0.5;
     check(
-      above && insideWindow(m),
+      fits,
       'iPhone ' +
         scene[0] +
-        ': the phone ends above the control bar and inside the visible window (phone ' +
+        ': the phone lies inside the visible window and ends above the legal notice (phone ' +
         (m.phone ? m.phone.top + ' to ' + m.phone.bottom : 'missing') +
-        ', bar from ' +
-        (m.bar ? m.bar.top : '?') +
+        ', legal notice from ' +
+        (m.legal ? m.legal.top : '?') +
         ', visible ' +
         m.visible +
         ', 100vh ' +
@@ -328,17 +336,19 @@ function probe() {
         ')'
     );
     check(
-      m.role === 'progressbar' && !m.seekAllowed && !m.knob && !m.viewSwitch && !m.beamer,
-      'iPhone ' + scene[0] + ': timeline is a progress display, no knob, no view switch'
+      !m.seek && !m.sound && !m.viewSwitch && !m.knob && !m.beamer && !m.seekAllowed && !!m.sign,
+      'iPhone ' + scene[0] + ': no control bar and no jumping; paused, the pause sign is shown'
     );
   }
   const helpPhone = await station(iphone, 'iphone-help', 't=138');
   if (helpPhone) {
     check(
-      insideWindow(helpPhone) &&
+      !helpPhone.bar &&
         !!helpPhone.replay &&
-        helpPhone.replay.bottom <= helpPhone.bar.top + 0.5,
-      'iPhone help page: bar and legal notice inside the visible window, "again" button above the bar'
+        !!helpPhone.legal &&
+        helpPhone.replay.bottom <= helpPhone.legal.top + 0.5 &&
+        helpPhone.legal.bottom <= helpPhone.visible + 0.5,
+      'iPhone help page: no tap area; "again" button and legal notice inside the visible window'
     );
   }
 
@@ -365,8 +375,12 @@ function probe() {
     // one stage unit: 1% of the width of the 16:9 area that fits into the visible window
     const padUnit = Math.min(stagePad.width / 100, stagePad.visible / 56.25);
     check(
-      stagePad.beamer && stagePad.stageLive && stagePad.role === 'slider' && !!stagePad.knob,
-      'iPad with ?beamer=1: projector view on, jumping on'
+      !stagePad.phoneDevice &&
+        stagePad.beamer &&
+        stagePad.stageLive &&
+        stagePad.role === 'slider' &&
+        !!stagePad.knob,
+      'iPad with ?beamer=1: not a phone; projector view on, jumping on'
     );
     check(
       insideWindow(stagePad) &&

@@ -4,6 +4,19 @@ Alle relevanten Änderungen an diesem Projekt werden hier dokumentiert.
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) und folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [Unveröffentlicht]
+
+Handy-Fassung nach den Wünschen des Betreibers vom 2026-10-09. Nachweise in
+`docs/VERIFICATION.md`.
+
+### Geändert
+- **Am Handy gibt es keine Steuerleiste mehr.** Das nachgebaute Handy nutzt die Höhe bis zur Impressum-Zeile (im iPhone-Simulator 36 Pixel mehr). Ein Tipp auf das Handy pausiert, ein zweiter setzt fort; solange pausiert ist, steht ein Pause-Zeichen in der Mitte. Fortschritt und Ton-Knopf entfallen dort; die Lautstärke regeln die Tasten des Handys. Das Impressum bleibt als Zeile unter dem Handy
+- **Quer gehalten zeigt die Seite am Handy einen Hinweis „Bitte dreh dein Handy hochkant"** statt einer winzigen Simulation. Der Lauf pausiert dabei und geht nach dem Drehen weiter, außer er war schon vorher pausiert
+- **Handys werden am Gerät erkannt, nicht mehr an der Fenstergröße:** Der Bildschirm misst an der kürzeren Seite unter 600 Pixel, und der Browser meldet sich als Handy-Browser oder der Finger ist das Hauptzeigegerät. Tablets behalten in beiden Lagen die volle Fassung mit Leiste, Springen und Beamer-Ansicht; Rechner bleiben, wie sie waren, auch mit schmalem Fenster (`docs/adr/ADR-0008`)
+
+### Behoben
+- **Tab-Taste im Lauf** (Bestand, in Chrome und Firefox): Nach mehrmaligem Tab nahm ein rollbarer Bereich im nachgebauten Handy den Fokus, und der Handy-Bildschirm rutschte weg; das Handy stand leer. Die Bereiche sind aus der Tab-Folge genommen
+
 ## [2.0.1] - 2026-10-09
 
 Behebung für Smartphones und Tablets. Den Fehler hat der Betreiber am Tag der

@@ -67,12 +67,21 @@ bash setup.sh          # lädt App-Icons (einmalig, nicht im Repo)
   Prozent des Fensters, die Beamer-Ansicht rechnet mit `--wh` und `--u`. Die
   Testbrowser zeigen den Unterschied nicht; der Ablauftest liest deshalb die
   Regeln, und `npm run test:ios` misst in echtem Safari.
-- Handy prüfen heißt: Fenstergrößen, wie sie der Handy-Browser zeigt (niedriger
-  als das Gerät, weil seine Leisten abgehen), mit Fingerbedienung, hochkant und
-  quer. Gerätemaße wie 393 × 852 sind kein Handy-Test.
-- Was als Handy gilt, steht in ADR-0008 und an drei Stellen im Code, die gleich
-  lauten müssen: Abschnitt „PHONES" in `css/styles.css`, `ctlSeekAllowed()`,
-  `stageFits()`. Am Handy gibt es kein Springen und keine Beamer-Ansicht.
+- Handy prüfen heißt: ein Browser, der sich als Handy meldet, mit dem Bildschirm
+  eines Handys, in den Fenstergrößen, die er zeigt (niedriger als das Gerät,
+  weil seine Leisten abgehen), hochkant und quer. Im Ablauftest liefert das
+  `phoneOptions()`; Gerätemaße wie 393 × 852 ohne Handy-Kennung sind ein
+  schmales Rechnerfenster, kein Handy.
+- Was als Handy gilt, steht in ADR-0008 und wird an genau einer Stelle
+  entschieden: `PHONE_DEVICE` in `js/helpers.js` (Klasse `phone-device` am
+  `<html>`). Am Handy gibt es keine Leiste, kein Springen und keine
+  Beamer-Ansicht; ein Tipp auf das Handy pausiert, quer erscheint der
+  Dreh-Hinweis. Neue Regeln für Handys hängen an dieser Klasse, nicht an einer
+  Fenstergröße. Über das nachgebaute Handy wird nichts gelegt, das Gesten
+  annimmt: Wischen muss die Chats weiter rollen.
+- Rollbare Bereiche im nachgebauten Handy tragen `tabindex="-1"`. Sonst nimmt
+  einer davon in Chrome und Firefox den Tastaturfokus, und der Browser schiebt
+  den Handy-Bildschirm weg.
 
 ## Wo was steht
 

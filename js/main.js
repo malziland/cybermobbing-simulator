@@ -84,6 +84,9 @@ function mkPhoto(el, h) {
  * the phone clock, and the first scene (p1 WhatsApp).
  */
 var simStarted = false;
+/** @type {number} Time (ms) from which a tap on the phone counts; set at the start */
+var phoneTapFrom = 0;
+
 function go() {
   if (simStarted) return; // Guard against double-click
   simStarted = true;
@@ -255,10 +258,60 @@ function initPage() {
     }
   }
 
+  // ---------- Phone held sideways ----------
+  // Sideways the simulated phone would be tiny. The page shows a hint to turn
+  // the phone instead and pauses the run; turned back, the run continues,
+  // unless it had been paused before. Tablets and computers never see this.
+  var rotateHint = document.getElementById('rotateHint');
+  var rotatePausedSim = false;
+  var rotateFocus = null;
+  function rotateSync() {
+    if (!PHONE_DEVICE || !rotateHint) return;
+    var sideways = phoneSideways();
+    if (sideways === rotateHint.classList.contains('show')) return;
+    // The keyboard focus comes back to where it was once the phone is upright
+    if (sideways) rotateFocus = document.activeElement;
+    rotateHint.classList.toggle('show', sideways);
+    // Nothing behind the hint can be reached while it is shown
+    for (var i = 0; i < document.body.children.length; i++) {
+      var el = document.body.children[i];
+      if (el !== rotateHint && el.tagName !== 'SCRIPT') el.inert = sideways;
+    }
+    if (!sideways && impModal.classList.contains('show')) impSetBehind(true);
+    var phone = document.getElementById('phone');
+    var running = simStarted && !!phone && !phone.classList.contains('hidden');
+    if (sideways) {
+      if (running && !simPaused) {
+        togglePause();
+        rotatePausedSim = simPaused;
+      }
+    } else if (rotatePausedSim) {
+      rotatePausedSim = false;
+      if (simPaused) togglePause();
+    }
+    if (!sideways) {
+      if (rotateFocus && rotateFocus.focus && document.contains(rotateFocus)) rotateFocus.focus();
+      rotateFocus = null;
+    }
+  }
+  // While the hint is shown no key reaches the page behind it (M, B, Escape)
+  window.addEventListener(
+    'keydown',
+    function (e) {
+      if (rotateHint && rotateHint.classList.contains('show')) e.stopImmediatePropagation();
+    },
+    true
+  );
+  window.addEventListener('resize', rotateSync);
+  window.addEventListener('orientationchange', rotateSync);
+  rotateSync();
+
   // Start button
   var startBtn = document.getElementById('startBtn');
   if (startBtn) {
     startBtn.addEventListener('click', function () {
+      // A second tap on the start button must not pause the run (see below)
+      phoneTapFrom = Date.now() + 700;
       if (bgMusic) {
         bgMusic.loop = true;
         applyVolume();
@@ -345,6 +398,17 @@ function initPage() {
   // Pause
   var pauseBtn = document.getElementById('pauseBtn');
   if (pauseBtn) pauseBtn.addEventListener('click', togglePause);
+  // On a phone a tap on the simulated phone pauses and continues (ADR-0008).
+  // A swipe is not a tap, so a paused chat can still be scrolled back. The
+  // first moment after the start is left out: a second tap on the start
+  // button lands on the phone and would pause the run at once.
+  var phoneTap = document.getElementById('phone');
+  if (PHONE_DEVICE && phoneTap) {
+    phoneTap.addEventListener('click', function () {
+      if (!simStarted || ctlEnded() || Date.now() < phoneTapFrom) return;
+      togglePause();
+    });
+  }
 
   // Impressum links
   var impCloseBtn = document.getElementById('impCloseBtn');

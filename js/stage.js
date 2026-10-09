@@ -104,14 +104,13 @@ var STAGE_MIN_WIDTH = 701;
 
 /**
  * Tells whether the projector view is offered here: the window is wide enough
- * and the device is not a phone held sideways (operated by finger, window up
- * to and including 500 CSS pixels high). On a phone the 16:9 stage and its
- * buttons would be tiny, however it is held.
+ * and the device is not a phone (PHONE_DEVICE in helpers.js). On a phone the
+ * 16:9 stage and its buttons would be tiny, however it is held.
  * @returns {boolean} True from STAGE_MIN_WIDTH on, except on a phone
  */
 function stageFits() {
+  if (PHONE_DEVICE) return false;
   if (!window.matchMedia) return true;
-  if (window.matchMedia('(pointer:coarse) and (max-height:500px)').matches) return false;
   return window.matchMedia('(min-width:' + STAGE_MIN_WIDTH + 'px)').matches;
 }
 
