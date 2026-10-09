@@ -106,11 +106,10 @@ Zwei Wege, je nach Situation:
    Hosting → Release-Verlauf → gewünschtes früheres Release → „Rollback".
    Stellt exakt die zuvor ausgelieferten Dateien wieder her; Code im Repo
    bleibt unverändert.
-   **Achtung bei Releases vor v2.0.0:** Sie enthalten `.git/` und
-   `.claude/settings.local.json`. Ein Rollback auf sie stellt diese Dateien
-   wieder öffentlich ins Netz. Nur als Notmaßnahme, und danach sofort über
-   Weg 2 neu ausliefern. Sobald v2.0.0 einen Tag stabil läuft, die älteren
-   Releases im Release-Verlauf löschen; dann gilt für sie nur noch Weg 2.
+   Die Releases vor v2.0.0 enthielten `.git/` und
+   `.claude/settings.local.json`; sie sind am 2026-10-09 gelöscht. Im
+   Release-Verlauf stehen damit nur noch Stände, die allein die Seite
+   enthalten. Für Stände vor v2.0.0 gilt nur noch Weg 2.
 2. **Code-Rollback über Git-Tag:**
    ```bash
    git worktree add /tmp/rollback vX.Y.Z   # alten Stand isoliert auschecken

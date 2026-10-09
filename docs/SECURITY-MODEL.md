@@ -68,8 +68,9 @@ Live-Seite lieferte deshalb `.git/` (Verlauf samt lokaler Stände),
 über beide Dateien und über die Historie ohne Fund; `.git/config` ohne
 eingebettete Zugangsdaten); das Repository ist öffentlich, `js/config.js` war
 nie Teil davon. Behoben mit v2.0.0: Ausschlussliste, Sperre vor dem Deploy,
-Prüfung nach dem Deploy (siehe Tabelle oben). Offen: Die früheren
-Hosting-Releases enthalten die Dateien weiter, siehe `docs/RUNBOOK.md`, Rollback.
+Prüfung nach dem Deploy (siehe Tabelle oben). Die früheren Hosting-Releases,
+die diese Dateien noch enthielten, sind am 2026-10-09 gelöscht (65 Stände;
+Nachweis in `docs/VERIFICATION.md`, Tabelle „Außerhalb des Repositorys").
 
 ## Bewusst akzeptierte Risiken
 

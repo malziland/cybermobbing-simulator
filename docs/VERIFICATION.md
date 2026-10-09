@@ -123,8 +123,8 @@ Zwischen der Nachmessung (`ac26a5e`) und dem ausgelieferten Stand liegen nur
 | Aufrufzähler unberührt | lesender Abruf von `/views` vor dem Deploy und nach dem letzten Lauf | 361 und 361 | 20:21 und 20:23 |
 
 Rückweg: `docs/RUNBOOK.md`, Abschnitt „Rollback". Sauber sind die Releases von v2.0.1
-und v2.0.0 (beide enthalten nur die Seite); ältere stellen `.git/` wieder ins
-Netz. Gezogen wird der Rückweg, wenn Tippen oder Drehen am echten Handy nicht
+und v2.0.0 (beide enthalten nur die Seite); die älteren sind seit dem
+2026-10-09 22:11 gelöscht. Gezogen wird der Rückweg, wenn Tippen oder Drehen am echten Handy nicht
 tun, was hier beschrieben ist.
 
 ## Version 2.0.1
@@ -156,7 +156,8 @@ belegt").
 
 Rückweg: `docs/RUNBOOK.md`, Abschnitt „Rollback". Für diesen Release ist auch
 Weg 1 sauber, solange er auf das Release von v2.0.0 zeigt (das erste, das nur
-die Seite enthält); ältere Releases stellen `.git/` wieder ins Netz. Gezogen
+die Seite enthält). Die älteren Releases sind seit dem 2026-10-09 22:11
+gelöscht. Gezogen
 wird der Rückweg, wenn die Seite am Handy schlechter aussieht als mit v2.0.0
 oder Fehler wirft.
 
@@ -164,6 +165,7 @@ Außerhalb des Repositorys, am 2026-10-09 miterledigt:
 
 | Punkt | Stand |
 |---|---|
+| Alte Hosting-Releases gelöscht (sie enthielten `.git/` und `.claude/settings.local.json`) | Über den Client der Firebase-CLI: vorher 68 Releases, alle Versionen `FINALIZED`, davon 65 vor dem 2026-10-09 01:44 (28.03. bis 16.07.2026, bis zu 433 Dateien). Gelöscht um 22:11: „Geloescht: 65 | fehlgeschlagen: 0". Nachgezählt um 22:13: „{"FINALIZED":3,"DELETED":65}", die drei Stände vom 2026-10-09 mit je 35 Dateien bleiben; `verify-live.sh` Rückgabewert 0, `/` 200, `/.git/HEAD` 404. Das Skript brach ab, wenn nicht genau diese drei Stände übrig geblieben wären |
 | `ffmpeg` auf dem Entwicklungsrechner | `brew upgrade ffmpeg`: 8.1 auf 9.0.2 (die alte Fassung suchte `libx265.215`, installiert war `libx265.217`); `ffmpeg -version` startet, 2026-10-09 16:51 |
 | Video-Export einmal ausgeführt | `node export-video.js` in `scripts/video-export`, 16:57 bis 17:01: Rückgabewert 0, „Aufnahme beendet nach 165.0s"; `ffprobe`: h264 und aac, 2160 × 4680, 169 s; dazu die FHD-Fassung. Sichtprüfung an sechs Einzelbildern (8, 25, 60, 85, 125, 160 s): Handy bildfüllend, keine Steuerleiste im Bild, wie im Video vom 2026-05-16. Die zwei alten Videos liegen als Kopie in `output/sicherung-2026-05-16/` (bytegleich geprüft). Der erste Versuch brach ab, weil der Anschluss 8765 von einem fremden Programm belegt war (`server.py 8765`, nicht aus diesem Projekt); der Lauf nutzte deshalb eine Wegwerfkopie des Skripts mit Anschluss 8791. Das fremde Programm blieb unberührt |
 | Drei Vorschläge von Dependabot | je Versionshinweise gelesen, Änderung und Bezugsquellen geprüft, Pipeline auf dem neu aufgesetzten Vorschlag grün, dann `gh pr merge`: Nr. 2 `actions/checkout` 7.0.0 auf 7.0.1 (festgeschriebene Kennung gleich der Markierung `v7.0.1`); Nr. 4 Playwright 1.61.1 auf 1.63.0 in `scripts/video-export`; Nr. 6 im Wurzelverzeichnis `@axe-core/playwright` 4.13.0, ESLint 10.12.0, `globals` 17.13.0, Playwright 1.63.0, Prettier 3.9.9, dazu acht neue und zwei entfallene Unterpakete, alle 22 Bezugsquellen `registry.npmjs.org`. Zusammengeführt um 17:02 (`95198ef`, `708c5cf`, `a9c8cb3`). Danach am Stand `a9c8cb3`, 17:03 bis 17:07: `npm run lint` 0; QUnit 2229/2229; Ablauftest 356 „ok", 0 „FAIL"; `npm run test:ios` 22 „ok"; `npm audit` zweimal 0; `verify-live.sh` Rückgabewert 0 (die Seite ist unverändert); Pipeline-Lauf 37948757684 success |
