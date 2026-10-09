@@ -43,7 +43,8 @@ und Abwaegungen dazu: `docs/adr/ADR-0008`.
 - **Impressum:** Solange es offen ist, pausiert die Simulation.
 
 Zeiten zeigt die Leiste nicht. In schmalen Fenstern laesst sie Teile weg, damit
-die Zeitleiste Platz behaelt; auf Handys ist die Zeitleiste reine Anzeige. Die
+die Zeitleiste Platz behaelt. Auf Handys ist die Zeitleiste reine Anzeige, und
+die Beamer-Ansicht gibt es dort nicht, egal wie das Handy gehalten wird. Die
 Grenzen stehen in `docs/adr/ADR-0008`.
 
 ## Beamer-Ansicht
@@ -119,6 +120,7 @@ npm ci                # Werkzeuge installieren
 npm run lint          # ESLint + Prettier
 npm run test          # QUnit-Suite headless (Playwright)
 npm run test:e2e      # End-to-End + Accessibility (axe-core)
+npm run test:ios      # iPhone und iPad im Simulator von Xcode (nur am Mac)
 npm run dev           # lokale Vorschau (Firebase-Hosting-Emulator)
 ```
 

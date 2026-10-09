@@ -1,6 +1,6 @@
 # RUNBOOK — Betrieb, Deployment, Rollback
 
-Stand: 2026-10-08
+Stand: 2026-10-09
 
 ## Lokale Vorschau
 
@@ -16,21 +16,32 @@ Ablauftest prüft alle drei Fälle.
 
 ## Prüfen vor jedem Deploy
 
-Alle fünf müssen mit Rückgabewert 0 enden; gelesen wird der Rückgabewert, nicht
+Alle sechs müssen mit Rückgabewert 0 enden; gelesen wird der Rückgabewert, nicht
 die Ausgabe:
 
 ```bash
 npm run lint                        # ESLint + Prettier-Check
 npm run test                        # QUnit-Suite headless (Playwright/Chromium)
-npm run test:e2e                    # End-to-End + Accessibility (axe-core)
+npm run test:e2e                    # End-to-End + Accessibility (axe-core), am Ende ein Abschnitt in WebKit
+npm run test:ios                    # iPhone und iPad im Simulator von Xcode: echtes mobiles Safari
 npm audit --audit-level=high        # Abhängigkeiten (auch in scripts/video-export)
 gitleaks git --redact .             # Geheimnisse in der gesamten Historie
 ```
 
-Dieselben Prüfungen laufen als Pflicht-Checks der Pipeline auf jedem Pull
-Request und jedem Push auf `main` (`.github/workflows/ci.yml`). Dort laufen die
+Fünf davon laufen als Pflicht-Checks der Pipeline auf jedem Pull Request und
+jedem Push auf `main` (`.github/workflows/ci.yml`). Dort laufen die
 Layout-Prüfungen des Ablauftests mit Linux-Schriften; ein grüner Lauf am Mac
 ersetzt das nicht.
+
+`npm run test:ios` läuft nur am Mac, die Pipeline kann es nicht. Es ist trotzdem
+Pflicht: Die Testbrowser rechnen die Fensterhöhe anders als Safari auf Handy und
+Tablet, und genau dort lag in v2.0.0 die Steuerleiste über dem Handy. Der Lauf
+startet die Simulatoren selbst und fährt sie wieder herunter; der echte
+Aufrufzähler wird nicht berührt. Fehlt Xcode oder ein Simulator, endet er mit
+Rückgabewert 2, und das ist ein Fehlschlag, kein übersprungener Schritt.
+Notschalter, nur mit ausdrücklicher Freigabe des Betreibers: ohne diesen Lauf
+ausliefern und sofort danach am echten Handy prüfen (jede Szene einmal ansehen:
+Das nachgebaute Handy endet über der Leiste). Im Abschluss wird das genannt.
 
 ## Deployment
 

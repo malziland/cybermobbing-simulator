@@ -1,6 +1,6 @@
 # ADR-0008: Eine Steuerleiste mit Zeitleiste zum Vor- und Zurückspringen
 
-Status: Angenommen · Datum: 2026-10-08 · ausgeliefert mit v2.0.0
+Status: Angenommen · Datum: 2026-10-08 · ausgeliefert mit v2.0.0 · Handy-Regel geändert am 2026-10-09
 
 ## Kontext
 
@@ -26,7 +26,7 @@ Umschalter der Ansicht, Impressum.
   Beamer-Ansicht ist die Leiste an der Bildfläche ausgerichtet und rein
   proportional (3,6 % der Flächenbreite hoch); in der Handy-Ansicht hat sie
   dieselbe Formel mit einer Mindesthöhe von 40 CSS-Pixeln, in der kurzen
-  Fassung bis 500 Pixel Fensterbreite fest 36.
+  Fassung am Handy fest 36.
 - Rot bedeutet in der Leiste nur „gewählt" oder „aktiv" (gewählte Ansicht,
   Pause, Ton aus). Impressum und Lautstärke-Regler sind dort weiß.
 - **Die Leiste zeigt keine Zeiten.** Der Titel verspricht 120 Sekunden, der
@@ -53,7 +53,9 @@ Umschalter der Ansicht, Impressum.
 - Nach jedem Sprung werden alle laufenden Einblendungen beendet (`ctlSettle()`).
   Einträge im Handy sind anfangs unsichtbar und werden erst durch ihre
   Einblendung sichtbar; ohne diesen Schritt stünde das Handy nach einem Sprung
-  kurz leer.
+  kurz leer. Die großen Nachrichten der Beamer-Ansicht nehmen ihren Zustand
+  während des Sprungs ohne Übergang an (`body.jumping`); Safari ließ ältere
+  Nachrichten sonst nach jedem Sprung 0,4 Sekunden lang abdunkeln.
 - Die Beamer-Ansicht braucht keine eigene Sprunglogik. Sie liest weiterhin nur
   mit, was im Handy geschieht; `stageReset()` hängt sie vor dem Neustart neu an.
 - Ein Sprung in den letzten Abschnitt lässt die letzte Seite bis zu ihrem Ende
@@ -72,20 +74,37 @@ Umschalter der Ansicht, Impressum.
   zur nächsten und vorigen Szene, Pos1 zum Anfang, Ende zur letzten Seite.
 - Nur die Haupttaste der Maus springt.
 
-**Schmale Fenster** (Breite in CSS-Pixeln, Grenzen jeweils einschließlich):
+**Schmale Fenster und Handys** (Maße in CSS-Pixeln, Grenzen jeweils einschließlich):
 
-| Fensterbreite | Was die Leiste zeigt |
+| Fenster | Was die Leiste zeigt |
 |---|---|
-| ab 901 | alles |
-| 701 bis 900 | in der Handy-Ansicht ohne Lautstärke-Regler (der Ton-Knopf bleibt); die Zeitleiste braucht den Platz |
-| 501 bis 700 | zusätzlich ohne Umschalter der Ansicht: Dort gibt es die Beamer-Ansicht nicht (ADR-0007) |
-| bis 500 | kurze Fassung: Pause, Fortschritt, Ton. Die Zeitleiste ist reine Anzeige, das Impressum steht als Zeile darunter |
+| ab 901 breit | alles |
+| 701 bis 900 breit | in der Handy-Ansicht ohne Lautstärke-Regler (der Ton-Knopf bleibt); die Zeitleiste braucht den Platz |
+| 501 bis 700 breit | zusätzlich ohne Umschalter der Ansicht: Dort gibt es die Beamer-Ansicht nicht (ADR-0007) |
+| Handy | kurze Fassung: Pause, Fortschritt, Ton. Die Zeitleiste ist reine Anzeige, das Impressum steht als Zeile darunter, die Beamer-Ansicht gibt es nicht |
 
-Beispiele: 900 Pixel ohne, 901 mit Regler; 700 ohne, 701 mit Umschalter; 500
-ohne, 501 mit Springen. Grund für die Sperre bis 500 Pixel: Wer die Simulation
-am eigenen Handy ansieht, soll den Ablauf nicht überspringen, und auf der
-flachen Leiste eines Handys ist ein Sprung mit dem Finger leicht versehentlich
-ausgelöst.
+**Als Handy gilt** ein Fenster bis 500 Pixel Breite, oder ein Gerät mit
+Fingerbedienung, dessen Fenster höchstens 500 Pixel hoch ist (ein quer
+gehaltenes Handy). Beispiele:
+
+- iPhone hochkant, 402 × 655: Handy. iPhone quer, 874 × 340: Handy.
+- Gerät mit Fingerbedienung, 900 × 500: Handy; 900 × 501: keines.
+- iPad mini, 744 × 1047 oder quer: kein Handy. Es darf springen und hat die
+  Beamer-Ansicht.
+- Ein Rechner mit Maus ist nie ein Handy, auch nicht mit niedrigem Fenster. Nur
+  das schmale Fenster bis 500 Pixel Breite bekommt auch dort die kurze Fassung,
+  weil der Platz fehlt.
+
+Die Regel steht an drei Stellen und muss dort gleich lauten: im Abschnitt
+„PHONES" von `css/styles.css`, in `ctlSeekAllowed()` (`js/controls.js`) und in
+`stageFits()` (`js/stage.js`). Der Ablauftest hält sie als `isPhone()` dagegen.
+
+Grund: Am Handy ist die Zeitleiste rund 290 Pixel breit (2 Pixel je Sekunde)
+und 34 hoch. Springen mit dem Finger ist dort fummelig, und wer die Simulation
+am eigenen Handy ansieht, soll den Ablauf nicht überspringen. Bis v2.0.0 hing
+die Sperre allein an der Fensterbreite: Ein quer gehaltenes Handy durfte
+springen und die Beamer-Ansicht wählen, ein hochkant gehaltenes nicht. Der
+Betreiber hat am 2026-10-09 entschieden: am Handy einheitlich nicht.
 
 **Impressum:** Wird es während des Laufs geöffnet, pausiert die Simulation; beim
 Schließen läuft sie weiter, außer sie war schon vorher pausiert.
@@ -135,7 +154,7 @@ Schließen läuft sie weiter, außer sie war schon vorher pausiert.
 
 ## Bedingung für Neubewertung
 
-Rückmeldung aus dem ersten Workshop: ob das Springen genutzt wird, ob die Marken
-reichen und ob die Sperre des Springens auf Handys sinnvoll ist. Die Sperre
-hängt an der Fensterbreite; ein quer gehaltenes Handy ist breiter als 500 Pixel
-und darf springen.
+Rückmeldung aus dem ersten Workshop: ob das Springen genutzt wird und ob die
+Marken reichen. Die Regel für Handys ist eine Entscheidung des Betreibers vom
+2026-10-09. Sie steht wieder an, wenn am Handy gesprungen werden soll; dann
+braucht die Leiste dort eine größere Fläche für den Finger.
