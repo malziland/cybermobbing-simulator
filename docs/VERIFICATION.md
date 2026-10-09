@@ -16,16 +16,17 @@ Prettier 3.9.9.
 
 | Anforderung | Befehl | Ergebnis | Stand |
 |---|---|---|---|
-| Lint | `npm run lint` | Rückgabewert 0 | `bcf5bd7`, 2026-10-09 16:40 |
-| Unit-Tests (QUnit, headless) | `npm run test` | Rückgabewert 0, „QUnit: 2229/2229 assertions passed, 0 failed" | `bcf5bd7`, 2026-10-09 16:41 |
-| Unit-Tests in zufälliger Reihenfolge, ganze Suite und jedes der neun Module allein | Testseite mit `?seed=true` und `&module=…` (Wegwerfskript) | zehn Läufe, je 0 fehlgeschlagen; ganze Suite 2229/2229 | `bcf5bd7`, 2026-10-09 16:45 |
-| Ablauftest mit Barrierefreiheit (axe-core, WCAG 2.x A/AA), hermetisch ohne die echte Datenbank; am Ende ein Abschnitt in WebKit | `npm run test:e2e` | Rückgabewert 0, „E2E: all checks passed", 356 Zeilen „ok", 0 Zeilen „FAIL" | `bcf5bd7`, 2026-10-09 16:43 |
-| iPhone und iPad in echtem mobilem Safari (Simulator von Xcode), hermetisch | `npm run test:ios` | Rückgabewert 0, „iOS: all checks passed", 22 Zeilen „ok", 0 Zeilen „FAIL". iPhone 18 Pro: Fenster 402 × 714 sichtbar bei 100vh = 754, in allen fünf Szenen „phone 8 to 642.2, bar from 650.3". iPad mini: 744 × 1001 sichtbar bei 100vh = 1076 | `bcf5bd7`, 2026-10-09 16:44 |
-| Abhängigkeiten | `npm audit --audit-level=high` im Wurzelverzeichnis und in `scripts/video-export` | je Rückgabewert 0, „found 0 vulnerabilities" | `bcf5bd7`, 2026-10-09 16:45 |
-| Geheimnisse in der Historie | `gitleaks git --redact .` | Rückgabewert 0, „78 commits scanned", „no leaks found". Gegenprobe vom 2026-10-09 01:40 an `c79f02d` mit zwei erfundenen Schlüsseln im echten Format: Rückgabewert 1, „leaks found: 2" | `bcf5bd7`, 2026-10-09 16:46 |
+| Lint | `npm run lint` | Rückgabewert 0 | `ac26a5e`, 2026-10-09 19:47 |
+| Unit-Tests (QUnit, headless) | `npm run test` | Rückgabewert 0, „QUnit: 2261/2261 assertions passed, 0 failed" | `ac26a5e`, 2026-10-09 19:47 |
+| Unit-Tests in zufälliger Reihenfolge, ganze Suite und jedes der neun Module allein | Testseite mit `?seed=true` und `&module=…` (Wegwerfskript) | zehn Läufe, je 0 fehlgeschlagen; ganze Suite 2261/2261 | `ac26a5e`, 2026-10-09 19:55 |
+| Ablauftest mit Barrierefreiheit (axe-core, WCAG 2.x A/AA), hermetisch ohne die echte Datenbank; darin Handys in Chromium und WebKit | `npm run test:e2e` | Rückgabewert 0, „E2E: all checks passed", 400 Zeilen „ok", 0 Zeilen „FAIL" | `ac26a5e`, 2026-10-09 19:50 |
+| iPhone und iPad in echtem mobilem Safari (Simulator von Xcode), hermetisch | `npm run test:ios` | Rückgabewert 0, „iOS: all checks passed", 22 Zeilen „ok", 0 Zeilen „FAIL". iPhone 18 Pro: als Handy erkannt, Fenster 402 × 714 sichtbar bei 100vh = 754, in allen fünf Szenen „phone 8 to 678.2, legal notice from 692.1" (36 Pixel höher als in v2.0.1). iPad mini: kein Handy, 744 × 1001 sichtbar | `ac26a5e`, 2026-10-09 19:51 |
+| Abhängigkeiten | `npm audit --audit-level=high` im Wurzelverzeichnis und in `scripts/video-export` | je Rückgabewert 0, „found 0 vulnerabilities" | `ac26a5e`, 2026-10-09 19:52 |
+| Geheimnisse in der Historie | `gitleaks git --redact .` | Rückgabewert 0, „83 commits scanned", „no leaks found". Gegenprobe vom 2026-10-09 01:40 an `c79f02d` mit zwei erfundenen Schlüsseln im echten Format: Rückgabewert 1, „leaks found: 2" | `ac26a5e`, 2026-10-09 19:52 |
 | Ausgeliefert wird nur die Seite (Sperre vor dem Deploy) | `node scripts/deploy-files.js` | Rückgabewert 0, „deploy-files: 33 files, all part of the page; all 25 files the page loads are among them". So auch an `bcf5bd7` am 2026-10-09 16:45. Gegenproben: mit der Ausschlussliste von `85ee8b4` Rückgabewert 1, „133 file(s) that do not belong to the page … (of 166 files)"; fünf Köder in einer Kopie (Sicherungskopie `js/config.js.bak`, Verknüpfung nach außen, fehlendes Icon, fehlendes Skript, neuer Ordner) je Rückgabewert 1 | `c79f02d`, 2026-10-09 01:40 |
 | Live-Seite vor dem Deploy (Beleg, dass die Prüfung anschlagen kann) | `bash scripts/verify-live.sh` | Rückgabewert 1, „live site differs (35 problem(s) in 33 files and 21 hidden paths)"; darunter `.git/HEAD`, `.git/config`, `.git/index`, `.claude/settings.local.json`, `.github/workflows/ci.yml` je „EXPOSED … (HTTP 200)". Probe mit einem Prüfsummen-Werkzeug, das nichts liefert: Rückgabewert 2 | Live-Seite v1.2.1 gegen `c79f02d`, 2026-10-09 01:40 |
 | Live-Seite vor dem Deploy von v2.0.1 | `bash scripts/verify-live.sh` | Rückgabewert 1, „live site differs (5 problem(s) in 33 files and 21 hidden paths)" | Live-Seite v2.0.0 gegen `bcf5bd7`, 2026-10-09 16:45 |
+| Live-Seite vor dem Deploy von v2.0.2 | `bash scripts/verify-live.sh` | Rückgabewert 1, „live site differs (7 problem(s) in 33 files and 21 hidden paths)" | Live-Seite v2.0.1 gegen `ac26a5e`, 2026-10-09 19:52 |
 | Pipeline | GitHub Actions, Workflow `ci`, auf dem Pull Request | siehe Abschnitte „Version 2.0.1" und „Auslieferung von v2.0.0" | — |
 
 ## Gegenproben
@@ -43,6 +44,8 @@ werden.
 | einzeln | `2ad6ab2`, 2026-10-08 | Schutzzeile des Hinweis-Zeitgebers | QUnit rot, zwei Zusicherungen |
 | 4 | `c79f02d` (Arbeitsstand davor), 2026-10-09 | 3: Impressum öffnet am Ende, Start vor dem Zähler-Skript wird nicht nachgezählt, Ruhezustand zählt als Laufzeit | alle 3 gemeldet: „scrolled 834 of 834 px", „0 writes", QUnit 1 fehlgeschlagen |
 | 5 | `bcf5bd7` (Arbeitsstand davor), 2026-10-09 | 18 für v2.0.1: 15 im Ablauftest, 1 in QUnit, 2 im Simulator; je eine Behebung in einer eigenen Kopie zurückgedreht | alle 18 gemeldet, je an der erwarteten Prüfung; die drei Läufe ohne Rückbau grün. Beispiele: alte Handy-Regel im Simulator: „phone 16.5 to 657.4, bar from 650.3, visible 714, 100vh 754" in fünf Szenen; Beamer-Ansicht mit `vh` am iPad: „bar 639.5 to 666.3, phone 340.6 to 705.2"; Sprung-Sperre nur nach Breite: „role slider" bei 852 × 393 mit Fingerbedienung; letzte Seite ohne die engeren Abstände: „needs 467 px, has 409"; Lesezugriff auf die Sprache wieder eingebaut: QUnit 1 fehlgeschlagen. Ein erster Durchgang lief, während am Code weitergearbeitet wurde, und ist verworfen |
+| 6 | `5002054` (Arbeitsstand davor), 2026-10-09 | 17 für die Handy-Fassung ohne Leiste: 14 im Ablauftest, 2 in QUnit, 1 im Simulator | 16 gemeldet, davon zwei an einer anderen Prüfung als erwartet (bei einer brach der Lauf mit 24 „FAIL" ab); 1 nicht gemeldet (die Höhe für die Leiste blieb auf der letzten Seite frei). Dafür eine Prüfung nachgeschrieben, danach gemeldet: „the disclaimer ends 48.0 px above the legal notice". Eine Regel erwies sich dabei als überflüssig und ist entfernt |
+| 7 | `ac26a5e` (Arbeitsstand davor), 2026-10-09 | 16 für die Behebungen nach der Abnahme: 12 im Ablauftest, 3 in QUnit, 1 im Simulator; dazu 1 für den Startbildschirm | alle 17 gemeldet, je an der erwarteten Prüfung; die Läufe ohne Rückbau grün. Beispiele: ohne Schonfrist „two quick taps on the start button" rot; Knopf nimmt wieder Gesten an: „nothing lies over the phone" rot; ohne „tabindex": „764 px - entered: igB, igB"; Startzeile: „-7.0 px below the share button" |
 | früher am 2026-10-08 | Zwischenstände bis `152c990` | 13, danach 2 wiederholt | 11 gemeldet, 2 nicht (gehaltene Taste, Platzprüfung); beide Prüfungen geschärft, danach gemeldet |
 
 Die Kopien der nicht gemeldeten Proben sind verworfen; die Protokolle der Runden
@@ -72,18 +75,35 @@ lagen im Arbeitsordner der Sitzung und sind nicht Teil des Repositorys.
 ## Nicht belegt
 
 - Lesbarkeit im echten Saal, Klang, Windows-Schulrechner.
-- Das Handy des Betreibers selbst: Seine Safari-Leiste ist zweizeilig und lässt
-  weniger Höhe als die des Simulators. Geprüft ist diese Fenstergröße
-  (402 × 655) nur in den Testbrowsern; der Simulator ließ sich nicht auf diese
-  Leiste umstellen. Beleg wäre ein Foto nach der Auslieferung von v2.0.1.
-- Android-Handys und Tablets im Querformat in einem echten Browser (gerechnet
-  und in den Testbrowsern geprüft; der Simulator lässt sich nicht drehen).
+- **Drehen und Tippen in echtem Safari.** Geprüft in Chromium und WebKit mit
+  Handy-Kennung, hochkant zusätzlich im Simulator. Der Simulator ließ sich
+  weder drehen noch antippen: `xcrun simctl help` kennt kein Drehen, die
+  Geräte-App von Xcode 27 heißt DeviceHub, und `osascript` meldete „keine
+  Berechtigung für den Hilfszugriff". Der Betreiber hat am 2026-10-09
+  entschieden, nach der Auslieferung am eigenen Handy zu testen.
+- Android-Handys und Android-Tablets an echten Geräten: Die Erkennung stützt
+  sich dort auf Bildschirmgröße, Kennung und Zeigegerät; gemessen ist keines.
 - Echtes Safari und Firefox am Rechner (gemessen sind die Testbrowser von
   Playwright; echtes mobiles Safari deckt `npm run test:ios` ab).
 - Loslassen der Maus außerhalb des Fensters und Ruhezustand an einem echten Gerät.
-- Die Behebungen in `c79f02d` nach der Nachprüfung und alle Behebungen von
-  v2.0.1: nur vom Autor geprüft (Prüfungen und Gegenproben oben), nicht fremd
-  abgenommen.
+- Die Behebungen in `c79f02d` und alle Behebungen von v2.0.1: nur vom Autor
+  geprüft. Für v2.0.2 siehe Abschnitt „Version 2.0.2", Abnahme.
+
+## Version 2.0.2
+
+Prüfungen und Gegenproben stehen in den Tabellen oben, Stand `ac26a5e`.
+
+**Abnahme durch eine zweite Instanz** (auf Wunsch des Betreibers vor der
+Auslieferung; sie kannte die Ergebnisse des Autors nicht):
+
+| Schritt | Was | Ergebnis | Zeit (CEST) |
+|---|---|---|---|
+| Abnahme des Stands `5002054` | elf eigene Sonden in Chromium, WebKit und Firefox, 254 Bilder; dazu `npm run lint`, `npm run test`, `npm run test:e2e` | die fünf Wünsche des Betreibers erfüllt; sieben Fehler und Lücken, zwei Bestandsfehler; Rückgabewerte 0 / 0 / 0, 2251/2251, 382 „ok" | 2026-10-09 18:29 bis 19:11 |
+| Behebung | Commit `ac26a5e` | alle sieben und beide Bestandsfehler bearbeitet, je mit eigener Prüfung; Liste in `docs/handover/2026-10-09-handy-ohne-leiste.md`, Abschnitt 4a | 19:12 bis 19:52 |
+| Nachmessung durch dieselbe Instanz | ihre eigenen Sonden am Stand `ac26a5e` | wird mit der Auslieferung eingetragen | — |
+
+Die Auslieferung ist noch nicht erfolgt; ihre Nachweise werden hier mit dem
+Deploy eingetragen.
 
 ## Version 2.0.1
 
